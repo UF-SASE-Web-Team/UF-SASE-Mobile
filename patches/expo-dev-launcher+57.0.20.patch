@@ -1,0 +1,14 @@
+diff --git a/node_modules/expo-dev-launcher/ios/DevLauncherNetworkInterceptor.swift b/node_modules/expo-dev-launcher/ios/DevLauncherNetworkInterceptor.swift
+index 5a2f8b9..2a9a811 100644
+--- a/node_modules/expo-dev-launcher/ios/DevLauncherNetworkInterceptor.swift
++++ b/node_modules/expo-dev-launcher/ios/DevLauncherNetworkInterceptor.swift
+@@ -42,7 +42,8 @@ public final class DevLauncherNetworkInterceptor: NSObject, ExpoRequestCdpInterc
+     let host = bundleUrl.host ?? "localhost"
+     let port = bundleUrl.port ?? 8081
+     let scheme = bundleUrl.scheme == "https" ? "wss" : "ws"
+-    let urlString = "\(scheme)://\(host):\(port)/inspector/network"
++    let formattedHost = host.contains(":") ? "[\(host)]" : host
++    let urlString = "\(scheme)://\(formattedHost):\(port)/inspector/network"
+     guard let url = URL(string: urlString) else {
+       fatalError("Invalid network inspector URL: \(urlString)")
+     }

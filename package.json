@@ -35,18 +35,21 @@
     "@types/react": "~19.2.2",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~57.0.2",
+    "patch-package": "^8.0.1",
     "supabase": "^2.118.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start --dev-client",
+    "start:ios": "REACT_NATIVE_PACKAGER_HOSTNAME='[::1]' expo start --dev-client",
     "start:tunnel": "expo start --dev-client --tunnel",
     "android": "expo run:android",
-    "ios": "expo run:ios",
+    "ios": "REACT_NATIVE_PACKAGER_HOSTNAME='[::1]' expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "doctor": "npx expo-doctor",
+    "postinstall": "patch-package",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:reset": "supabase db reset"
