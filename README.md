@@ -322,25 +322,25 @@ Only follow this section when you are assigned database work. Start Docker
 Desktop before running the local Supabase stack.
 
 ```bash
-npm run supabase:start
+npm run db:start
 ```
 
 Create database changes as migrations:
 
 ```bash
-npx supabase migration new <descriptive_name>
+npm run db:migration -- <descriptive_name>
 ```
 
 Rebuild and verify the local database from migrations:
 
 ```bash
-npm run supabase:reset
+npm run db:reset
 ```
 
 Stop the local services when finished:
 
 ```bash
-npm run supabase:stop
+npm run db:stop
 ```
 
 Remote migration deployment should be handled by a project lead or CI. Never
