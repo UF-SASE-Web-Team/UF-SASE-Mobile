@@ -10,14 +10,14 @@ on:
     types: [published]
 
 jobs:
-  notify-discord
+  notify-discord:
     runs-on: ubuntu-latest
     steps:
       - name: Forward event to Discord Native Webhook
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
-          WEBHOOK_URL=${{DISCORD_WEBHOOK%/}/github"
+          WEBHOOK_URL="${DISCORD_WEBHOOK%/}/github"
 
           curl -s -S -X POST \
             -H "Content-Type: application/json" \
