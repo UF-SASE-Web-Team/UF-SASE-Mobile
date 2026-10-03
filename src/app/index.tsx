@@ -10,8 +10,7 @@ export default function Index() {
         <Text style={styles.eyebrow}>UF SASE</Text>
         <Text style={styles.title}>Mobile development environment</Text>
         <Text style={styles.description}>
-          Expo Router and the Supabase client are installed and ready for feature
-          development.
+          Expo Router and the Supabase client are installed and ready for feature development.
         </Text>
 
         <View style={styles.statusCard}>

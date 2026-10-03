@@ -15,12 +15,12 @@ jobs:
         uses: sarisia/actions-status-discord@v1
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          avatar_url: "https://github.com/${{ github.actor }}.png"
-          username: "${{ github.actor }}"
+          avatar_url: 'https://github.com/${{ github.actor }}.png'
+          username: '${{ github.actor }}'
 
-          title: "update on ${{ github.ref_name }}"
+          title: 'update on ${{ github.ref_name }}'
           url: ${{ github.event.pull_request.html_url || github.event.repository.html_url }}
-          description: ""
+          description: ''
 
           # Green for PR merge, Blue for PR open, Purple for Push
           color: >-
