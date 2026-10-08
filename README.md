@@ -316,35 +316,8 @@ npm run doctor
 
 ---
 
-## Optional: Local Supabase Development
-
-Only follow this section when you are assigned database work. Start Docker
-Desktop before running the local Supabase stack.
-
-```bash
-npm run db:start
-```
-
-Create database changes as migrations:
-
-```bash
-npm run db:migration -- <descriptive_name>
-```
-
-Rebuild and verify the local database from migrations:
-
-```bash
-npm run db:reset
-```
-
-Stop the local services when finished:
-
-```bash
-npm run db:stop
-```
-
-Remote migration deployment should be handled by a project lead or CI. Never
-share privileged database credentials with the team.
+## Supabase Development (Optional)
+If you are assigned database work view [DATABASE.md](DATABASE.md) for setup and to learn about migrations.
 
 ---
 
