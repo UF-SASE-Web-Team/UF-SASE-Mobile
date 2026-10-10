@@ -4,7 +4,7 @@ import { isSupabaseConfigured } from '@/lib/env';
 
 export default function HomePage() {
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
         <Text style={styles.title}>Home</Text>
         <View style={styles.statusCard}>
