@@ -13,13 +13,15 @@ function SplashController() {
 }
 
 function RootNavigator() {
-  const { session } = useAuth();
+  const { session, isRecovering } = useAuth();
+  const isAuthenticated = !!session && !isRecovering;
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Protected guard={!!session}>
+      <Stack.Protected guard={isAuthenticated}>
         <Stack.Screen name="(tabs)" />
       </Stack.Protected>
-      <Stack.Protected guard={!session}>
+      <Stack.Protected guard={!isAuthenticated}>
         <Stack.Screen name="(auth)" />
       </Stack.Protected>
     </Stack>

@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SixDigitInput } from '@/components/SixDigitInput';
+import { useAuth } from '@/context/AuthContext';
 
 export default function VerifyScreen() {
   const { email, mode } = useLocalSearchParams<{ email: string; mode: string }>();
@@ -12,6 +13,7 @@ export default function VerifyScreen() {
   const [loading, setLoading] = useState(false);
   const [cooldown, setCooldown] = useState(60);
   const router = useRouter();
+  const { setIsRecovering } = useAuth();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -29,6 +31,8 @@ export default function VerifyScreen() {
     }
 
     setLoading(true);
+    if (mode === 'recovery') setIsRecovering(true);
+
     const { error } = await supabase.auth.verifyOtp({
       email,
       token: cleanToken,
@@ -37,6 +41,7 @@ export default function VerifyScreen() {
     setLoading(false);
 
     if (error) {
+      if (mode === 'recovery') setIsRecovering(false);
       Alert.alert('Verification failed', error.message);
       return;
     }
