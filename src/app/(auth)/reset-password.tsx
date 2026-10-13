@@ -132,6 +132,8 @@ export default function ResetPasswordScreen() {
               onPress={() => setShowPassword((prev) => !prev)}
               style={styles.eyeIcon}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+              accessibilityRole="button"
             >
               <Ionicons
                 name={showPassword ? 'eye-off-outline' : 'eye-outline'}

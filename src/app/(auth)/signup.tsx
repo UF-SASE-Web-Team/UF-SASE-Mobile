@@ -245,6 +245,8 @@ export default function SignupScreen() {
                 onPress={() => setEmail('')}
                 style={styles.clearIcon}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                accessibilityLabel="Clear email"
+                accessibilityRole="button"
               >
                 <Ionicons name="close-outline" size={22} color="#999999" />
               </TouchableOpacity>
@@ -280,6 +282,8 @@ export default function SignupScreen() {
               onPress={() => setShowPassword((prev) => !prev)}
               style={styles.eyeIcon}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+              accessibilityRole="button"
             >
               <Ionicons
                 name={showPassword ? 'eye-off-outline' : 'eye-outline'}
@@ -318,6 +322,8 @@ export default function SignupScreen() {
                 onPress={() => setFullName('')}
                 style={styles.clearIcon}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                accessibilityLabel="Clear full name"
+                accessibilityRole="button"
               >
                 <Ionicons name="close-outline" size={22} color="#999999" />
               </TouchableOpacity>
@@ -369,6 +375,8 @@ export default function SignupScreen() {
                   onPress={() => setUsername('')}
                   style={styles.clearIcon}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  accessibilityLabel="Clear username"
+                  accessibilityRole="button"
                 >
                   <Ionicons name="close-outline" size={22} color="#999999" />
                 </TouchableOpacity>
