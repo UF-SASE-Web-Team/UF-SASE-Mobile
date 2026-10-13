@@ -8,9 +8,9 @@ Backend developers primarily make schema changes locally. Remote commands are fo
 
 | Environment | Where | Used for | Used by |
 |---|---|---|---|
-| Local | Docker on your machine via `supabase start` | Developing and testing migrations | Anyone changing the schema
-| Staging | Supabase project ([sase-app-staging](https://supabase.com/dashboard/project/yoazhfliefswktpszaob)) | Verifying changes in shared, consistent remote project | Everyone. Fronend developers can use this and skip Docker
-| Prod | Supabase project | Real user data | Leads only.
+| Local | Docker on your machine via `supabase start` | Developing and testing migrations | Anyone changing the schema |
+| Staging | Supabase project ([sase-app-staging](https://supabase.com/dashboard/project/yoazhfliefswktpszaob)) | Verifying changes in shared, consistent remote project | Everyone. Fronend developers can use this and skip Docker |
+| Prod | Supabase project | Real user data | Leads only. |
 
 ## Migrations
 
@@ -46,6 +46,7 @@ A migration is an SQL file that describes an addition to the schema and lives in
 | `npx supabase start` | Start local Supabase stack |
 | `npx supabase stop` | Stop local Supabase stack |
 | `npx supabase db reset` | Resets local DB, run all migrations and `seed.sql` |
+| `npx supabase test db` | Runs database pgTAP tests in `supabase/tests/` |
 | `npx supabase migration new <name>` | Create a named empty migration file |
 | `npx supabase db diff -f <name>` | Generate a named migration file from local Studio changes |
 
