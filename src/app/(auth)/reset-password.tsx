@@ -25,6 +25,15 @@ export default function ResetPasswordScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [touched, setTouched] = useState({
+    password: false,
+    confirmPassword: false,
+  });
+
+  const markTouched = (field: keyof typeof touched) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+  };
+
   const router = useRouter();
   const { setIsRecovering, signOut } = useAuth();
   const isCompletedRef = useRef(false);
@@ -117,7 +126,12 @@ export default function ResetPasswordScreen() {
 
           {/* New Password */}
           <Text style={styles.label}>New Password</Text>
-          <View style={styles.inputContainer}>
+          <View
+            style={[
+              styles.inputContainer,
+              (touched.password || hasSubmitted) && !isPasswordValid && styles.inputErrorBorder,
+            ]}
+          >
             <TextInput
               placeholder="New password"
               secureTextEntry={!showPassword}
@@ -126,6 +140,7 @@ export default function ResetPasswordScreen() {
               autoCorrect={false}
               value={password}
               onChangeText={setPassword}
+              onBlur={() => markTouched('password')}
               style={styles.input}
             />
             <TouchableOpacity
@@ -142,7 +157,7 @@ export default function ResetPasswordScreen() {
               />
             </TouchableOpacity>
           </View>
-          {hasSubmitted && !isPasswordValid && (
+          {(touched.password || hasSubmitted) && !isPasswordValid && (
             <Text style={[styles.statusText, styles.statusError]}>
               Must be at least 8 characters with letters and numbers.
             </Text>
@@ -150,7 +165,14 @@ export default function ResetPasswordScreen() {
 
           {/* Confirm Password */}
           <Text style={styles.label}>Confirm Password</Text>
-          <View style={styles.inputContainer}>
+          <View
+            style={[
+              styles.inputContainer,
+              (touched.confirmPassword || hasSubmitted) &&
+                !doPasswordsMatch &&
+                styles.inputErrorBorder,
+            ]}
+          >
             <TextInput
               placeholder="Confirm new password"
               secureTextEntry={!showPassword}
@@ -159,10 +181,11 @@ export default function ResetPasswordScreen() {
               autoCorrect={false}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
+              onBlur={() => markTouched('confirmPassword')}
               style={styles.input}
             />
           </View>
-          {hasSubmitted && !doPasswordsMatch && (
+          {(touched.confirmPassword || hasSubmitted) && !doPasswordsMatch && (
             <Text style={[styles.statusText, styles.statusError]}>Passwords do not match.</Text>
           )}
 
@@ -211,6 +234,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#CCCCCC',
     borderRadius: 8,
+  },
+  inputErrorBorder: {
+    borderColor: '#dc2626',
   },
   input: {
     flex: 1,
