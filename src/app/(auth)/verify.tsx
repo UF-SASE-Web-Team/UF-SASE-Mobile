@@ -90,7 +90,11 @@ export default function VerifyScreen() {
         <Ionicons name="arrow-back" size={24} color="#000000" />
       </TouchableOpacity>
       <Text style={styles.title}>Check your email</Text>
-      <Text>Enter the 6-digit code sent to {email}.</Text>
+      {mode === 'recovery' ? (
+        <Text>If an account for {email} exists, we&apos;ve sent a 6-digit code.</Text>
+      ) : (
+        <Text>Enter the 6-digit code sent to {email}.</Text>
+      )}
       <SixDigitInput
         value={token}
         onChangeText={setToken}

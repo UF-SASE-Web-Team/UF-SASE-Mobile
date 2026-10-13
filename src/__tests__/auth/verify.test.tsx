@@ -52,8 +52,21 @@ describe('VerifyScreen', () => {
 
       expect(screen.getByText('Check your email')).toBeTruthy();
       expect(screen.getByText(/test@ufl\.edu/)).toBeTruthy();
+      expect(screen.getByText('Enter the 6-digit code sent to test@ufl.edu.')).toBeTruthy();
       expect(screen.getByText('Verify')).toBeTruthy();
       expect(screen.getByText(/Resend code/)).toBeTruthy();
+    });
+
+    it('renders recovery instructions when mode is recovery', async () => {
+      (useLocalSearchParams as jest.Mock).mockReturnValue({
+        email: 'recovery@ufl.edu',
+        mode: 'recovery',
+      });
+      await render(<VerifyScreen />);
+
+      expect(
+        screen.getByText("If an account for recovery@ufl.edu exists, we've sent a 6-digit code."),
+      ).toBeTruthy();
     });
 
     it('navigates back when back button pressed and canGoBack is true', async () => {
