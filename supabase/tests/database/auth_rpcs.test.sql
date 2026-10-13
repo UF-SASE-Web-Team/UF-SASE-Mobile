@@ -198,5 +198,81 @@ select throws_like(
   'Inserting user with whitespace-only full_name should raise exception'
 );
 
+-- 6. Test delete_user_account RPC
+select has_function(
+  'public',
+  'delete_user_account',
+  'Function public.delete_user_account() should exist'
+);
+
+-- Test unauthenticated access fails
+set local role anon;
+select throws_like(
+  $$ select public.delete_user_account(); $$,
+  '%Not authenticated%',
+  'Anon role cannot execute delete_user_account'
+);
+reset role;
+
+-- Create user with a check-in to test cascade and anonymization
+do $$
+declare
+  v_delete_id uuid := gen_random_uuid();
+  v_event_id uuid;
+begin
+  insert into auth.users (
+    id, instance_id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+  ) values (
+    v_delete_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+    'deleteme@gmail.com', '{"provider":"email"}', json_build_object('username', 'deleteme', 'full_name', 'Delete Me User'), now(), now()
+  );
+
+  select id into v_event_id from public.events limit 1;
+  insert into public.check_ins (event_id, user_id, method)
+  values (v_event_id, v_delete_id, 'code');
+end $$;
+
+-- Verify profile and check-in exist before deletion
+select is(
+  (select count(*) from public.profiles where username = 'deleteme'),
+  1::bigint,
+  'Profile exists before deletion'
+);
+
+-- Execute account deletion as the user
+do $$
+declare
+  v_delete_id uuid;
+begin
+  select id into v_delete_id from auth.users where email = 'deleteme@gmail.com';
+  execute format('set local role authenticated');
+  execute format('set local "request.jwt.claim.sub" to %L', v_delete_id::text);
+  execute format('set local "request.jwt.claims" to %L', json_build_object('sub', v_delete_id::text, 'role', 'authenticated')::text);
+  perform public.delete_user_account();
+end $$;
+
+reset role;
+
+-- Verify user is deleted from auth.users
+select is(
+  (select count(*) from auth.users where email = 'deleteme@gmail.com'),
+  0::bigint,
+  'User should be deleted from auth.users'
+);
+
+-- Verify profile is cascade deleted from public.profiles
+select is(
+  (select count(*) from public.profiles where username = 'deleteme'),
+  0::bigint,
+  'Profile should be deleted from public.profiles via cascade'
+);
+
+-- Verify check-in is retained but anonymized (user_id set to null)
+select is(
+  (select count(*) from public.check_ins where user_id is null),
+  1::bigint,
+  'Check-in user_id should be set to null when user is deleted'
+);
+
 select * from finish();
 rollback;
