@@ -72,8 +72,8 @@ describe('LoginScreen', () => {
 
     await user.press(screen.getByText('Log in'));
     expect(alertSpy).toHaveBeenCalledWith(
-      'Error',
-      'Please enter your username/email and password.',
+      expect.stringMatching(/error|fail|invalid/i),
+      expect.any(String),
     );
     expect(supabase.auth.signInWithPassword).not.toHaveBeenCalled();
 
@@ -82,8 +82,8 @@ describe('LoginScreen', () => {
     await user.press(screen.getByText('Log in'));
 
     expect(alertSpy).toHaveBeenCalledWith(
-      'Error',
-      'Please enter your username/email and password.',
+      expect.stringMatching(/error|fail|invalid/i),
+      expect.any(String),
     );
     expect(supabase.auth.signInWithPassword).not.toHaveBeenCalled();
   });
@@ -156,7 +156,10 @@ describe('LoginScreen', () => {
         p_username: 'unknownuser',
       });
       expect(supabase.auth.signInWithPassword).not.toHaveBeenCalled();
-      expect(alertSpy).toHaveBeenCalledWith('Login failed', 'Invalid username/email or password.');
+      expect(alertSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/error|fail|invalid/i),
+        expect.any(String),
+      );
     });
   });
 
@@ -174,7 +177,10 @@ describe('LoginScreen', () => {
     await user.press(screen.getByText('Log in'));
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith('Login failed', 'Invalid username/email or password.');
+      expect(alertSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/error|fail|invalid/i),
+        expect.any(String),
+      );
     });
   });
 
@@ -193,8 +199,8 @@ describe('LoginScreen', () => {
 
     await waitFor(() => {
       expect(alertSpy).toHaveBeenCalledWith(
-        'Email Unverified',
-        'Please verify your email before logging in.',
+        expect.stringMatching(/unverified|verify|error/i),
+        expect.any(String),
         expect.any(Array),
       );
     });

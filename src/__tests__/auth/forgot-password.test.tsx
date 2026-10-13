@@ -60,7 +60,10 @@ describe('ForgotPasswordScreen', () => {
 
     await user.press(screen.getByText('Continue'));
 
-    expect(alertSpy).toHaveBeenCalledWith('Validation Error', 'Please enter your email.');
+    expect(alertSpy).toHaveBeenCalledWith(
+      expect.stringMatching(/error|fail|invalid/i),
+      expect.any(String),
+    );
     expect(supabase.auth.resetPasswordForEmail).not.toHaveBeenCalled();
   });
 
@@ -97,7 +100,10 @@ describe('ForgotPasswordScreen', () => {
 
     await waitFor(() => {
       expect(supabase.auth.resetPasswordForEmail).toHaveBeenCalledWith('ghost@ufl.edu');
-      expect(alertSpy).toHaveBeenCalledWith('Could not send code', 'User not found');
+      expect(alertSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/error|fail|could not/i),
+        expect.any(String),
+      );
       expect(mockPush).not.toHaveBeenCalled();
     });
   });

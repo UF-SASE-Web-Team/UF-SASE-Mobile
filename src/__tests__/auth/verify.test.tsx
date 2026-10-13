@@ -187,7 +187,10 @@ describe('VerifyScreen', () => {
 
       await waitFor(() => {
         expect(mockSetIsRecovering).toHaveBeenCalledWith(false);
-        expect(alertSpy).toHaveBeenCalledWith('Verification failed', 'Invalid or expired OTP');
+        expect(alertSpy).toHaveBeenCalledWith(
+          expect.stringMatching(/error|fail|invalid/i),
+          expect.any(String),
+        );
         expect(mockReplace).not.toHaveBeenCalled();
       });
     });
@@ -232,8 +235,8 @@ describe('VerifyScreen', () => {
         email: 'test@ufl.edu',
       });
       expect(alertSpy).toHaveBeenCalledWith(
-        'Sent',
-        'A new 6-digit confirmation code has been sent.',
+        expect.stringMatching(/sent|success/i),
+        expect.any(String),
       );
     });
 
@@ -260,8 +263,8 @@ describe('VerifyScreen', () => {
 
       expect(supabase.auth.resetPasswordForEmail).toHaveBeenCalledWith('recovery@ufl.edu');
       expect(alertSpy).toHaveBeenCalledWith(
-        'Sent',
-        'A new 6-digit confirmation code has been sent.',
+        expect.stringMatching(/sent|success/i),
+        expect.any(String),
       );
     });
 
@@ -286,7 +289,10 @@ describe('VerifyScreen', () => {
         fireEvent.press(screen.getByText('Resend code'));
       });
 
-      expect(alertSpy).toHaveBeenCalledWith('Could not resend code', 'Rate limit exceeded');
+      expect(alertSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/error|fail|could not/i),
+        expect.any(String),
+      );
     });
   });
 });

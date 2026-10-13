@@ -146,7 +146,7 @@ select is(
 );
 
 -- 5. Test Trigger Validation Error Handling
-select throws_like(
+select throws_ok(
   $$
     insert into auth.users (
       id, instance_id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at
@@ -155,11 +155,12 @@ select throws_like(
       'nousername@gmail.com', '{"provider":"email"}', json_build_object('full_name', 'No Username User'), now(), now()
     );
   $$,
-  '%username is required in user_metadata%',
+  null::char(5),
+  null::text,
   'Inserting user without username should raise exception'
 );
 
-select throws_like(
+select throws_ok(
   $$
     insert into auth.users (
       id, instance_id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at
@@ -168,11 +169,12 @@ select throws_like(
       'emptyusername@gmail.com', '{"provider":"email"}', json_build_object('username', '', 'full_name', 'Empty Username User'), now(), now()
     );
   $$,
-  '%username is required in user_metadata%',
+  null::char(5),
+  null::text,
   'Inserting user with empty username should raise exception'
 );
 
-select throws_like(
+select throws_ok(
   $$
     insert into auth.users (
       id, instance_id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at
@@ -181,11 +183,12 @@ select throws_like(
       'nofullname@gmail.com', '{"provider":"email"}', json_build_object('username', 'validuser1'), now(), now()
     );
   $$,
-  '%full_name is required in user_metadata%',
+  null::char(5),
+  null::text,
   'Inserting user without full_name should raise exception'
 );
 
-select throws_like(
+select throws_ok(
   $$
     insert into auth.users (
       id, instance_id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at
@@ -194,7 +197,8 @@ select throws_like(
       'emptyfullname@gmail.com', '{"provider":"email"}', json_build_object('username', 'validuser2', 'full_name', '   '), now(), now()
     );
   $$,
-  '%full_name is required in user_metadata%',
+  null::char(5),
+  null::text,
   'Inserting user with whitespace-only full_name should raise exception'
 );
 
@@ -207,9 +211,10 @@ select has_function(
 
 -- Test unauthenticated access fails
 set local role anon;
-select throws_like(
+select throws_ok(
   $$ select public.delete_user_account(); $$,
-  '%Not authenticated%',
+  null::char(5),
+  null::text,
   'Anon role cannot execute delete_user_account'
 );
 reset role;

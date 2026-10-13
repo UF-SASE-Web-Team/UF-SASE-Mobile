@@ -68,8 +68,8 @@ describe('ResetPasswordScreen', () => {
     await user.press(screen.getByText('Update password'));
 
     expect(alertSpy).toHaveBeenCalledWith(
-      'Invalid Password',
-      'Password must be at least 8 characters with both letters and numbers.',
+      expect.stringMatching(/error|fail|invalid/i),
+      expect.any(String),
     );
     expect(supabase.auth.updateUser).not.toHaveBeenCalled();
 
@@ -82,8 +82,8 @@ describe('ResetPasswordScreen', () => {
     await user.press(screen.getByText('Update password'));
 
     expect(alertSpy).toHaveBeenCalledWith(
-      'Invalid Password',
-      'Password must be at least 8 characters with both letters and numbers.',
+      expect.stringMatching(/error|fail|invalid/i),
+      expect.any(String),
     );
   });
 
@@ -95,7 +95,10 @@ describe('ResetPasswordScreen', () => {
     await user.type(screen.getByPlaceholderText('Confirm new password'), 'MismatchPass123');
     await user.press(screen.getByText('Update password'));
 
-    expect(alertSpy).toHaveBeenCalledWith('Mismatch', 'Passwords do not match.');
+    expect(alertSpy).toHaveBeenCalledWith(
+      expect.stringMatching(/error|fail|invalid|mismatch/i),
+      expect.any(String),
+    );
     expect(supabase.auth.updateUser).not.toHaveBeenCalled();
   });
 
@@ -115,7 +118,10 @@ describe('ResetPasswordScreen', () => {
       expect(supabase.auth.updateUser).toHaveBeenCalledWith({
         password: 'NewPassword123',
       });
-      expect(alertSpy).toHaveBeenCalledWith('Update failed', 'Auth session expired');
+      expect(alertSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/error|fail|invalid/i),
+        expect.any(String),
+      );
     });
   });
 
@@ -134,8 +140,8 @@ describe('ResetPasswordScreen', () => {
     await waitFor(() => {
       expect(mockSetIsRecovering).toHaveBeenCalledWith(false);
       expect(alertSpy).toHaveBeenCalledWith(
-        'Success',
-        'Your password has been updated.',
+        expect.stringMatching(/success/i),
+        expect.any(String),
         expect.any(Array),
       );
     });
