@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -10,14 +9,13 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { supabase } from '@/lib/supabase';
 import {
   ApplicationProgramCard,
   ProgramCategory,
   ProgramWithPoCs,
   StandardProgramCard,
 } from '@/components/ProgramCards';
+import { getPrograms } from '@/services/programs';
 
 const CATEGORY_SECTIONS: { key: ProgramCategory; title: string }[] = [
   { key: 'events_and_committees', title: 'Events and Committees' },
@@ -31,80 +29,42 @@ export default function ProgramsPage() {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPrograms = async () => {
-    try {
-      setError(null);
+  useEffect(() => {
+    let isMounted = true;
 
-      // Left-join program_members so programs without PoCs (or viewed by anon users) still load
-      const { data, error: fetchError } = await supabase
-        .from('programs')
-        .select(`
-          id,
-          parent_id,
-          name,
-          slug,
-          category,
-          display_order,
-          short_description,
-          description,
-          image_url,
-          is_active,
-          application_url,
-          opens_at,
-          closes_at,
-          created_at,
-          updated_at,
-          program_members (
-            id,
-            user_id,
-            display_name,
-            is_poc,
-            academic_term,
-            profile:profiles (
-              id,
-              full_name,
-              avatar_url
-            ),
-            term:academic_terms (
-              is_current
-            )
-          )
-        `)
-        .eq('is_active', true)
-        .eq('program_members.is_poc', true)
-        .eq('program_members.term.is_current', true)
-        .order('display_order', { ascending: true });
-
-      if (fetchError) throw fetchError;
-
-      const formattedPrograms: ProgramWithPoCs[] = (data || []).map((prog: any) => {
-        // Filter out any member rows where the nested current term didn't match
-        const activePocs = (prog.program_members || []).filter(
-          (m: any) => m.is_poc && m.term?.is_current
-        );
-        return {
-          ...prog,
-          pocs: activePocs,
-        };
+    getPrograms()
+      .then((formattedPrograms) => {
+        if (!isMounted) return;
+        setPrograms(formattedPrograms);
+        setError(null);
+      })
+      .catch((err: any) => {
+        if (!isMounted) return;
+        console.error('Error fetching programs:', err.message);
+        setError(err.message);
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        setLoading(false);
       });
 
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const formattedPrograms = await getPrograms();
       setPrograms(formattedPrograms);
+      setError(null);
     } catch (err: any) {
       console.error('Error fetching programs:', err.message);
       setError(err.message);
     } finally {
-      setLoading(false);
       setRefreshing(false);
     }
-  };
-
-  useEffect(() => {
-    fetchPrograms();
-  }, []);
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchPrograms();
   };
 
   // Duplicate programs that have application info filled out and are not closed,
@@ -159,9 +119,7 @@ export default function ProgramsPage() {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
       >
         {/* Top Header */}
         <View style={styles.headerContainer}>
@@ -182,10 +140,7 @@ export default function ProgramsPage() {
               keyExtractor={(item) => `app-${item.id}`}
               contentContainerStyle={styles.horizontalList}
               renderItem={({ item }) => (
-                <ApplicationProgramCard
-                  program={item}
-                  onPress={handleCardPress}
-                />
+                <ApplicationProgramCard program={item} onPress={handleCardPress} />
               )}
             />
           </View>
@@ -193,9 +148,7 @@ export default function ProgramsPage() {
 
         {/* Rows 1-3: Category Rows */}
         {CATEGORY_SECTIONS.map((section) => {
-          const categoryPrograms = programs.filter(
-            (p) => p.category === section.key
-          );
+          const categoryPrograms = programs.filter((p) => p.category === section.key);
 
           if (categoryPrograms.length === 0) return null;
 
@@ -212,10 +165,7 @@ export default function ProgramsPage() {
                 keyExtractor={(item) => `${section.key}-${item.id}`}
                 contentContainerStyle={styles.horizontalList}
                 renderItem={({ item }) => (
-                  <StandardProgramCard
-                    program={item}
-                    onPress={handleCardPress}
-                  />
+                  <StandardProgramCard program={item} onPress={handleCardPress} />
                 )}
               />
             </View>

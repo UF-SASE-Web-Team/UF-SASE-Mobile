@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  ImageBackground,
-  Linking,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ImageBackground, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Database } from '@/types/supabase';
 
@@ -98,28 +91,15 @@ export function ApplicationProgramCard({ program, onPress }: CardProps) {
         </Text>
 
         <Pressable
-          style={[
-            styles.applyButton,
-            !isOpen && styles.applyButtonDisabled,
-          ]}
+          style={[styles.applyButton, !isOpen && styles.applyButtonDisabled]}
           disabled={!isOpen || !program.application_url}
           onPress={handleApplyPress}
         >
-          <Text
-            style={[
-              styles.applyButtonText,
-              !isOpen && styles.applyButtonTextDisabled,
-            ]}
-          >
+          <Text style={[styles.applyButtonText, !isOpen && styles.applyButtonTextDisabled]}>
             Apply
           </Text>
           {isOpen && (
-            <Ionicons
-              name="open-outline"
-              size={15}
-              color="#111"
-              style={styles.buttonIcon}
-            />
+            <Ionicons name="open-outline" size={15} color="#111" style={styles.buttonIcon} />
           )}
         </Pressable>
       </View>
@@ -134,9 +114,7 @@ export function StandardProgramCard({ program, onPress }: CardProps) {
   const summary = program.short_description || program.description || '';
   const maxChars = 82;
   const truncated =
-    summary.length > maxChars
-      ? `${summary.slice(0, maxChars).trimEnd()}... `
-      : `${summary} `;
+    summary.length > maxChars ? `${summary.slice(0, maxChars).trimEnd()}... ` : `${summary} `;
 
   return (
     <Pressable style={styles.card} onPress={() => onPress?.(program)}>
