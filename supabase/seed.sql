@@ -65,9 +65,9 @@ select
 from auth.users
 on conflict (id) do nothing;
 
-insert into public.events (title, starts_at, ends_at, location_name, checkin_code, points_value) values
-  ('General Body Meeting', now() + interval '1 day', now() + interval '1 day 2 hours', 'Little Hall', 'QR Code', 1),
-  ('Other SASE Event', now() + interval '3 day', now() + interval '3 days 2 hours', 'Reitz Union', 'QR Code', 1);
+insert into public.events (title, type, starts_at, ends_at, location_name, checkin_code, points_value) values
+  ('General Body Meeting', 'gbm', now() + interval '1 day', now() + interval '1 day 2 hours', 'Little Hall', '123456', 1),
+  ('Other SASE Event', 'other', now() + interval '3 day', now() + interval '3 days 2 hours', 'Reitz Union', '654321', 1);
 
 insert into public.programs (
   name, slug, category, display_order,
