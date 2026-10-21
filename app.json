@@ -44,7 +44,8 @@
         "expo-build-properties",
         {
           "ios": {
-            "enableSceneSupport": true
+            "enableSceneSupport": true,
+            "buildReactNativeFromSource": true
           }
         }
       ]

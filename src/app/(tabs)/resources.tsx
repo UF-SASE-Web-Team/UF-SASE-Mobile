@@ -1,0 +1,231 @@
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Linking,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ResourceCard, ResourceCategory, ResourceRow } from '@/components/ResourceCard';
+import { getResources } from '@/services/resources';
+
+const CATEGORY_SECTIONS: { key: ResourceCategory; title: string }[] = [
+  { key: 'general', title: 'General Resources' },
+  { key: 'sase', title: 'SASE Resources' },
+  { key: 'academic', title: 'Academic Resources' },
+  { key: 'professional', title: 'Professional Resources' },
+];
+
+export default function ResourcesPage() {
+  const { width } = useWindowDimensions();
+  const [resources, setResources] = useState<ResourceRow[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // 16px screen padding on left and right (32px), 12px gap between two columns
+  const cardWidth = Math.max(140, Math.floor((width - 32 - 12) / 2));
+
+  useEffect(() => {
+    let isMounted = true;
+
+    getResources()
+      .then((data) => {
+        if (!isMounted) return;
+        setResources(data);
+        setError(null);
+      })
+      .catch((err: any) => {
+        if (!isMounted) return;
+        console.error('Error fetching resources:', err.message);
+        setError(err.message);
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const data = await getResources();
+      setResources(data);
+      setError(null);
+    } catch (err: any) {
+      console.error('Error fetching resources:', err.message);
+      setError(err.message);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleCardPress = async (resource: ResourceRow) => {
+    if (!resource.url) return;
+    try {
+      const supported = await Linking.canOpenURL(resource.url);
+      if (supported) {
+        await Linking.openURL(resource.url);
+      } else {
+        console.warn(`Cannot open URL: ${resource.url}`);
+      }
+    } catch (err: any) {
+      console.error('Failed to open resource URL:', err.message);
+    }
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.centered} edges={['top']}>
+        <ActivityIndicator size="large" />
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.centered} edges={['top']}>
+        <Text style={styles.errorText}>Failed to load resources: {error}</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const otherResources = resources.filter(
+    (r) => !r.category || !CATEGORY_SECTIONS.some((s) => s.key === r.category),
+  );
+
+  return (
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+      >
+        {/* Top Header */}
+        <View style={styles.headerContainer}>
+          <Text style={styles.headerTitle}>Resources</Text>
+          <View style={styles.avatarPlaceholder} />
+        </View>
+
+        {/* Category Sections */}
+        {CATEGORY_SECTIONS.map((section) => {
+          const categoryResources = resources.filter((r) => r.category === section.key);
+
+          if (categoryResources.length === 0) return null;
+
+          return (
+            <View key={section.key} style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>{section.title}</Text>
+              </View>
+
+              <View style={styles.gridContainer}>
+                {categoryResources.map((item) => (
+                  <ResourceCard
+                    key={item.id}
+                    resource={item}
+                    width={cardWidth}
+                    onPress={handleCardPress}
+                  />
+                ))}
+              </View>
+            </View>
+          );
+        })}
+
+        {/* Fallback for any uncategorized resources */}
+        {otherResources.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Other Resources</Text>
+            </View>
+
+            <View style={styles.gridContainer}>
+              {otherResources.map((item) => (
+                <ResourceCard
+                  key={item.id}
+                  resource={item}
+                  width={cardWidth}
+                  onPress={handleCardPress}
+                />
+              ))}
+            </View>
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  scrollContent: {
+    paddingVertical: 16,
+    paddingBottom: 40,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    marginBottom: 20,
+  },
+  headerTitleGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  backButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#000',
+  },
+  avatarPlaceholder: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#D9D9D9',
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000',
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  errorText: {
+    color: '#D32F2F',
+    textAlign: 'center',
+    padding: 16,
+  },
+});
