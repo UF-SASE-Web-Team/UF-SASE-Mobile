@@ -47,7 +47,7 @@ function RootNavigator() {
         background: colors.surface.base.primary,
         card: colors.surface.base.secondary,
         text: colors.content.onBase.primary,
-        border: colors.border.base.primary,
+        border: colors.border.base.subtle,
         notification: colors.surface.accent.primary,
       },
     }),

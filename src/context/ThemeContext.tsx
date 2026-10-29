@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useState, useMemo, useEffect, useCallback, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from 'react';
 import { useColorScheme, StyleSheet } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { darkColors, lightColors, type Colors } from '@/theme/colors';
@@ -31,6 +39,7 @@ interface ThemeContextType {
   colors: Colors;
   mode: ThemeMode;
   isDark: boolean;
+  keyboardAppearance: 'dark' | 'light';
   isLoaded: boolean;
   setMode: (mode: ThemeMode) => void;
 }
@@ -83,16 +92,18 @@ export function ThemeProvider({ children, initialMode = 'system' }: ThemeProvide
   }, [mode, systemColorScheme]);
 
   const colors = isDark ? darkColors : lightColors;
+  const keyboardAppearance: 'dark' | 'light' = isDark ? 'dark' : 'light';
 
   const value = useMemo(
     () => ({
       colors,
       mode,
       isDark,
+      keyboardAppearance,
       isLoaded,
       setMode,
     }),
-    [colors, mode, isDark, isLoaded, setMode],
+    [colors, mode, isDark, keyboardAppearance, isLoaded, setMode],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
