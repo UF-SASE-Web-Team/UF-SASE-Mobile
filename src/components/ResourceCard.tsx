@@ -1,7 +1,10 @@
 import React from 'react';
-import { ImageBackground, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, Linking, Pressable, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Database } from '@/types/supabase';
+import { Text } from '@/components/Text';
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import { type Colors, space, radius, fonts } from '@/theme';
 
 export type ResourceRow = Database['public']['Tables']['resources']['Row'];
 export type ResourceCategory = Database['public']['Enums']['resource_category'];
@@ -13,6 +16,9 @@ export interface ResourceCardProps {
 }
 
 export function ResourceCard({ resource, width, onPress }: ResourceCardProps) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
+
   const handleOpenPress = async () => {
     if (onPress) {
       onPress(resource);
@@ -32,7 +38,6 @@ export function ResourceCard({ resource, width, onPress }: ResourceCardProps) {
       <ImageBackground
         source={resource.image_url ? { uri: resource.image_url } : undefined}
         style={styles.imageHeader}
-        imageStyle={styles.imageStyle}
       >
         <View style={styles.titleContainer}>
           <Text style={styles.cardTitle} numberOfLines={2}>
@@ -44,63 +49,65 @@ export function ResourceCard({ resource, width, onPress }: ResourceCardProps) {
       <View style={styles.cardFooter}>
         <View style={styles.openButton}>
           <Text style={styles.openButtonText}>Open</Text>
-          <Ionicons name="open-outline" size={14} color="#111" style={styles.buttonIcon} />
+          <Ionicons
+            name="open-outline"
+            size={14}
+            color={colors.content.onBase.primary}
+            style={styles.buttonIcon}
+          />
         </View>
       </View>
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    width: 164,
-    backgroundColor: '#DCDCDC',
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  imageHeader: {
-    height: 125,
-    backgroundColor: '#B0B0B0',
-    padding: 10,
-    justifyContent: 'flex-end',
-  },
-  imageStyle: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  titleContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.78)',
-    borderRadius: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    alignSelf: 'flex-start',
-    maxWidth: '100%',
-  },
-  cardTitle: {
-    fontSize: 13.5,
-    fontWeight: '700',
-    color: '#111',
-    lineHeight: 17,
-  },
-  cardFooter: {
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-  },
-  openButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#BDBDBD',
-    paddingVertical: 7,
-    borderRadius: 16,
-    gap: 6,
-  },
-  openButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111',
-  },
-  buttonIcon: {
-    marginLeft: 2,
-  },
-});
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    card: {
+      width: 164,
+      backgroundColor: colors.surface.base.secondary,
+      borderRadius: radius.lg,
+      overflow: 'hidden',
+    },
+    imageHeader: {
+      height: 125,
+      backgroundColor: colors.surface.base.tertiary,
+      padding: space['200'],
+      justifyContent: 'flex-end',
+    },
+    titleContainer: {
+      backgroundColor: colors.surface.base.primary,
+      borderRadius: radius.sm,
+      paddingHorizontal: space['150'],
+      paddingVertical: space['050'],
+      alignSelf: 'flex-start',
+      maxWidth: '100%',
+    },
+    cardTitle: {
+      fontFamily: fonts.sans.bold,
+      fontSize: 14,
+      lineHeight: 18,
+      color: colors.content.onBase.primary,
+    },
+    cardFooter: {
+      paddingHorizontal: space['200'],
+      paddingVertical: space['200'],
+    },
+    openButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surface.base.tertiary,
+      paddingVertical: space['200'],
+      borderRadius: radius.lg,
+      gap: space['150'],
+    },
+    openButtonText: {
+      fontFamily: fonts.sans.semibold,
+      fontSize: 14,
+      color: colors.content.onBase.primary,
+    },
+    buttonIcon: {
+      marginLeft: space['050'],
+    },
+  });

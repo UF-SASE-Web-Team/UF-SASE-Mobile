@@ -67,7 +67,8 @@ on conflict (id) do nothing;
 
 insert into public.events (title, type, starts_at, ends_at, location_name, checkin_code, points_value) values
   ('General Body Meeting', 'gbm', now() + interval '1 day', now() + interval '1 day 2 hours', 'Little Hall', '123456', 1),
-  ('Other SASE Event', 'other', now() + interval '3 day', now() + interval '3 days 2 hours', 'Reitz Union', '654321', 1);
+  ('Other SASE Event', 'other', now() + interval '3 day', now() + interval '3 days 2 hours', 'Reitz Union', '654321', 1),
+  ('Check-in Test Event', 'other', now() - interval '30 minutes', now() + interval '2 hours', 'Marston Library', '111111', 1);
 
 insert into public.programs (
   name, slug, category, display_order,

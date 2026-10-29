@@ -48,7 +48,8 @@
             "buildReactNativeFromSource": true
           }
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,
