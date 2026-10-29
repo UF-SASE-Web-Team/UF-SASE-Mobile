@@ -1,14 +1,22 @@
 import { useEffect } from 'react';
 import { Stack, SplashScreen } from 'expo-router';
+import { useFonts } from 'expo-font';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { ThemeProvider } from '@/context/ThemeContext';
+import { fontAssets } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();
 
 function SplashController() {
   const { isLoading } = useAuth();
+  const [fontsLoaded, fontError] = useFonts(fontAssets);
+
   useEffect(() => {
-    if (!isLoading) SplashScreen.hideAsync();
-  }, [isLoading]);
+    if (!isLoading && (fontsLoaded || fontError)) {
+      SplashScreen.hideAsync();
+    }
+  }, [isLoading, fontsLoaded, fontError]);
+
   return null;
 }
 
@@ -30,9 +38,11 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <SplashController />
-      <RootNavigator />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <SplashController />
+        <RootNavigator />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
