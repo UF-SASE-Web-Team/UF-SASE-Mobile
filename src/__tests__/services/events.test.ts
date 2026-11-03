@@ -66,28 +66,35 @@ describe('events service', () => {
   });
 
   describe('toggleEventRsvp', () => {
-    it('deletes RSVP when currently rsvped', async () => {
-      const mockMatch = jest.fn().mockResolvedValue({ error: null });
-      const mockDelete = jest.fn().mockReturnValue({ match: mockMatch });
-      (supabase.from as jest.Mock) = jest.fn().mockReturnValue({ delete: mockDelete });
+    it('calls toggle_event_rsvp RPC and returns boolean result', async () => {
+      (supabase.rpc as jest.Mock) = jest.fn().mockResolvedValue({ data: true, error: null });
 
-      const result = await toggleEventRsvp('event-1', 'user-1', true);
+      const result = await toggleEventRsvp('event-1');
 
-      expect(supabase.from).toHaveBeenCalledWith('event_rsvps');
-      expect(mockDelete).toHaveBeenCalled();
-      expect(mockMatch).toHaveBeenCalledWith({ event_id: 'event-1', user_id: 'user-1' });
+      expect(supabase.rpc).toHaveBeenCalledWith('toggle_event_rsvp', {
+        p_event_id: 'event-1',
+      });
+      expect(result).toBe(true);
+    });
+
+    it('returns false when RSVP was toggled off', async () => {
+      (supabase.rpc as jest.Mock) = jest.fn().mockResolvedValue({ data: false, error: null });
+
+      const result = await toggleEventRsvp('event-1');
+
+      expect(supabase.rpc).toHaveBeenCalledWith('toggle_event_rsvp', {
+        p_event_id: 'event-1',
+      });
       expect(result).toBe(false);
     });
 
-    it('inserts RSVP when not currently rsvped', async () => {
-      const mockInsert = jest.fn().mockResolvedValue({ error: null });
-      (supabase.from as jest.Mock) = jest.fn().mockReturnValue({ insert: mockInsert });
+    it('throws error when RPC fails', async () => {
+      (supabase.rpc as jest.Mock) = jest.fn().mockResolvedValue({
+        data: null,
+        error: new Error('RSVP window is closed'),
+      });
 
-      const result = await toggleEventRsvp('event-1', 'user-1', false);
-
-      expect(supabase.from).toHaveBeenCalledWith('event_rsvps');
-      expect(mockInsert).toHaveBeenCalledWith({ event_id: 'event-1', user_id: 'user-1' });
-      expect(result).toBe(true);
+      await expect(toggleEventRsvp('event-1')).rejects.toThrow('RSVP window is closed');
     });
   });
 });

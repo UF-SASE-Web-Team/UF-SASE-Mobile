@@ -16,25 +16,11 @@ export async function getEvents(): Promise<EventWithRsvp[]> {
   }));
 }
 
-export async function toggleEventRsvp(
-  eventId: string,
-  userId: string,
-  currentlyRsvped: boolean,
-): Promise<boolean> {
-  if (currentlyRsvped) {
-    const { error } = await supabase
-      .from('event_rsvps')
-      .delete()
-      .match({ event_id: eventId, user_id: userId });
+export async function toggleEventRsvp(eventId: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('toggle_event_rsvp', {
+    p_event_id: eventId,
+  });
 
-    if (error) throw error;
-    return false;
-  } else {
-    const { error } = await supabase
-      .from('event_rsvps')
-      .insert({ event_id: eventId, user_id: userId });
-
-    if (error) throw error;
-    return true;
-  }
+  if (error) throw error;
+  return Boolean(data);
 }

@@ -109,7 +109,8 @@ export default function EventsPage() {
     setRsvps((prev) => ({ ...prev, [event.id]: nextStatus }));
 
     try {
-      await toggleEventRsvp(event.id, user.id, currentStatus);
+      const newStatus = await toggleEventRsvp(event.id);
+      setRsvps((prev) => ({ ...prev, [event.id]: newStatus }));
     } catch (err: any) {
       // Revert on error
       setRsvps((prev) => ({ ...prev, [event.id]: currentStatus }));
