@@ -24,16 +24,9 @@ export const fonts = {
 
 export const textStyles = {
   display: { fontFamily: fonts.display.bold, fontSize: 38, lineHeight: 44 },
-
-  // titleLg: { fontFamily: fonts.sans.bold, fontSize: 30, lineHeight: 36 },
-  titleMd: { fontFamily: fonts.sans.bold, fontSize: 24, lineHeight: 30 },
-  // titleSm: { fontFamily: fonts.sans.bold, fontSize: 20, lineHeight: 26 },
-
-  // bodyLg: { fontFamily: fonts.sans.regular, fontSize: 20, lineHeight: 28 },
-  bodyMd: { fontFamily: fonts.sans.regular, fontSize: 18, lineHeight: 26 },
-  // bodySm: { fontFamily: fonts.sans.regular, fontSize: 14, lineHeight: 20 },
-
-  // bodyLgStrong: { fontFamily: fonts.sans.semibold, fontSize: 20, lineHeight: 28 },
-  bodyMdStrong: { fontFamily: fonts.sans.semibold, fontSize: 18, lineHeight: 26 },
-  // bodySmStrong: { fontFamily: fonts.sans.semibold, fontSize: 14, lineHeight: 20 },
+  title: { fontFamily: fonts.sans.bold, fontSize: 24, lineHeight: 30 },
+  body: { fontFamily: fonts.sans.regular, fontSize: 17, lineHeight: 26 },
+  bodyStrong: { fontFamily: fonts.sans.bold, fontSize: 17, lineHeight: 26 },
+  bodySm: { fontFamily: fonts.sans.regular, fontSize: 15, lineHeight: 20 },
+  bodySmStrong: { fontFamily: fonts.sans.semibold, fontSize: 15, lineHeight: 20 },
 } as const;
