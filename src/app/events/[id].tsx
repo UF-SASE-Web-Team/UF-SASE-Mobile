@@ -8,11 +8,11 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { ContactCard } from '@/components/ContactCard';
 import { EventCheckInModal } from '@/components/EventCheckInModal';
 import { EventTag } from '@/components/EventTag';
 import { Text } from '@/components/Text';
@@ -174,7 +174,7 @@ export default function EventDetailScreen() {
       })
     : '';
 
-  // Time formatted: e.g. "6:30 PM – 8:00 PM • Doors open 6:00 PM"
+  // Time formatted: e.g. "Doors 7:45 PM, 8:00 PM – 9:00 PM"
   const startTime = isValidStartDate
     ? startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
     : '';
@@ -193,7 +193,7 @@ export default function EventDetailScreen() {
       })
     : '';
   const formattedTimeWithDoors = doorsOpenTime
-    ? `${timeRange} • Doors open ${doorsOpenTime}`
+    ? `Doors ${doorsOpenTime}, ${timeRange}`
     : timeRange;
 
   const pocs = event.program?.program_members?.filter((m) => m.is_poc) ?? [];
@@ -224,7 +224,7 @@ export default function EventDetailScreen() {
         contentContainerStyle={[
           styles.scrollContent,
           {
-            paddingTop: insets.top + 90,
+            paddingTop: insets.top + 120,
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -239,7 +239,7 @@ export default function EventDetailScreen() {
         >
           {/* Header Row: Title & Action (RSVP / Checked In) */}
           <View style={styles.headerRow}>
-            <Text variant="title" style={styles.title} numberOfLines={2}>
+            <Text variant="title" style={styles.title} numberOfLines={3}>
               {event.title}
             </Text>
 
@@ -384,27 +384,13 @@ export default function EventDetailScreen() {
               <Text variant="bodyStrong" style={styles.sectionTitle}>
                 Contacts
               </Text>
-              <View style={styles.contactsRow}>
-                {pocs.map((poc, idx) => (
-                  <View
+              <View style={styles.contactsContainer}>
+                {pocs.map((poc) => (
+                  <ContactCard
                     key={poc.id}
-                    style={[styles.avatarWrapper, idx > 0 && styles.avatarOverlap]}
-                  >
-                    {poc.profile?.avatar_url ? (
-                      <Image source={{ uri: poc.profile.avatar_url }} style={styles.avatarImage} />
-                    ) : (
-                      <View
-                        style={[
-                          styles.avatarPlaceholder,
-                          { backgroundColor: colors.surface.saseBlue.primary },
-                        ]}
-                      >
-                        <Text variant="bodySmStrong" color="#FFFFFF">
-                          {(poc.display_name || poc.profile?.full_name || 'C')[0].toUpperCase()}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
+                    name={poc.display_name || poc.profile?.full_name || 'Contact'}
+                    avatarUrl={poc.profile?.avatar_url}
+                  />
                 ))}
               </View>
             </View>
@@ -515,7 +501,7 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.surface.base.primary,
       borderTopLeftRadius: radius.xl,
       borderTopRightRadius: radius.xl,
-      paddingHorizontal: space['400'],
+      paddingHorizontal: space['500'],
       paddingTop: space['400'],
       gap: space['300'],
     },
@@ -536,7 +522,7 @@ const createStyles = (colors: Colors) =>
       borderWidth: borderWidth.sm,
       borderColor: colors.border.base.subtle,
       borderRadius: radius.md,
-      backgroundColor: colors.surface.base.primary,
+      backgroundColor: colors.surface.base.secondary,
       paddingHorizontal: space['150'],
       paddingVertical: space['150'],
       alignItems: 'center',
@@ -609,30 +595,10 @@ const createStyles = (colors: Colors) =>
     linkTitle: {
       flex: 1,
     },
-    contactsRow: {
+    contactsContainer: {
       flexDirection: 'row',
-      alignItems: 'center',
-    },
-    avatarWrapper: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      borderWidth: 2,
-      borderColor: colors.surface.base.primary,
-      overflow: 'hidden',
-    },
-    avatarOverlap: {
-      marginLeft: -12,
-    },
-    avatarImage: {
-      width: '100%',
-      height: '100%',
-    },
-    avatarPlaceholder: {
-      width: '100%',
-      height: '100%',
-      alignItems: 'center',
-      justifyContent: 'center',
+      flexWrap: 'wrap',
+      gap: space['200'],
     },
     bottomContainer: {
       position: 'absolute',

@@ -278,5 +278,56 @@ describe('EventDetailScreen', () => {
       expect(mockRouter.replace).toHaveBeenCalledWith('/events');
       expect(mockRouter.back).not.toHaveBeenCalled();
     });
+
+    it('renders POC contact cards under Contacts section', async () => {
+      const eventWithPocs = {
+        ...baseEvent,
+        program: {
+          id: 'prog-1',
+          name: 'Mentorship',
+          program_members: [
+            {
+              id: 'poc-1',
+              user_id: 'u1',
+              display_name: 'Alice',
+              is_poc: true,
+              profile: {
+                id: 'u1',
+                full_name: 'Alice Smith',
+                avatar_url: 'https://example.com/alice.png',
+              },
+            },
+            {
+              id: 'poc-2',
+              user_id: 'u2',
+              display_name: 'Bob',
+              is_poc: true,
+              profile: {
+                id: 'u2',
+                full_name: 'Bob Jones',
+                avatar_url: null,
+              },
+            },
+            {
+              id: 'non-poc',
+              user_id: 'u3',
+              display_name: 'Charlie',
+              is_poc: false,
+              profile: null,
+            },
+          ],
+        },
+      };
+
+      (eventsService.getEvent as jest.Mock).mockResolvedValue(eventWithPocs);
+
+      await renderScreen();
+      await screen.findByText('GBM 2: SASE Story');
+
+      expect(screen.getByText('Contacts')).toBeTruthy();
+      expect(screen.getByText('Alice')).toBeTruthy();
+      expect(screen.getByText('Bob')).toBeTruthy();
+      expect(screen.queryByText('Charlie')).toBeNull();
+    });
   });
 });

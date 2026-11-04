@@ -32,14 +32,22 @@ export function HappeningNowCard({ event, onCheckInPress, onPress }: HappeningNo
   const endTime = formatTime(event.ends_at);
   const timeRange = startTime && endTime ? `${startTime} – ${endTime}` : startTime;
 
+  const checkinDate = event.checkin_opens_at ? new Date(event.checkin_opens_at) : null;
+  const startDate = event.starts_at ? new Date(event.starts_at) : null;
+
   const hasEarlyDoors = Boolean(
-    event.checkin_opens_at &&
-    new Date(event.checkin_opens_at).getTime() < new Date(event.starts_at).getTime(),
+    checkinDate &&
+      startDate &&
+      !Number.isNaN(checkinDate.getTime()) &&
+      !Number.isNaN(startDate.getTime()) &&
+      checkinDate.getTime() < startDate.getTime(),
   );
 
-  const subtitle = hasEarlyDoors
-    ? `Doors open ${formatTime(event.checkin_opens_at)} • ${timeRange}`
+  const timeText = hasEarlyDoors
+    ? `Doors open ${formatTime(event.checkin_opens_at)}`
     : timeRange;
+
+  const subtitle = [timeText, event.location_name].filter(Boolean).join(' • ');
 
   const handlePress = () => {
     onPress?.(event);

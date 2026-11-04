@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { EventCard } from '@/components/EventCard';
+import { EventCheckInModal } from '@/components/EventCheckInModal';
 import { EventFilters, TimeFilter, TypeFilter } from '@/components/EventFilters';
 import { HappeningNowCard } from '@/components/HappeningNowCard';
 import { Text } from '@/components/Text';
@@ -36,6 +37,7 @@ export default function EventsPage() {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [rsvps, setRsvps] = useState<Record<string, boolean>>({});
+  const [selectedCheckInEvent, setSelectedCheckInEvent] = useState<EventRow | null>(null);
 
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('upcoming');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
@@ -93,7 +95,11 @@ export default function EventsPage() {
   };
 
   const handleCheckInPress = (event: EventRow) => {
-    router.push(`/events/${event.id}` as any);
+    if (!user) {
+      Alert.alert('Sign in required', 'Please sign in to check in to events.');
+      return;
+    }
+    setSelectedCheckInEvent(event);
   };
 
   const handleRsvpPress = async (event: EventRow) => {
@@ -134,28 +140,42 @@ export default function EventsPage() {
 
   // Filter events based on timeFilter and typeFilter
   const filteredEvents = useMemo(() => {
-    const now = new Date();
-    return events.filter((event) => {
-      // Type filter
-      if (typeFilter !== 'all' && event.type !== typeFilter) {
-        return false;
-      }
+    const now = new Date().getTime();
 
-      // Time filter
-      const eventEnd = new Date(event.ends_at);
-      if (timeFilter === 'upcoming') {
-        return eventEnd >= now;
+    // Since `events` is already ordered chronologically ascending by `starts_at`,
+    // iterating backwards filters and reverses in a single O(N) pass for 'past' events
+    // without an extra sort or reverse step.
+    if (timeFilter === 'past') {
+      const result: EventWithRsvp[] = [];
+      for (let i = events.length - 1; i >= 0; i--) {
+        const event = events[i];
+        if (typeFilter !== 'all' && event.type !== typeFilter) {
+          continue;
+        }
+        if (new Date(event.ends_at).getTime() < now) {
+          result.push(event);
+        }
       }
-      if (timeFilter === 'past') {
-        return eventEnd < now;
+      return result;
+    }
+
+    const result: EventWithRsvp[] = [];
+    for (let i = 0; i < events.length; i++) {
+      const event = events[i];
+      if (typeFilter !== 'all' && event.type !== typeFilter) {
+        continue;
       }
-      return true;
-    });
+      if (timeFilter === 'upcoming' && new Date(event.ends_at).getTime() < now) {
+        continue;
+      }
+      result.push(event);
+    }
+    return result;
   }, [events, timeFilter, typeFilter]);
 
   // Group filtered events by month & year
   const monthGroups = useMemo<MonthGroup[]>(() => {
-    const groups: Record<string, MonthGroup> = {};
+    const groups = new Map<string, MonthGroup>();
 
     filteredEvents.forEach((event) => {
       const date = new Date(event.starts_at);
@@ -163,8 +183,9 @@ export default function EventsPage() {
       const month = date.getMonth();
       const key = `${year}-${month}`;
 
-      if (!groups[key]) {
-        groups[key] = {
+      let group = groups.get(key);
+      if (!group) {
+        group = {
           key,
           title: date.toLocaleDateString(undefined, {
             month: 'long',
@@ -172,11 +193,12 @@ export default function EventsPage() {
           }),
           events: [],
         };
+        groups.set(key, group);
       }
-      groups[key].events.push(event);
+      group.events.push(event);
     });
 
-    return Object.values(groups);
+    return Array.from(groups.values());
   }, [filteredEvents]);
 
   if (loading) {
@@ -269,6 +291,24 @@ export default function EventsPage() {
           </View>
         )}
       </ScrollView>
+
+      {selectedCheckInEvent && (
+        <EventCheckInModal
+          visible={Boolean(selectedCheckInEvent)}
+          onClose={() => setSelectedCheckInEvent(null)}
+          eventId={selectedCheckInEvent.id}
+          eventTitle={selectedCheckInEvent.title}
+          pointsValue={selectedCheckInEvent.points_value}
+          onSuccess={() => {
+            const eventId = selectedCheckInEvent.id;
+            setEvents((prev) =>
+              prev.map((e) => (e.id === eventId ? { ...e, has_attended: true } : e)),
+            );
+            setSelectedCheckInEvent(null);
+            handleRefresh();
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }
