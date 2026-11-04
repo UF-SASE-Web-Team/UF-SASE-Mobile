@@ -5,17 +5,25 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { type Colors, radius, iconSize, space } from '@/theme';
-import { EventRow } from '@/types/events';
+import { EventRow, EventWithRsvp } from '@/types/events';
 
 export interface HappeningNowCardProps {
-  event: EventRow;
+  event: EventRow | EventWithRsvp;
+  hasCheckedIn?: boolean;
   onCheckInPress?: (event: EventRow) => void;
   onPress?: (event: EventRow) => void;
 }
 
-export function HappeningNowCard({ event, onCheckInPress, onPress }: HappeningNowCardProps) {
+export function HappeningNowCard({
+  event,
+  hasCheckedIn,
+  onCheckInPress,
+  onPress,
+}: HappeningNowCardProps) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+
+  const isCheckedIn = hasCheckedIn ?? (event as EventWithRsvp).has_attended ?? false;
 
   const formatTime = (isoString?: string | null) => {
     if (!isoString) return '';
@@ -97,21 +105,38 @@ export function HappeningNowCard({ event, onCheckInPress, onPress }: HappeningNo
           </Text>
         )}
 
-        <Pressable
-          style={({ pressed }) => [styles.checkInButton, pressed && styles.checkInButtonPressed]}
-          onPress={handleCheckInPress}
-          accessibilityRole="button"
-          accessibilityLabel="Check-in"
-        >
-          <Ionicons
-            name="barcode-outline"
-            size={iconSize.md}
-            color={colors.content.onMedia.primary}
-          />
-          <Text variant="bodyStrong" color={colors.content.onMedia.primary}>
-            Check-in
-          </Text>
-        </Pressable>
+        {isCheckedIn ? (
+          <View
+            style={styles.checkedInContainer}
+            accessibilityLabel="Checked in"
+            testID="happening-now-checked-in-badge"
+          >
+            <Ionicons
+              name="checkmark-circle"
+              size={iconSize.md}
+              color={colors.content.onMedia.primary}
+            />
+            <Text variant="bodyStrong" color={colors.content.onMedia.primary}>
+              Checked in
+            </Text>
+          </View>
+        ) : (
+          <Pressable
+            style={({ pressed }) => [styles.checkInButton, pressed && styles.checkInButtonPressed]}
+            onPress={handleCheckInPress}
+            accessibilityRole="button"
+            accessibilityLabel="Check-in"
+          >
+            <Ionicons
+              name="barcode-outline"
+              size={iconSize.md}
+              color={colors.content.onMedia.primary}
+            />
+            <Text variant="bodyStrong" color={colors.content.onMedia.primary}>
+              Check-in
+            </Text>
+          </Pressable>
+        )}
       </LinearGradient>
     </Pressable>
   );
@@ -151,6 +176,15 @@ const createStyles = (colors: Colors) => {
     },
     checkInButtonPressed: {
       opacity: 0.85,
+    },
+    checkedInContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surface.media.scrim,
+      borderRadius: radius.md,
+      paddingVertical: space['300'],
+      gap: space['200'],
     },
   });
 };

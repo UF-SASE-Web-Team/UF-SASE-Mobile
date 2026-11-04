@@ -9,6 +9,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { EventsProvider } from '@/context/EventsContext';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { fontAssets } from '@/theme';
 
@@ -85,8 +86,10 @@ export default function RootLayout() {
     <ThemeProvider>
       <ThemedStatusBar />
       <AuthProvider>
-        <SplashController />
-        <RootNavigator />
+        <EventsProvider>
+          <SplashController />
+          <RootNavigator />
+        </EventsProvider>
       </AuthProvider>
     </ThemeProvider>
   );
