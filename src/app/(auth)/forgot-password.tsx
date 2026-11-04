@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { iconSize } from '@/theme';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
@@ -49,7 +50,7 @@ export default function ForgotPasswordScreen() {
         accessibilityLabel="Go back"
         accessibilityRole="button"
       >
-        <Ionicons name="arrow-back" size={24} color="#000000" />
+        <Ionicons name="arrow-back" size={iconSize.md} color="#000000" />
       </TouchableOpacity>
       <Text style={styles.title}>Forgot password</Text>
       <Text>Enter your email and we&apos;ll send a reset code.</Text>

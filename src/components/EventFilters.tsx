@@ -4,7 +4,7 @@ import { MenuView, NativeActionEvent } from '@expo/ui/community/menu';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { type Colors, borderWidth, radius, space } from '@/theme';
+import { type Colors, borderWidth, iconSize, radius, space } from '@/theme';
 
 export type TimeFilter = 'upcoming' | 'past';
 export type TypeFilter = 'all' | 'gbm' | 'social' | 'career' | 'team';
@@ -66,7 +66,7 @@ export function EventFilters({
           <Text variant="bodySmStrong" numberOfLines={1}>
             {selectedTimeLabel}
           </Text>
-          <Ionicons name="chevron-down" size={16} color={colors.content.onBase.primary} />
+          <Ionicons name="chevron-down" size={iconSize.sm} color={colors.content.onBase.primary} />
         </View>
       </MenuView>
 
@@ -81,7 +81,7 @@ export function EventFilters({
           <Text variant="bodySmStrong" numberOfLines={1}>
             {selectedTypeLabel}
           </Text>
-          <Ionicons name="chevron-down" size={16} color={colors.content.onBase.primary} />
+          <Ionicons name="chevron-down" size={iconSize.sm} color={colors.content.onBase.primary} />
         </View>
       </MenuView>
     </View>

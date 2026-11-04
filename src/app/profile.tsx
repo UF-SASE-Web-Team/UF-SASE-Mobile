@@ -6,7 +6,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { supabase } from '@/lib/supabase';
-import { borderWidth, radius, space } from '@/theme';
+import { borderWidth, iconSize, radius, space } from '@/theme';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -89,7 +89,7 @@ export default function ProfilePage() {
             onPress={() => router.back()}
             style={({ pressed }) => [styles.backButton, { opacity: pressed ? 0.7 : 1 }]}
           >
-            <Ionicons name="chevron-back" size={24} color={colors.content.onBase.primary} />
+            <Ionicons name="chevron-back" size={iconSize.md} color={colors.content.onBase.primary} />
           </Pressable>
         ) : (
           <View style={styles.backButtonPlaceholder} />

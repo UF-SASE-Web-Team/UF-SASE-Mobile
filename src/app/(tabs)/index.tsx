@@ -1,9 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { isSupabaseConfigured } from '@/lib/env';
-import { useTheme } from '@/theme';
+import { iconSize, useTheme } from '@/theme';
 
 export default function HomePage() {
   const router = useRouter();
@@ -29,9 +29,9 @@ export default function HomePage() {
             },
           ]}
         >
-          <MaterialCommunityIcons
-            name="account-outline"
-            size={22}
+          <Ionicons
+            name="person-outline"
+            size={iconSize.md}
             color={colors.content.onBase.primary}
           />
         </Pressable>

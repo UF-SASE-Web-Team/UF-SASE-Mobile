@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { iconSize } from '@/theme';
 
 export default function LoginScreen() {
   const [identifier, setIdentifier] = useState('');
@@ -95,7 +96,7 @@ export default function LoginScreen() {
         >
           <Ionicons
             name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-            size={22}
+            size={iconSize.md}
             color="#666666"
           />
         </TouchableOpacity>

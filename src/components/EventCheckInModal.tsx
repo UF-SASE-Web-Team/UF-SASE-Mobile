@@ -16,7 +16,7 @@ import { Text } from '@/components/Text';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { checkInToEvent } from '@/services/events';
-import { type Colors, borderWidth, radius, space } from '@/theme';
+import { type Colors, borderWidth, iconSize, radius, space } from '@/theme';
 
 export interface EventCheckInModalProps {
   visible: boolean;
@@ -174,7 +174,7 @@ export function EventCheckInModal({
             >
               <Ionicons
                 name="keypad-outline"
-                size={16}
+                size={iconSize.sm}
                 color={
                   mode === 'code'
                     ? colors.content.onBase.primary
@@ -205,7 +205,7 @@ export function EventCheckInModal({
             >
               <Ionicons
                 name="qr-code-outline"
-                size={16}
+                size={iconSize.sm}
                 color={
                   mode === 'qr'
                     ? colors.content.onBase.primary
@@ -257,7 +257,7 @@ export function EventCheckInModal({
                 <View style={styles.permissionPlaceholder}>
                   <Ionicons
                     name="camera-outline"
-                    size={36}
+                    size={iconSize.lg}
                     color={colors.content.onBase.secondary}
                   />
                   <Text
@@ -432,12 +432,12 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
     },
     cameraViewport: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       borderRadius: radius.lg,
       overflow: 'hidden',
     },
     reticleOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       justifyContent: 'center',
       alignItems: 'center',
     },

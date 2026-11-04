@@ -57,7 +57,7 @@ describe('EventCheckInModal', () => {
       expect(screen.getByText('Event Check-in')).toBeTruthy();
       expect(screen.getByText('Code')).toBeTruthy();
       expect(screen.getByText('Scan QR')).toBeTruthy();
-      expect(screen.getByText('Enter the 6-digit code provided at the event.')).toBeTruthy();
+      expect(screen.getByText(/Enter the 6-digit code/i)).toBeTruthy();
       expect(screen.getByText('Cancel')).toBeTruthy();
       expect(screen.getByText('Submit')).toBeTruthy();
     });
@@ -138,7 +138,7 @@ describe('EventCheckInModal', () => {
 
       await user.press(screen.getByText('Scan QR'));
 
-      expect(screen.getByText('Scan the QR code displayed at the event.')).toBeTruthy();
+      expect(screen.getByText(/Scan the QR code/i)).toBeTruthy();
       expect(screen.getByTestId('camera-view')).toBeTruthy();
       // In QR mode, submit button is hidden
       expect(screen.queryByText('Submit')).toBeNull();

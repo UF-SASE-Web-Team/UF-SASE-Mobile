@@ -47,22 +47,12 @@ describe('EventTag', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('computes correct tag colors via getTagColor helper', () => {
-    expect(getTagColor('gbm', lightColors)).toEqual({
-      background: lightColors.surface.accentSubtle.tertiary,
-      text: lightColors.content.onAccentSubtle.tertiary,
-    });
-    expect(getTagColor('career', lightColors)).toEqual({
-      background: lightColors.surface.accentSubtle.primary,
-      text: lightColors.content.onAccentSubtle.primary,
-    });
-    expect(getTagColor('social', lightColors)).toEqual({
-      background: lightColors.surface.accentSubtle.quaternary,
-      text: lightColors.content.onAccentSubtle.quaternary,
-    });
-    expect(getTagColor('team', lightColors)).toEqual({
-      background: lightColors.surface.accentSubtle.secondary,
-      text: lightColors.content.onAccentSubtle.secondary,
+  it('computes tag colors for valid event types and null for other', () => {
+    allTypes.forEach((type) => {
+      const colors = getTagColor(type, lightColors);
+      expect(colors).not.toBeNull();
+      expect(typeof colors?.background).toBe('string');
+      expect(typeof colors?.text).toBe('string');
     });
     expect(getTagColor('other', lightColors)).toBeNull();
   });

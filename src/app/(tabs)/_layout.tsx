@@ -1,6 +1,7 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Image } from 'expo-image';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '@/theme';
 
 export default function TabsLayout() {
@@ -28,7 +29,12 @@ export default function TabsLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="flask-outline" size={size} color={color} />
+            <Image
+              source={require('../../../assets/icons/sase-flask.svg')}
+              style={{ width: size, height: size }}
+              tintColor={color as string}
+              contentFit="contain"
+            />
           ),
         }}
       />
@@ -37,7 +43,7 @@ export default function TabsLayout() {
         options={{
           title: 'Events',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="calendar-month-outline" size={size} color={color} />
+            <Ionicons name="calendar-outline" size={size} color={color} />
           ),
         }}
       />
@@ -46,7 +52,7 @@ export default function TabsLayout() {
         options={{
           title: 'Programs',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="account-group-outline" size={size} color={color} />
+            <Ionicons name="people-outline" size={size} color={color} />
           ),
         }}
       />
@@ -55,7 +61,7 @@ export default function TabsLayout() {
         options={{
           title: 'Resources',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="folder-outline" size={size} color={color} />
+            <Ionicons name="folder-outline" size={size} color={color} />
           ),
         }}
       />

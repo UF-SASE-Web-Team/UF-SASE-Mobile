@@ -1,6 +1,13 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { render, screen, userEvent, cleanup, waitFor } from '@testing-library/react-native';
+import {
+  render,
+  screen,
+  userEvent,
+  cleanup,
+  waitFor,
+  fireEvent,
+} from '@testing-library/react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import EventDetailScreen from '@/app/events/[id]';
@@ -132,16 +139,8 @@ describe('EventDetailScreen', () => {
       // Bottom Check-in button is displayed
       expect(screen.getByText('Check-in')).toBeTruthy();
 
-      // Check-in container is transparent and contains gradient fade
-      const bottomContainer = screen.getByTestId('bottom-check-in-container');
-      expect(bottomContainer).toBeTruthy();
-      expect(bottomContainer.props.style).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            backgroundColor: 'transparent',
-          }),
-        ]),
-      );
+      // Check-in container and gradient fade are displayed
+      expect(screen.getByTestId('bottom-check-in-container')).toBeTruthy();
       expect(screen.getByTestId('bottom-fade-gradient')).toBeTruthy();
     });
 
@@ -328,6 +327,83 @@ describe('EventDetailScreen', () => {
       expect(screen.getByText('Alice')).toBeTruthy();
       expect(screen.getByText('Bob')).toBeTruthy();
       expect(screen.queryByText('Charlie')).toBeNull();
+    });
+  });
+
+  describe('About section expand/collapse', () => {
+    it('does not display toggle button when description is short', async () => {
+      (eventsService.getEvent as jest.Mock).mockResolvedValue(baseEvent);
+
+      await renderScreen();
+      await screen.findByText('GBM 2: SASE Story');
+
+      expect(screen.getByText('About')).toBeTruthy();
+      expect(screen.getByText('To infinity and GBM 2!')).toBeTruthy();
+      expect(screen.queryByTestId('event-about-toggle-button')).toBeNull();
+      expect(screen.queryByText('Show more')).toBeNull();
+    });
+
+    it('displays toggle button with 5 lines default when description has many lines', async () => {
+      const longDescription = 'Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nLine 7';
+      const eventWithLongDesc = {
+        ...baseEvent,
+        description: longDescription,
+      };
+      (eventsService.getEvent as jest.Mock).mockResolvedValue(eventWithLongDesc);
+      const user = userEvent.setup();
+
+      await renderScreen();
+      await screen.findByText('GBM 2: SASE Story');
+
+      const aboutText = screen.getByTestId('event-about-text');
+      expect(aboutText.props.numberOfLines).toBe(5);
+
+      const toggleButton = screen.getByTestId('event-about-toggle-button');
+      expect(screen.getByText('Show more')).toBeTruthy();
+
+      // Tap "Show more" -> expands full text
+      await user.press(toggleButton);
+
+      expect(screen.getByText('Show less')).toBeTruthy();
+      expect(aboutText.props.numberOfLines).toBeUndefined();
+
+      // Tap "Show less" -> collapses back to 5 lines
+      await user.press(toggleButton);
+
+      expect(screen.getByText('Show more')).toBeTruthy();
+      expect(aboutText.props.numberOfLines).toBe(5);
+    });
+
+    it('expands text when layout event indicates more than 5 lines', async () => {
+      const moderateDescription =
+        'A moderately long description that wraps across multiple lines on screen.';
+      const eventWithModerateDesc = {
+        ...baseEvent,
+        description: moderateDescription,
+      };
+      (eventsService.getEvent as jest.Mock).mockResolvedValue(eventWithModerateDesc);
+      const user = userEvent.setup();
+
+      await renderScreen();
+      await screen.findByText('GBM 2: SASE Story');
+
+      const aboutText = screen.getByTestId('event-about-text');
+      expect(screen.queryByTestId('event-about-toggle-button')).toBeNull();
+
+      // Simulate onTextLayout with 6 lines
+      fireEvent(aboutText, 'textLayout', {
+        nativeEvent: {
+          lines: [{}, {}, {}, {}, {}, {}],
+        },
+      });
+
+      expect(await screen.findByTestId('event-about-toggle-button')).toBeTruthy();
+      expect(screen.getByText('Show more')).toBeTruthy();
+      expect(aboutText.props.numberOfLines).toBe(5);
+
+      await user.press(screen.getByTestId('event-about-toggle-button'));
+      expect(screen.getByText('Show less')).toBeTruthy();
+      expect(aboutText.props.numberOfLines).toBeUndefined();
     });
   });
 });

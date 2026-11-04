@@ -4,7 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { ProgramWithPoCs } from '@/types/programs';
 import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { type Colors, space, radius, fonts } from '@/theme';
+import { type Colors, space, radius, fonts, iconSize } from '@/theme';
 
 export interface ProgramCardProps {
   program: ProgramWithPoCs;
@@ -90,7 +90,7 @@ export function ApplicationProgramCard({ program, onPress }: ProgramCardProps) {
           {isOpen && (
             <Ionicons
               name="open-outline"
-              size={15}
+              size={iconSize.sm}
               color={colors.content.onSaseBlue.secondary}
               style={styles.buttonIcon}
             />

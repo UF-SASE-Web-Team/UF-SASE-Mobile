@@ -380,7 +380,7 @@ export default function EventDetailScreen() {
                 </Text>
                 <Ionicons
                   name={isAboutExpanded ? 'chevron-up' : 'chevron-down'}
-                  size={16}
+                  size={iconSize.sm}
                   color={colors.surface.saseBlue.primary}
                 />
               </Pressable>

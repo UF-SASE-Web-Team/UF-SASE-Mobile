@@ -3,7 +3,7 @@ import { Alert, Linking, Pressable, StyleProp, StyleSheet, View, ViewStyle } fro
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { type Colors, borderWidth, radius, space } from '@/theme';
+import { type Colors, borderWidth, iconSize, radius, space } from '@/theme';
 import { EventLink } from '@/types/events';
 
 export interface EventLinksSectionProps {
@@ -125,12 +125,12 @@ export function EventLinksSection({
               accessibilityLabel={link.title}
             >
               <View style={styles.linkLeft}>
-                <Ionicons name={iconName} size={18} color={colors.surface.saseBlue.primary} />
+                <Ionicons name={iconName} size={iconSize.sm} color={colors.surface.saseBlue.primary} />
                 <Text variant="bodySmStrong" numberOfLines={1} style={styles.linkTitle}>
                   {link.title}
                 </Text>
               </View>
-              <Ionicons name="open-outline" size={16} color={colors.content.onBase.secondary} />
+              <Ionicons name="open-outline" size={iconSize.sm} color={colors.content.onBase.secondary} />
             </Pressable>
           );
         })}

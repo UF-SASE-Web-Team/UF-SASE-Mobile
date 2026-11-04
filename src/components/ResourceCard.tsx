@@ -4,7 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { ResourceRow } from '@/types/resources';
 import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { type Colors, space, radius, fonts } from '@/theme';
+import { type Colors, space, radius, fonts, iconSize } from '@/theme';
 
 export interface ResourceCardProps {
   resource: ResourceRow;
@@ -48,7 +48,7 @@ export function ResourceCard({ resource, width, onPress }: ResourceCardProps) {
           <Text style={styles.openButtonText}>Open</Text>
           <Ionicons
             name="open-outline"
-            size={14}
+            size={iconSize.sm}
             color={colors.content.onBase.primary}
             style={styles.buttonIcon}
           />

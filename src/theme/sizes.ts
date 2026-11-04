@@ -28,6 +28,7 @@ export const borderWidth = {
 } as const;
 
 export const iconSize = {
+  sm: 16,
   md: 24,
   lg: 36,
 } as const;
