@@ -68,6 +68,11 @@ on conflict (id) do nothing;
 insert into public.events (title, type, starts_at, ends_at, location_name, checkin_code, points_value) values
   ('Test Event', 'other', now() - interval '30 minutes', now() + interval '2 hours', 'LIT 223', '111111', 1);
 
+insert into public.event_links (event_id, title, url, display_order)
+select id, 'Carpool form', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 0
+from public.events
+where title = 'Test Event';
+
 insert into public.programs (
   name, slug, category, display_order,
   short_description, description, image_url,

@@ -13,6 +13,8 @@ jest.mock('expo-router', () => ({
     canGoBack: jest.fn(() => true),
   })),
   useLocalSearchParams: jest.fn(() => ({})),
+  useSegments: jest.fn(() => []),
+  usePathname: jest.fn(() => ''),
   ThemeProvider: ({ children }: { children?: React.ReactNode }) => children ?? null,
   DarkTheme: {
     dark: true,
@@ -37,6 +39,10 @@ jest.mock('expo-router', () => ({
     },
   },
   Stack: Object.assign(
+    jest.fn(({ children }: { children?: React.ReactNode }) => children ?? null),
+    { Screen: jest.fn(() => null) },
+  ),
+  Tabs: Object.assign(
     jest.fn(({ children }: { children?: React.ReactNode }) => children ?? null),
     { Screen: jest.fn(() => null) },
   ),
