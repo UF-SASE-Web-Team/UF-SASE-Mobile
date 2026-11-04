@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   RefreshControl,
-  ScrollView,
+  SectionList,
   StyleSheet,
   View,
 } from 'react-native';
@@ -15,15 +15,15 @@ import { EventFilters, TimeFilter, TypeFilter } from '@/components/EventFilters'
 import { HappeningNowCard } from '@/components/HappeningNowCard';
 import { Text } from '@/components/Text';
 import { useAuth } from '@/context/AuthContext';
+import { useEvents } from '@/context/EventsContext';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { getEvents, toggleEventRsvp } from '@/services/events';
 import { type Colors, space } from '@/theme';
 import { EventRow, EventWithRsvp } from '@/types/events';
 
-interface MonthGroup {
+interface EventSection {
   key: string;
   title: string;
-  events: EventWithRsvp[];
+  data: EventWithRsvp[];
 }
 
 export default function EventsPage() {
@@ -32,63 +32,20 @@ export default function EventsPage() {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
-  const [events, setEvents] = useState<EventWithRsvp[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [rsvps, setRsvps] = useState<Record<string, boolean>>({});
-  const [selectedCheckInEvent, setSelectedCheckInEvent] = useState<EventRow | null>(null);
+  const {
+    events,
+    activeEvents,
+    loading,
+    refreshing,
+    error,
+    refreshEvents,
+    markEventAttended,
+    toggleRsvp,
+  } = useEvents();
 
+  const [selectedCheckInEvent, setSelectedCheckInEvent] = useState<EventRow | null>(null);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('upcoming');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
-
-  useEffect(() => {
-    let isMounted = true;
-
-    getEvents()
-      .then((data) => {
-        if (!isMounted) return;
-        setEvents(data);
-        const initialRsvps: Record<string, boolean> = {};
-        data.forEach((e) => {
-          initialRsvps[e.id] = Boolean(e.is_rsvped);
-        });
-        setRsvps(initialRsvps);
-        setError(null);
-      })
-      .catch((err: any) => {
-        if (!isMounted) return;
-        console.error('Error fetching events:', err.message);
-        setError(err.message);
-      })
-      .finally(() => {
-        if (!isMounted) return;
-        setLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      const data = await getEvents();
-      setEvents(data);
-      const initialRsvps: Record<string, boolean> = {};
-      data.forEach((e) => {
-        initialRsvps[e.id] = Boolean(e.is_rsvped);
-      });
-      setRsvps(initialRsvps);
-      setError(null);
-    } catch (err: any) {
-      console.error('Error fetching events:', err.message);
-      setError(err.message);
-    } finally {
-      setRefreshing(false);
-    }
-  }, []);
 
   const handleCardPress = (event: EventRow) => {
     router.push(`/events/${event.id}` as any);
@@ -97,6 +54,10 @@ export default function EventsPage() {
   const handleCheckInPress = (event: EventRow) => {
     if (!user) {
       Alert.alert('Sign in required', 'Please sign in to check in to events.');
+      return;
+    }
+    if ((event as EventWithRsvp).has_attended) {
+      Alert.alert('Already checked in', 'You have already checked in to this event.');
       return;
     }
     setSelectedCheckInEvent(event);
@@ -108,35 +69,12 @@ export default function EventsPage() {
       return;
     }
 
-    const currentStatus = Boolean(rsvps[event.id]);
-    const nextStatus = !currentStatus;
-
-    // Optimistic UI update
-    setRsvps((prev) => ({ ...prev, [event.id]: nextStatus }));
-
     try {
-      const newStatus = await toggleEventRsvp(event.id);
-      setRsvps((prev) => ({ ...prev, [event.id]: newStatus }));
+      await toggleRsvp(event.id);
     } catch (err: any) {
-      // Revert on error
-      setRsvps((prev) => ({ ...prev, [event.id]: currentStatus }));
       Alert.alert('RSVP Error', err.message || 'Could not update RSVP status.');
     }
   };
-
-  // Find all currently active events within their effective check-in window
-  const activeEvents = useMemo(() => {
-    const now = new Date();
-    return events.filter((e) => {
-      const opensAt = new Date(e.checkin_opens_at ?? e.starts_at);
-      const closesAt = new Date(e.checkin_closes_at ?? e.ends_at);
-
-      if (Number.isNaN(opensAt.getTime()) || Number.isNaN(closesAt.getTime())) {
-        return false;
-      }
-      return now >= opensAt && now <= closesAt;
-    });
-  }, [events]);
 
   // Filter events based on timeFilter and typeFilter
   const filteredEvents = useMemo(() => {
@@ -173,9 +111,9 @@ export default function EventsPage() {
     return result;
   }, [events, timeFilter, typeFilter]);
 
-  // Group filtered events by month & year
-  const monthGroups = useMemo<MonthGroup[]>(() => {
-    const groups = new Map<string, MonthGroup>();
+  // Group filtered events by month & year into SectionList sections
+  const monthSections = useMemo<EventSection[]>(() => {
+    const groups = new Map<string, EventSection>();
 
     filteredEvents.forEach((event) => {
       const date = new Date(event.starts_at);
@@ -191,11 +129,11 @@ export default function EventsPage() {
             month: 'long',
             year: 'numeric',
           }),
-          events: [],
+          data: [],
         };
         groups.set(key, group);
       }
-      group.events.push(event);
+      group.data.push(event);
     });
 
     return Array.from(groups.values());
@@ -221,76 +159,72 @@ export default function EventsPage() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={colors.surface.saseBlue.primary}
-          />
-        }
-      >
-        {/* Events Display Header */}
-        <View style={styles.header}>
-          <Text variant="display">Events</Text>
-        </View>
-
-        {/* Happening Now Banner(s) */}
-        {activeEvents.map((event) => (
-          <HappeningNowCard
-            key={event.id}
-            event={event}
-            onCheckInPress={handleCheckInPress}
+      <SectionList<EventWithRsvp, EventSection>
+        sections={monthSections}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <EventCard
+            event={item}
+            isRsvped={item.is_rsvped}
+            hasAttended={item.has_attended}
             onPress={handleCardPress}
+            onRsvpPress={handleRsvpPress}
           />
-        ))}
+        )}
+        renderSectionHeader={({ section: { title, data } }) => (
+          <View style={styles.monthHeader}>
+            <Text variant="bodyStrong">{title}</Text>
+            <Text variant="body" color={colors.content.onBase.secondary}>
+              {data.length} {data.length === 1 ? 'event' : 'events'}
+            </Text>
+          </View>
+        )}
+        renderSectionFooter={() => <View style={styles.sectionFooter} />}
+        ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
+        ListHeaderComponent={
+          <View style={styles.listHeader}>
+            {/* Events Display Header */}
+            <View style={styles.header}>
+              <Text variant="display">Events</Text>
+            </View>
 
-        {/* Filter Chips */}
-        <EventFilters
-          timeFilter={timeFilter}
-          typeFilter={typeFilter}
-          onTimeFilterChange={setTimeFilter}
-          onTypeFilterChange={setTypeFilter}
-        />
+            {/* Happening Now Banner(s) */}
+            {activeEvents.map((event) => (
+              <HappeningNowCard
+                key={event.id}
+                event={event}
+                hasCheckedIn={event.has_attended}
+                onCheckInPress={handleCheckInPress}
+                onPress={handleCardPress}
+              />
+            ))}
 
-        {/* Month Sections */}
-        {monthGroups.length === 0 ? (
+            {/* Filter Chips */}
+            <EventFilters
+              timeFilter={timeFilter}
+              typeFilter={typeFilter}
+              onTimeFilterChange={setTimeFilter}
+              onTypeFilterChange={setTypeFilter}
+            />
+          </View>
+        }
+        ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text variant="body" color={colors.content.onBase.secondary}>
               No events found.
             </Text>
           </View>
-        ) : (
-          <View style={styles.listContainer}>
-            {monthGroups.map((group) => (
-              <View key={group.key} style={styles.monthSection}>
-                {/* Month Heading */}
-                <View style={styles.monthHeader}>
-                  <Text variant="bodyStrong">{group.title}</Text>
-                  <Text variant="body" color={colors.content.onBase.secondary}>
-                    {group.events.length} {group.events.length === 1 ? 'event' : 'events'}
-                  </Text>
-                </View>
-
-                {/* Cards Container with space[400] gap */}
-                <View style={styles.cardsContainer}>
-                  {group.events.map((event) => (
-                    <EventCard
-                      key={event.id}
-                      event={event}
-                      isRsvped={rsvps[event.id] ?? event.is_rsvped}
-                      hasAttended={event.has_attended}
-                      onPress={handleCardPress}
-                      onRsvpPress={handleRsvpPress}
-                    />
-                  ))}
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
-      </ScrollView>
+        }
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refreshEvents}
+            tintColor={colors.surface.saseBlue.primary}
+          />
+        }
+        stickySectionHeadersEnabled={false}
+      />
 
       {selectedCheckInEvent && (
         <EventCheckInModal
@@ -301,11 +235,9 @@ export default function EventsPage() {
           pointsValue={selectedCheckInEvent.points_value}
           onSuccess={() => {
             const eventId = selectedCheckInEvent.id;
-            setEvents((prev) =>
-              prev.map((e) => (e.id === eventId ? { ...e, has_attended: true } : e)),
-            );
+            markEventAttended(eventId);
             setSelectedCheckInEvent(null);
-            handleRefresh();
+            refreshEvents();
           }}
         />
       )}
@@ -329,24 +261,25 @@ const createStyles = (colors: Colors) =>
       paddingHorizontal: space['400'],
       paddingTop: space['300'],
       paddingBottom: space['1000'],
+    },
+    listHeader: {
       gap: space['400'],
+      marginBottom: space['400'],
     },
     header: {
       marginBottom: space['100'],
-    },
-    listContainer: {
-      gap: space['400'],
-    },
-    monthSection: {
-      gap: space['400'],
     },
     monthHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+      marginBottom: space['400'],
     },
-    cardsContainer: {
-      gap: space['400'],
+    itemSeparator: {
+      height: space['400'],
+    },
+    sectionFooter: {
+      height: space['400'],
     },
     emptyContainer: {
       paddingVertical: space['800'],

@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { Image } from 'expo-image';
 import { Text } from '@/components/Text';
-import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import { useThemedStyles } from '@/context/ThemeContext';
 import { type Colors, borderWidth, radius, space } from '@/theme';
 
 export interface ContactCardProps {
@@ -13,7 +13,6 @@ export interface ContactCardProps {
 }
 
 export function ContactCard({ name, avatarUrl, style, testID }: ContactCardProps) {
-  const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
   const initial = (name[0] || 'C').toUpperCase();

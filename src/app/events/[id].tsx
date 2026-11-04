@@ -1,22 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Linking,
+  NativeSyntheticEvent,
   Pressable,
   ScrollView,
   StyleSheet,
+  TextLayoutEventData,
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { ContactCard } from '@/components/ContactCard';
 import { EventCheckInModal } from '@/components/EventCheckInModal';
+import { EventContactsSection } from '@/components/EventContactsSection';
+import { EventLinksSection } from '@/components/EventLinksSection';
 import { EventTag } from '@/components/EventTag';
 import { Text } from '@/components/Text';
 import { useAuth } from '@/context/AuthContext';
+import { useOptionalEvents } from '@/context/EventsContext';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { getEvent, toggleEventRsvp } from '@/services/events';
 import { type Colors, borderWidth, radius, space, iconSize } from '@/theme';
@@ -26,6 +29,7 @@ export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { user } = useAuth();
+  const eventsContext = useOptionalEvents();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -38,6 +42,18 @@ export default function EventDetailScreen() {
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
 
   const [isCheckInModalVisible, setIsCheckInModalVisible] = useState(false);
+  const [isAboutExpanded, setIsAboutExpanded] = useState(false);
+  const [isTextLong, setIsTextLong] = useState(false);
+
+  const handleAboutTextLayout = useCallback((e: NativeSyntheticEvent<TextLayoutEventData>) => {
+    if (e.nativeEvent.lines.length > 5) {
+      setIsTextLong(true);
+    }
+  }, []);
+
+  const hasManyNewlines = Boolean(event?.description && event.description.split('\n').length > 5);
+  const isLongDescription = Boolean(event?.description && event.description.length > 250);
+  const shouldShowExpandButton = isTextLong || hasManyNewlines || isLongDescription;
 
   useEffect(() => {
     if (!id) return;
@@ -53,6 +69,8 @@ export default function EventDetailScreen() {
         setEvent(data);
         setIsRsvped(Boolean(data.is_rsvped));
         setHasCheckedIn(Boolean(data.has_attended));
+        setIsAboutExpanded(false);
+        setIsTextLong(false);
         setError(null);
       })
       .catch((err: any) => {
@@ -192,11 +210,7 @@ export default function EventDetailScreen() {
         minute: '2-digit',
       })
     : '';
-  const formattedTimeWithDoors = doorsOpenTime
-    ? `Doors ${doorsOpenTime}, ${timeRange}`
-    : timeRange;
-
-  const pocs = event.program?.program_members?.filter((m) => m.is_poc) ?? [];
+  const formattedTimeWithDoors = doorsOpenTime ? `Doors ${doorsOpenTime}, ${timeRange}` : timeRange;
 
   return (
     <View style={styles.container}>
@@ -326,75 +340,58 @@ export default function EventDetailScreen() {
             <Text variant="bodyStrong" style={styles.sectionTitle}>
               About
             </Text>
-            <Text variant="body" color={colors.content.onBase.secondary} style={styles.aboutText}>
+            <Text
+              testID="event-about-text"
+              variant="body"
+              color={colors.content.onBase.secondary}
+              style={styles.aboutText}
+              numberOfLines={isAboutExpanded ? undefined : 5}
+              onTextLayout={handleAboutTextLayout}
+            >
               {event.description || 'No description provided.'}
             </Text>
+            {Boolean(event.description) && !shouldShowExpandButton && (
+              <Text
+                variant="body"
+                style={[styles.aboutText, styles.hiddenAboutMeasure]}
+                onTextLayout={handleAboutTextLayout}
+                aria-hidden
+              >
+                {event.description}
+              </Text>
+            )}
+            {shouldShowExpandButton && (
+              <Pressable
+                testID="event-about-toggle-button"
+                onPress={() => setIsAboutExpanded((prev) => !prev)}
+                style={({ pressed }) => [
+                  styles.expandButton,
+                  pressed && styles.expandButtonPressed,
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel={isAboutExpanded ? 'Show less' : 'Show more'}
+              >
+                <Text
+                  variant="bodySmStrong"
+                  color={colors.surface.saseBlue.primary}
+                  style={styles.expandButtonText}
+                >
+                  {isAboutExpanded ? 'Show less' : 'Show more'}
+                </Text>
+                <Ionicons
+                  name={isAboutExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={16}
+                  color={colors.surface.saseBlue.primary}
+                />
+              </Pressable>
+            )}
           </View>
 
           {/* Links Section */}
-          {Boolean(event.links && event.links.length > 0) && (
-            <View style={styles.section}>
-              <Text variant="bodyStrong" style={styles.sectionTitle}>
-                Links
-              </Text>
-              <View style={styles.linksContainer}>
-                {event.links!.map((link) => (
-                  <Pressable
-                    key={link.id}
-                    style={({ pressed }) => [styles.linkCard, pressed && styles.linkCardPressed]}
-                    onPress={async () => {
-                      try {
-                        const supported = await Linking.canOpenURL(link.url);
-                        if (supported) {
-                          await Linking.openURL(link.url);
-                        } else {
-                          Alert.alert('Unable to open link', 'Could not open this URL.');
-                        }
-                      } catch (err: any) {
-                        Alert.alert('Link error', err.message || 'Failed to open link.');
-                      }
-                    }}
-                    accessibilityRole="link"
-                    accessibilityLabel={link.title}
-                  >
-                    <View style={styles.linkLeft}>
-                      <Ionicons
-                        name="link-outline"
-                        size={18}
-                        color={colors.surface.saseBlue.primary}
-                      />
-                      <Text variant="bodySmStrong" numberOfLines={1} style={styles.linkTitle}>
-                        {link.title}
-                      </Text>
-                    </View>
-                    <Ionicons
-                      name="open-outline"
-                      size={16}
-                      color={colors.content.onBase.secondary}
-                    />
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-          )}
+          <EventLinksSection links={event.links} />
 
           {/* Contacts Section */}
-          {pocs.length > 0 && (
-            <View style={styles.section}>
-              <Text variant="bodyStrong" style={styles.sectionTitle}>
-                Contacts
-              </Text>
-              <View style={styles.contactsContainer}>
-                {pocs.map((poc) => (
-                  <ContactCard
-                    key={poc.id}
-                    name={poc.display_name || poc.profile?.full_name || 'Contact'}
-                    avatarUrl={poc.profile?.avatar_url}
-                  />
-                ))}
-              </View>
-            </View>
-          )}
+          <EventContactsSection program={event.program} />
         </View>
       </ScrollView>
 
@@ -445,7 +442,10 @@ export default function EventDetailScreen() {
           eventId={event.id}
           eventTitle={event.title}
           pointsValue={event.points_value}
-          onSuccess={() => setHasCheckedIn(true)}
+          onSuccess={() => {
+            setHasCheckedIn(true);
+            eventsContext?.markEventAttended(event.id);
+          }}
         />
       )}
     </View>
@@ -568,37 +568,26 @@ const createStyles = (colors: Colors) =>
     aboutText: {
       lineHeight: 22,
     },
-    linksContainer: {
-      gap: space['200'],
+    hiddenAboutMeasure: {
+      position: 'absolute',
+      opacity: 0,
+      left: 0,
+      right: 0,
+      zIndex: -1,
     },
-    linkCard: {
+    expandButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: colors.surface.base.secondary,
-      borderWidth: borderWidth.sm,
-      borderColor: colors.border.base.subtle,
-      borderRadius: radius.md,
-      paddingHorizontal: space['300'],
-      paddingVertical: space['250'],
+      gap: space['050'],
+      alignSelf: 'flex-start',
+      marginTop: space['050'],
+      paddingVertical: space['050'],
     },
-    linkCardPressed: {
-      opacity: 0.75,
+    expandButtonPressed: {
+      opacity: 0.6,
     },
-    linkLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: space['200'],
-      flex: 1,
-      marginRight: space['200'],
-    },
-    linkTitle: {
-      flex: 1,
-    },
-    contactsContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: space['200'],
+    expandButtonText: {
+      color: colors.surface.saseBlue.primary,
     },
     bottomContainer: {
       position: 'absolute',

@@ -4,6 +4,7 @@ import { render, screen, waitFor, fireEvent, userEvent } from '@testing-library/
 import { useRouter } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import EventsPage from '@/app/(tabs)/events/index';
+import { EventsProvider } from '@/context/EventsContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
 import * as eventsService from '@/services/events';
@@ -39,7 +40,9 @@ function renderScreen() {
   return render(
     <SafeAreaProvider initialMetrics={initialMetrics}>
       <ThemeProvider>
-        <EventsPage />
+        <EventsProvider>
+          <EventsPage />
+        </EventsProvider>
       </ThemeProvider>
     </SafeAreaProvider>,
   );
@@ -203,5 +206,31 @@ describe('EventsPage', () => {
       'Sign in required',
       'Please sign in to check in to events.',
     );
+  });
+
+  it('shows Checked in badge on HappeningNowCard when user has already attended', async () => {
+    const attendedEvent = {
+      id: 'now-1',
+      title: 'Active Now GBM',
+      type: 'gbm',
+      starts_at: new Date(now - 1800000).toISOString(),
+      ends_at: new Date(now + 3600000).toISOString(),
+      checkin_opens_at: new Date(now - 3600000).toISOString(),
+      checkin_closes_at: new Date(now + 3600000).toISOString(),
+      points_value: 10,
+      is_rsvped: true,
+      has_attended: true,
+    };
+
+    (eventsService.getEvents as jest.Mock).mockResolvedValue([attendedEvent]);
+
+    renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByText('Happening Now')).toBeTruthy();
+      expect(screen.getByTestId('happening-now-checked-in-badge')).toBeTruthy();
+    });
+
+    expect(screen.queryByLabelText('Check-in')).toBeNull();
   });
 });
