@@ -13,3 +13,5 @@ insert into public.events (title, starts_at, ends_at, location_name, checkin_cod
     ('General Body Meeting', now() + interval '1 day', now() + interval '1 day 2 hours', 'Little Hall', 'QR Code', 1),
     ('Other SASE Event', now() + interval '3 day', now() + interval '3 days 2 hours', 'Reitz Union', 'QR Code', 1);
 
+insert into public.events (title, starts_at, ends_at, location_name, checkin_code, points_value, flyer_url) values 
+    ('General Body Meeting', now() + interval '1 day', now() + interval '1 day 2 hours', 'Little Hall', 'QR Code', 1, 'https://flyer.com');
