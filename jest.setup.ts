@@ -123,3 +123,18 @@ jest.mock('@/context/AuthContext', () => ({
   })),
   AuthProvider: ({ children }: { children?: React.ReactNode }) => children ?? null,
 }));
+
+// Mock expo-camera
+jest.mock('expo-camera', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    CameraView: jest.fn(({ children, onBarcodeScanned, testID, ...props }: any) =>
+      React.createElement(View, { testID: testID || 'camera-view', ...props }, children),
+    ),
+    useCameraPermissions: jest.fn(() => [
+      { granted: true, canAskAgain: true, status: 'granted' },
+      jest.fn().mockResolvedValue({ granted: true }),
+    ]),
+  };
+});

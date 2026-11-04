@@ -128,6 +128,22 @@ describe('events service', () => {
       expect(result).toBe(true);
     });
 
+    it('calls check_in RPC with qr method when specified', async () => {
+      (supabase.rpc as jest.Mock) = jest.fn().mockResolvedValue({
+        data: { id: 'checkin-2' },
+        error: null,
+      });
+
+      const result = await checkInToEvent('event-123', 'https://ufsase.com/qr', 'qr');
+
+      expect(supabase.rpc).toHaveBeenCalledWith('check_in', {
+        p_event_id: 'event-123',
+        p_method: 'qr',
+        p_payload: 'https://ufsase.com/qr',
+      });
+      expect(result).toBe(true);
+    });
+
     it('throws error if check_in RPC fails', async () => {
       (supabase.rpc as jest.Mock) = jest.fn().mockResolvedValue({
         data: null,

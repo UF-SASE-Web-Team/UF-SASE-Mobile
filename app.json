@@ -30,6 +30,12 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow UF SASE to access your camera to scan event check-in QR codes."
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",

@@ -60,11 +60,15 @@ export async function getEvent(eventId: string): Promise<EventWithDetails | null
   } as EventWithDetails;
 }
 
-export async function checkInToEvent(eventId: string, code: string): Promise<boolean> {
+export async function checkInToEvent(
+  eventId: string,
+  payload: string,
+  method: 'code' | 'qr' = 'code',
+): Promise<boolean> {
   const { data, error } = await supabase.rpc('check_in', {
     p_event_id: eventId,
-    p_method: 'code',
-    p_payload: code.trim(),
+    p_method: method,
+    p_payload: payload.trim(),
   });
 
   if (error) throw error;
