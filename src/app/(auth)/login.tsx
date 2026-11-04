@@ -27,6 +27,9 @@ export default function LoginScreen() {
         { p_username: cleanIdentifier },
       );
       if (lookupError || !targetEmail) {
+        if (lookupError) {
+          console.error('Username lookup error:', lookupError);
+        }
         setLoading(false);
         Alert.alert('Login failed', 'Invalid username/email or password.');
         return;
@@ -41,6 +44,7 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (signInError) {
+      console.error('Sign-in error:', signInError);
       if (signInError.message.toLowerCase().includes('email not confirmed')) {
         Alert.alert('Email Unverified', 'Please verify your email before logging in.', [
           {

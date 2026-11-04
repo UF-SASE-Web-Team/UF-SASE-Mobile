@@ -48,6 +48,36 @@ jest.mock('expo-router', () => ({
   ),
 }));
 
+// Mock expo-router/unstable-native-tabs
+const createTriggerSubcomponent = (name: string) => {
+  const comp = jest.fn(() => null);
+  Object.assign(comp, { displayName: name });
+  return comp;
+};
+
+const MockTrigger = Object.assign(
+  jest.fn(({ children }: { children?: React.ReactNode }) => children ?? null),
+  {
+    Label: createTriggerSubcomponent('NativeTabs.Trigger.Label'),
+    Icon: createTriggerSubcomponent('NativeTabs.Trigger.Icon'),
+    Badge: createTriggerSubcomponent('NativeTabs.Trigger.Badge'),
+    VectorIcon: createTriggerSubcomponent('NativeTabs.Trigger.VectorIcon'),
+  },
+);
+
+const MockNativeTabs = Object.assign(
+  jest.fn(({ children }: { children?: React.ReactNode }) => children ?? null),
+  {
+    Trigger: MockTrigger,
+    BottomAccessory: jest.fn(() => null),
+  },
+);
+
+jest.mock('expo-router/unstable-native-tabs', () => ({
+  NativeTabs: MockNativeTabs,
+  NativeTabTrigger: MockTrigger,
+}));
+
 // Mock expo-secure-store
 jest.mock('expo-secure-store', () => {
   const store: Record<string, string> = {};

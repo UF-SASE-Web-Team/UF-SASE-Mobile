@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, userEvent, waitFor, cleanup, act } from '@testing-library/react-native';
 import { Alert } from 'react-native';
-import ProfilePage from '@/app/(tabs)/profile';
+import ProfilePage from '@/app/profile';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { ThemeProvider } from '@/context/ThemeContext';

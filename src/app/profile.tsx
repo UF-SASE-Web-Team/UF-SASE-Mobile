@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, Button, Alert, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { supabase } from '@/lib/supabase';
 import { borderWidth, radius, space } from '@/theme';
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { signOut } = useAuth();
   const { colors, mode, setMode } = useTheme();
   const [loading, setLoading] = useState(false);
@@ -70,12 +73,30 @@ export default function ProfilePage() {
     { label: 'System', value: 'system' as const },
   ];
 
+  const canGoBack = router.canGoBack();
+
   return (
     <SafeAreaView
       style={[styles.safeArea, { backgroundColor: colors.surface.base.primary }]}
       edges={['top']}
     >
-      <Text style={[styles.title, { color: colors.content.onBase.primary }]}>Profile</Text>
+      <View style={styles.header}>
+        {canGoBack ? (
+          <Pressable
+            testID="profile-back-button"
+            accessibilityLabel="Back"
+            accessibilityRole="button"
+            onPress={() => router.back()}
+            style={({ pressed }) => [styles.backButton, { opacity: pressed ? 0.7 : 1 }]}
+          >
+            <Ionicons name="chevron-back" size={24} color={colors.content.onBase.primary} />
+          </Pressable>
+        ) : (
+          <View style={styles.backButtonPlaceholder} />
+        )}
+        <Text style={[styles.title, { color: colors.content.onBase.primary }]}>Profile</Text>
+        <View style={styles.backButtonPlaceholder} />
+      </View>
 
       {/* Temporary Theme Toggle */}
       <View style={[styles.themeCard, { backgroundColor: colors.surface.base.secondary }]}>
@@ -148,10 +169,26 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: space['400'],
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: space['400'],
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: -space['100'],
+  },
+  backButtonPlaceholder: {
+    width: 36,
+  },
   title: {
     fontSize: 24,
     fontWeight: '700',
-    marginBottom: space['400'],
+    textAlign: 'center',
   },
   themeCard: {
     padding: space['400'],

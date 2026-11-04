@@ -1,16 +1,21 @@
+import React from 'react';
 import { Tabs } from 'expo-router';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useTheme } from '@/theme';
 
 export default function TabsLayout() {
+  const { colors, isDark } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#FFFFFF',
-        tabBarInactiveTintColor: '#B3B3B3',
+        tabBarActiveTintColor: isDark ? colors.surface.saseBlue.primary : '#0048BD',
+        tabBarInactiveTintColor: colors.content.onBase.secondary,
         tabBarStyle: {
-          backgroundColor: '#121212',
-          borderTopWidth: 0,
+          backgroundColor: colors.surface.base.primary,
+          borderTopColor: colors.border.base.subtle,
+          borderTopWidth: 1,
         },
         tabBarLabelStyle: {
           fontSize: 11,
@@ -22,21 +27,27 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="flask-outline" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="events"
         options={{
           title: 'Events',
-          tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="calendar-month-outline" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="programs"
         options={{
           title: 'Programs',
-          tabBarIcon: ({ color, size }) => <Ionicons name="layers" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="account-group-outline" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -44,15 +55,8 @@ export default function TabsLayout() {
         options={{
           title: 'Resources',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="link-outline" size={size} color={color} />
+            <MaterialCommunityIcons name="folder-outline" size={size} color={color} />
           ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
         }}
       />
     </Tabs>
