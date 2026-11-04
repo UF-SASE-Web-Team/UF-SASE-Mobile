@@ -235,6 +235,6 @@ const createStyles = (colors: Colors) =>
     },
     readMoreText: {
       fontFamily: fonts.sans.bold,
-      color: colors.content.saseBlue.primary,
+      color: colors.surface.saseBlue.primary,
     },
   });

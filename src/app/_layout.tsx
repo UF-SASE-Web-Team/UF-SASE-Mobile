@@ -14,6 +14,10 @@ import { fontAssets } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();
 
+export const unstable_settings = {
+  anchor: '(tabs)',
+};
+
 function ThemedStatusBar() {
   const { isDark } = useTheme();
   return <StatusBar style={isDark ? 'light' : 'dark'} />;
@@ -65,6 +69,7 @@ function RootNavigator() {
       >
         <Stack.Protected guard={isAuthenticated}>
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="events/[id]" />
         </Stack.Protected>
         <Stack.Protected guard={!isAuthenticated}>
           <Stack.Screen name="(auth)" />

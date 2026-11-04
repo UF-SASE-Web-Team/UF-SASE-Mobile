@@ -1,11 +1,14 @@
-import { StyleSheet, Text, Button, Alert, View } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, Button, Alert, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { supabase } from '@/lib/supabase';
+import { borderWidth, radius, space } from '@/theme';
 
 export default function ProfilePage() {
   const { signOut } = useAuth();
+  const { colors, mode, setMode } = useTheme();
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -61,9 +64,68 @@ export default function ProfilePage() {
     );
   };
 
+  const themeOptions = [
+    { label: 'Light', value: 'light' as const },
+    { label: 'Dark', value: 'dark' as const },
+    { label: 'System', value: 'system' as const },
+  ];
+
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <Text style={styles.title}>Profile</Text>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.surface.base.primary }]}
+      edges={['top']}
+    >
+      <Text style={[styles.title, { color: colors.content.onBase.primary }]}>Profile</Text>
+
+      {/* Temporary Theme Toggle */}
+      <View style={[styles.themeCard, { backgroundColor: colors.surface.base.secondary }]}>
+        <Text style={[styles.themeTitle, { color: colors.content.onBase.primary }]}>
+          Theme (Temporary)
+        </Text>
+        <Text style={[styles.themeSubtitle, { color: colors.content.onBase.secondary }]}>
+          Toggle between light, dark, and system appearance.
+        </Text>
+        <View style={styles.themeOptionsRow}>
+          {themeOptions.map((opt) => {
+            const isSelected = mode === opt.value;
+            return (
+              <Pressable
+                key={opt.value}
+                testID={`theme-btn-${opt.value}`}
+                style={[
+                  styles.themeButton,
+                  {
+                    backgroundColor: isSelected
+                      ? colors.surface.saseBlue.primary
+                      : colors.surface.base.primary,
+                    borderColor: isSelected
+                      ? colors.surface.saseBlue.primary
+                      : colors.border.base.subtle,
+                  },
+                ]}
+                onPress={() => setMode(opt.value)}
+                accessibilityRole="button"
+                accessibilityLabel={`${opt.label} theme`}
+              >
+                <Text
+                  style={[
+                    styles.themeButtonText,
+                    {
+                      color: isSelected
+                        ? colors.content.onMedia.primary
+                        : colors.content.onBase.primary,
+                      fontWeight: isSelected ? '700' : '500',
+                    },
+                  ]}
+                >
+                  {opt.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+
       <View style={styles.buttonContainer}>
         <Button
           title={loading ? 'Signing out...' : 'Sign Out'}
@@ -84,16 +146,45 @@ export default function ProfilePage() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    padding: 16,
+    padding: space['400'],
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: space['400'],
+  },
+  themeCard: {
+    padding: space['400'],
+    borderRadius: radius.lg,
+    gap: space['200'],
+    marginBottom: space['400'],
+  },
+  themeTitle: {
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 16,
+  },
+  themeSubtitle: {
+    fontSize: 13,
+    marginBottom: space['100'],
+  },
+  themeOptionsRow: {
+    flexDirection: 'row',
+    gap: space['200'],
+  },
+  themeButton: {
+    flex: 1,
+    paddingVertical: space['250'],
+    borderRadius: radius.md,
+    borderWidth: borderWidth.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  themeButtonText: {
+    fontSize: 14,
   },
   buttonContainer: {
     marginTop: 'auto',
-    marginBottom: 16,
-    gap: 8,
+    marginBottom: space['400'],
+    gap: space['200'],
   },
 });

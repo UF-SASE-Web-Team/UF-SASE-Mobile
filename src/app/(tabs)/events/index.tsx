@@ -182,7 +182,7 @@ export default function EventsPage() {
   if (loading) {
     return (
       <SafeAreaView style={styles.centered} edges={['top']}>
-        <ActivityIndicator size="large" color={colors.content.saseBlue.primary} />
+        <ActivityIndicator size="large" color={colors.surface.saseBlue.primary} />
       </SafeAreaView>
     );
   }
@@ -205,7 +205,7 @@ export default function EventsPage() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor={colors.content.saseBlue.primary}
+            tintColor={colors.surface.saseBlue.primary}
           />
         }
       >

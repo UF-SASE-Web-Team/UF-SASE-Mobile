@@ -99,7 +99,7 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: colors.surface.base.primary,
+      backgroundColor: colors.surface.base.secondary,
       borderWidth: borderWidth.sm,
       borderColor: colors.border.base.subtle,
       borderRadius: radius.md,

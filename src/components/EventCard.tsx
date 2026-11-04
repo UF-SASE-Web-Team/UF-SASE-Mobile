@@ -1,9 +1,10 @@
 import React from 'react';
 import { GestureResponderEvent, Pressable, StyleSheet, View } from 'react-native';
+import { EventTag } from '@/components/EventTag';
 import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { type Colors, radius, space, borderWidth } from '@/theme';
-import { EventRow, EventType, EventWithRsvp } from '@/types/events';
+import { EventRow, EventWithRsvp } from '@/types/events';
 
 export interface EventCardProps {
   event: EventRow | EventWithRsvp;
@@ -12,14 +13,6 @@ export interface EventCardProps {
   onPress?: (event: EventRow) => void;
   onRsvpPress?: (event: EventRow) => void;
 }
-
-const TAG_LABELS: Record<EventType, string> = {
-  gbm: 'GBM',
-  career: 'Career',
-  social: 'Social',
-  team: 'Team',
-  other: 'Other',
-};
 
 export function EventCard({
   event,
@@ -88,13 +81,7 @@ export function EventCard({
           {event.title}
         </Text>
         <View style={styles.detailsRow}>
-          {event.type !== 'other' && (
-            <View style={[styles.tag, styles[`tag_${event.type}`]]}>
-              <Text variant="bodySmStrong" style={styles[`tagText_${event.type}`]}>
-                {TAG_LABELS[event.type] ?? event.type.toUpperCase()}
-              </Text>
-            </View>
-          )}
+          {event.type && event.type !== 'other' && <EventTag type={event.type} />}
           {Boolean(timeAndLocation) && (
             <Text
               variant="bodySm"
@@ -137,16 +124,8 @@ export function EventCard({
   );
 }
 
-const createStyles = (colors: Colors) => {
-  const tagColors: Record<EventType, string> = {
-    gbm: colors.surface.saseBlue.primary,
-    career: colors.surface.accent.primary,
-    team: colors.surface.accent.secondary,
-    other: colors.surface.accent.tertiary,
-    social: colors.surface.accent.quaternary,
-  };
-
-  return StyleSheet.create({
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
     card: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -154,7 +133,7 @@ const createStyles = (colors: Colors) => {
       borderWidth: borderWidth.sm,
       borderColor: colors.border.base.subtle,
       borderRadius: radius.md,
-      paddingVertical: space['150'],
+      paddingVertical: space['200'],
       paddingHorizontal: space['250'],
     },
     cardPressed: {
@@ -177,23 +156,6 @@ const createStyles = (colors: Colors) => {
       marginTop: space['100'],
       gap: space['150'],
     },
-    tag: {
-      borderRadius: radius.full,
-      paddingHorizontal: space['200'],
-      paddingVertical: 2,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    tag_gbm: { backgroundColor: `${tagColors.gbm}66` },
-    tag_career: { backgroundColor: `${tagColors.career}66` },
-    tag_team: { backgroundColor: `${tagColors.team}66` },
-    tag_other: { backgroundColor: `${tagColors.other}66` },
-    tag_social: { backgroundColor: `${tagColors.social}66` },
-    tagText_gbm: { color: tagColors.gbm },
-    tagText_career: { color: tagColors.career },
-    tagText_team: { color: tagColors.team },
-    tagText_other: { color: tagColors.other },
-    tagText_social: { color: tagColors.social },
     detailsText: {
       flex: 1,
     },
@@ -216,4 +178,3 @@ const createStyles = (colors: Colors) => {
       opacity: 0.75,
     },
   });
-};
