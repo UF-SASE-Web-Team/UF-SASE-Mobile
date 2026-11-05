@@ -1,6 +1,26 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: { extensions?: Json; operationName?: string; query?: string; variables?: Json };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
   public: {
     Tables: {
       academic_terms: {
@@ -25,6 +45,22 @@ export type Database = {
           is_current?: boolean;
           name?: string;
           start_date?: string;
+        };
+        Relationships: [];
+      };
+      app_settings: {
+        Row: {
+          key: string;
+          value: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          key: string;
+          value: string;
+        };
+        Update: {
+          key?: string;
+          value?: string;
         };
         Relationships: [];
       };
@@ -68,11 +104,45 @@ export type Database = {
           },
         ];
       };
+      event_rsvps: {
+        Row: {
+          created_at: string;
+          event_id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          event_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          event_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'event_rsvps_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: false;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'event_rsvps_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       events: {
         Row: {
           address: string | null;
           checkin_closes_at: string | null;
-          checkin_code: string | null;
+          checkin_code: string;
           checkin_opens_at: string | null;
           created_at: string;
           description: string | null;
@@ -82,14 +152,16 @@ export type Database = {
           lng: number | null;
           location_name: string;
           points_value: number;
+          program_id: string | null;
           starts_at: string;
           title: string;
+          type: Database['public']['Enums']['event_type'];
         };
         ComputedFields: never;
         Insert: {
           address?: string | null;
           checkin_closes_at?: string | null;
-          checkin_code?: string | null;
+          checkin_code?: string;
           checkin_opens_at?: string | null;
           created_at?: string;
           description?: string | null;
@@ -99,13 +171,15 @@ export type Database = {
           lng?: number | null;
           location_name: string;
           points_value?: number;
+          program_id?: string | null;
           starts_at: string;
           title: string;
+          type?: Database['public']['Enums']['event_type'];
         };
         Update: {
           address?: string | null;
           checkin_closes_at?: string | null;
-          checkin_code?: string | null;
+          checkin_code?: string;
           checkin_opens_at?: string | null;
           created_at?: string;
           description?: string | null;
@@ -115,10 +189,20 @@ export type Database = {
           lng?: number | null;
           location_name?: string;
           points_value?: number;
+          program_id?: string | null;
           starts_at?: string;
           title?: string;
+          type?: Database['public']['Enums']['event_type'];
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'events_program_id_fkey';
+            columns: ['program_id'];
+            isOneToOne: false;
+            referencedRelation: 'programs';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       profiles: {
         Row: {
@@ -318,12 +402,34 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      check_in: {
+        Args: {
+          p_event_id: string;
+          p_method: Database['public']['Enums']['checkin_method'];
+          p_payload: string;
+        };
+        Returns: {
+          checked_in_at: string;
+          event_id: string;
+          id: string;
+          method: Database['public']['Enums']['checkin_method'];
+          user_id: string | null;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'check_ins';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       check_username_available: { Args: { input_username: string }; Returns: boolean };
       delete_user_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       get_email_from_username: { Args: { p_username: string }; Returns: string };
+      toggle_event_rsvp: { Args: { p_event_id: string }; Returns: boolean };
     };
     Enums: {
       checkin_method: 'code' | 'qr' | 'manual';
+      event_type: 'gbm' | 'career' | 'social' | 'team' | 'other';
       program_category: 'events_and_committees' | 'technical_and_research' | 'community';
       resource_category: 'general' | 'sase' | 'academic' | 'professional';
       user_role: 'member' | 'officer' | 'alumni';
@@ -436,9 +542,13 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       checkin_method: ['code', 'qr', 'manual'],
+      event_type: ['gbm', 'career', 'social', 'team', 'other'],
       program_category: ['events_and_committees', 'technical_and_research', 'community'],
       resource_category: ['general', 'sase', 'academic', 'professional'],
       user_role: ['member', 'officer', 'alumni'],

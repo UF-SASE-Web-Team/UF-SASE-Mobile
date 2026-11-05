@@ -16,6 +16,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { iconSize } from '@/theme';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_REGEX = /^[a-z][a-z0-9]*(?:[._][a-z0-9]+)*$/;
@@ -215,7 +216,7 @@ export default function SignupScreen() {
             accessibilityLabel="Go back"
             accessibilityRole="button"
           >
-            <Ionicons name="arrow-back" size={24} color="#000000" />
+            <Ionicons name="arrow-back" size={iconSize.md} color="#000000" />
           </TouchableOpacity>
 
           <Text style={styles.title}>Get started</Text>
@@ -248,7 +249,7 @@ export default function SignupScreen() {
                 accessibilityLabel="Clear email"
                 accessibilityRole="button"
               >
-                <Ionicons name="close-outline" size={22} color="#999999" />
+                <Ionicons name="close-outline" size={iconSize.md} color="#999999" />
               </TouchableOpacity>
             )}
           </View>
@@ -287,7 +288,7 @@ export default function SignupScreen() {
             >
               <Ionicons
                 name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                size={22}
+                size={iconSize.md}
                 color="#666666"
               />
             </TouchableOpacity>
@@ -325,7 +326,7 @@ export default function SignupScreen() {
                 accessibilityLabel="Clear full name"
                 accessibilityRole="button"
               >
-                <Ionicons name="close-outline" size={22} color="#999999" />
+                <Ionicons name="close-outline" size={iconSize.md} color="#999999" />
               </TouchableOpacity>
             )}
           </View>
@@ -365,7 +366,7 @@ export default function SignupScreen() {
             )}
             {usernameStatus === 'available' && (
               <View style={styles.indicatorIcon} accessibilityLabel="Username available">
-                <Ionicons name="checkmark-circle" size={20} color="#16a34a" />
+                <Ionicons name="checkmark-circle" size={iconSize.md} color="#16a34a" />
               </View>
             )}
             {username.length > 0 &&
@@ -378,7 +379,7 @@ export default function SignupScreen() {
                   accessibilityLabel="Clear username"
                   accessibilityRole="button"
                 >
-                  <Ionicons name="close-outline" size={22} color="#999999" />
+                  <Ionicons name="close-outline" size={iconSize.md} color="#999999" />
                 </TouchableOpacity>
               )}
           </View>

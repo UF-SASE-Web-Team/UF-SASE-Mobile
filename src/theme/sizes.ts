@@ -4,6 +4,7 @@ export const space = {
   '100': 4,
   '150': 6,
   '200': 8,
+  '250': 10,
   '300': 12,
   '400': 16,
   '500': 20,
@@ -17,6 +18,7 @@ export const radius = {
   sm: 8,
   md: 12,
   lg: 24,
+  xl: 32,
   full: 9999,
 } as const;
 
@@ -26,6 +28,7 @@ export const borderWidth = {
 } as const;
 
 export const iconSize = {
+  sm: 16,
   md: 24,
   lg: 36,
 } as const;

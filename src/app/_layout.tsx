@@ -9,10 +9,15 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { EventsProvider } from '@/context/EventsContext';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { fontAssets } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();
+
+export const unstable_settings = {
+  anchor: '(tabs)',
+};
 
 function ThemedStatusBar() {
   const { isDark } = useTheme();
@@ -65,6 +70,8 @@ function RootNavigator() {
       >
         <Stack.Protected guard={isAuthenticated}>
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="events/[id]" />
+          <Stack.Screen name="profile" />
         </Stack.Protected>
         <Stack.Protected guard={!isAuthenticated}>
           <Stack.Screen name="(auth)" />
@@ -79,8 +86,10 @@ export default function RootLayout() {
     <ThemeProvider>
       <ThemedStatusBar />
       <AuthProvider>
-        <SplashController />
-        <RootNavigator />
+        <EventsProvider>
+          <SplashController />
+          <RootNavigator />
+        </EventsProvider>
       </AuthProvider>
     </ThemeProvider>
   );

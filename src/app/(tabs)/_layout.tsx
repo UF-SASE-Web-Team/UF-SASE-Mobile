@@ -1,16 +1,22 @@
+import React from 'react';
 import { Tabs } from 'expo-router';
+import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useTheme } from '@/theme';
 
 export default function TabsLayout() {
+  const { colors, isDark } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#FFFFFF',
-        tabBarInactiveTintColor: '#B3B3B3',
+        tabBarActiveTintColor: isDark ? colors.surface.saseBlue.primary : '#0048BD',
+        tabBarInactiveTintColor: colors.content.onBase.secondary,
         tabBarStyle: {
-          backgroundColor: '#121212',
-          borderTopWidth: 0,
+          backgroundColor: colors.surface.base.primary,
+          borderTopColor: colors.border.base.subtle,
+          borderTopWidth: 1,
         },
         tabBarLabelStyle: {
           fontSize: 11,
@@ -22,21 +28,32 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Image
+              source={require('../../../assets/icons/sase-flask.svg')}
+              style={{ width: size, height: size }}
+              tintColor={color as string}
+              contentFit="contain"
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="events"
         options={{
           title: 'Events',
-          tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="calendar-outline" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="programs"
         options={{
           title: 'Programs',
-          tabBarIcon: ({ color, size }) => <Ionicons name="layers" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="people-outline" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -44,15 +61,8 @@ export default function TabsLayout() {
         options={{
           title: 'Resources',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="link-outline" size={size} color={color} />
+            <Ionicons name="folder-outline" size={size} color={color} />
           ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
         }}
       />
     </Tabs>

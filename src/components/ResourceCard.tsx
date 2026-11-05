@@ -1,13 +1,10 @@
 import React from 'react';
 import { ImageBackground, Linking, Pressable, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Database } from '@/types/supabase';
+import { ResourceRow } from '@/types/resources';
 import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { type Colors, space, radius, fonts } from '@/theme';
-
-export type ResourceRow = Database['public']['Tables']['resources']['Row'];
-export type ResourceCategory = Database['public']['Enums']['resource_category'];
+import { type Colors, space, radius, fonts, iconSize } from '@/theme';
 
 export interface ResourceCardProps {
   resource: ResourceRow;
@@ -51,7 +48,7 @@ export function ResourceCard({ resource, width, onPress }: ResourceCardProps) {
           <Text style={styles.openButtonText}>Open</Text>
           <Ionicons
             name="open-outline"
-            size={14}
+            size={iconSize.sm}
             color={colors.content.onBase.primary}
             style={styles.buttonIcon}
           />
