@@ -18,21 +18,47 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  check:
-    name: Lint, format, typecheck
+  client-check:
+    name: Lint, format, typecheck, test
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+
       - name: Install dependencies
         run: npm ci
+
       - name: Lint & format check
         run: npm run lint
+
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Run tests
+        run: npm run test -- --passWithNoTests
+
+  db-check:
+    name: Supabase tests and checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Check Supabase migrations and run tests
+        run: |
+          supabase start
+          supabase db reset
+          supabase test db

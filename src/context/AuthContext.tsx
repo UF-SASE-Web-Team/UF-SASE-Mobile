@@ -14,6 +14,8 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   isLoading: boolean;
+  isRecovering: boolean;
+  setIsRecovering: (value: boolean) => void;
   signOut: () => Promise<void>;
 }
 
@@ -22,6 +24,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isRecovering, setIsRecovering] = useState(false);
 
   useEffect(() => {
     const {
@@ -37,6 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signOut = useCallback(async () => {
+    setIsRecovering(false);
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   }, []);
@@ -46,9 +50,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       session,
       user: session?.user ?? null,
       isLoading,
+      isRecovering,
+      setIsRecovering,
       signOut,
     }),
-    [session, isLoading, signOut],
+    [session, isLoading, isRecovering, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

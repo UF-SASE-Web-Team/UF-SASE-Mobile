@@ -8,9 +8,9 @@ Backend developers primarily make schema changes locally. Remote commands are fo
 
 | Environment | Where | Used for | Used by |
 |---|---|---|---|
-| Local | Docker on your machine via `supabase start` | Developing and testing migrations | Anyone changing the schema
-| Staging | Supabase project ([sase-app-staging](https://supabase.com/dashboard/project/yoazhfliefswktpszaob)) | Verifying changes in shared, consistent remote project | Everyone. Fronend developers can use this and skip Docker
-| Prod | Supabase project | Real user data | Leads only.
+| Local | Docker on your machine via `supabase start` | Developing and testing migrations | Anyone changing the schema |
+| Staging | Supabase project ([sase-app-staging](https://supabase.com/dashboard/project/yoazhfliefswktpszaob)) | Verifying changes in shared, consistent remote project | Everyone. Fronend developers can use this and skip Docker |
+| Prod | Supabase project | Real user data | Leads only. |
 
 ## Migrations
 
@@ -46,14 +46,15 @@ A migration is an SQL file that describes an addition to the schema and lives in
 | `npx supabase start` | Start local Supabase stack |
 | `npx supabase stop` | Stop local Supabase stack |
 | `npx supabase db reset` | Resets local DB, run all migrations and `seed.sql` |
-| `npx supabase db migration new <name>` | Create a named empty migration file |
+| `npx supabase test db` | Runs database pgTAP tests in `supabase/tests/` |
+| `npx supabase migration new <name>` | Create a named empty migration file |
 | `npx supabase db diff -f <name>` | Generate a named migration file from local Studio changes |
 
 ### Remote Commands
 
 | Supabase Command | Description |
 |---|---|
-| `npx supabase migration list` | Compare local and remote migration history |
+| `npx supabase migration list` | List local and remote migration history |
 | `npx supabase db push --dry-run` | Preview what push would apply |
 | `npx supabase db push` | Apply pending migrations to the linked remote |
 
@@ -62,7 +63,7 @@ A migration is an SQL file that describes an addition to the schema and lives in
 ### Method 1: Write SQL (Preferred)
 
 1. Start local Supabase stack: `npx supabase start`
-2. Create a named empty migration file: `npx supabase db migration new <descriptive-name>`.
+2. Create a named empty migration file: `npx supabase migration new <descriptive-name>`.
 3. Write your SQL in the new file.
 4. Update `seed.sql` with mock data if you added a new table or column.
 5. Run `npx supabase db reset` to confirm migration applies cleanly.
