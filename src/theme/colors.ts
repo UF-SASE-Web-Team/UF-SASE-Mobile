@@ -63,6 +63,7 @@ export const lightColors: Colors = {
   content: {
     onBase: { primary: p.gray[900], secondary: p.gray[600] },
     onInverse: { primary: p.gray[100] },
+    // saseBlue: { primary: p.sase.blue[1000] },
     onSaseBlue: { primary: p.sase.blue[1000], secondary: p.white[1000] },
     onAccentSubtle: {
       primary: p.sase.orange[800],
@@ -114,7 +115,8 @@ export const darkColors: Colors = {
   content: {
     onBase: { primary: p.white[700], secondary: p.white[1000] },
     onInverse: { primary: p.gray[1000] },
-    onSaseBlue: { primary: p.sase.blue[500], secondary: p.sase.blue[1000] },
+    // saseBlue: { primary: p.sase.blue[500] },
+    onSaseBlue: { primary: p.sase.blue[1000], secondary: p.white[1000] },
     onAccentSubtle: {
       primary: p.sase.orange[200],
       secondary: p.sase.green[200],
