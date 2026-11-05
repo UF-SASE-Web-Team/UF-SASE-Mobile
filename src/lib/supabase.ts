@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import { createClient } from '@supabase/supabase-js';
 import { getSupabaseEnvironment } from '@/lib/env';
+import { Database } from '@/types/supabase';
 
 const { supabaseUrl, supabasePublishableKey } = getSupabaseEnvironment();
 
@@ -11,7 +12,7 @@ const secureStorage = {
   removeItem: (key: string) => SecureStore.deleteItemAsync(key),
 };
 
-export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
+export const supabase = createClient<Database>(supabaseUrl, supabasePublishableKey, {
   auth: {
     storage: secureStorage,
     autoRefreshToken: true,

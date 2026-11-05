@@ -7,6 +7,7 @@ export type Colors = {
     inverse: { primary: string };
     saseBlue: { primary: string; secondary: string };
     accent: { primary: string; secondary: string; tertiary: string; quaternary: string };
+    accentSubtle: { primary: string; secondary: string; tertiary: string; quaternary: string };
     success: { primary: string };
     warning: { primary: string };
     danger: { primary: string };
@@ -16,9 +17,8 @@ export type Colors = {
   content: {
     onBase: { primary: string; secondary: string };
     onInverse: { primary: string };
-    saseBlue: { primary: string };
     onSaseBlue: { primary: string; secondary: string };
-    onAccent: { primary: string };
+    onAccentSubtle: { primary: string; secondary: string; tertiary: string; quaternary: string };
     onSuccess: { primary: string };
     onWarning: { primary: string };
     onDanger: { primary: string };
@@ -42,12 +42,18 @@ export const lightColors: Colors = {
       quaternary: p.gray[300],
     },
     inverse: { primary: p.gray[800] },
-    saseBlue: { primary: p.sase.blueLight, secondary: p.sase.blueDark },
+    saseBlue: { primary: p.sase.blue[500], secondary: p.sase.blue[1000] },
     accent: {
-      primary: p.sase.orange,
-      secondary: p.sase.green,
-      tertiary: p.sase.yellow,
-      quaternary: p.sase.pink,
+      primary: p.sase.orange[500],
+      secondary: p.sase.green[500],
+      tertiary: p.sase.yellow[500],
+      quaternary: p.sase.pink[500],
+    },
+    accentSubtle: {
+      primary: p.sase.orange[100],
+      secondary: p.sase.green[100],
+      tertiary: p.sase.yellow[100],
+      quaternary: p.sase.pink[100],
     },
     success: { primary: p.green[500] },
     warning: { primary: p.yellow[400] },
@@ -57,9 +63,14 @@ export const lightColors: Colors = {
   content: {
     onBase: { primary: p.gray[900], secondary: p.gray[600] },
     onInverse: { primary: p.gray[100] },
-    saseBlue: { primary: p.sase.blueDark },
-    onSaseBlue: { primary: p.sase.blueDark, secondary: p.white[1000] },
-    onAccent: { primary: p.sase.blueDark },
+    // saseBlue: { primary: p.sase.blue[1000] },
+    onSaseBlue: { primary: p.sase.blue[1000], secondary: p.white[1000] },
+    onAccentSubtle: {
+      primary: p.sase.orange[800],
+      secondary: p.sase.green[800],
+      tertiary: p.sase.yellow[800],
+      quaternary: p.sase.pink[800],
+    },
     onSuccess: { primary: p.green[800] },
     onWarning: { primary: p.yellow[800] },
     onDanger: { primary: p.red[100] },
@@ -67,7 +78,7 @@ export const lightColors: Colors = {
   },
   border: {
     base: { subtle: p.gray[300], strong: p.gray[800] },
-    saseBlue: { primary: p.sase.blueDark },
+    saseBlue: { primary: p.sase.blue[1000] },
     success: { primary: p.green[800] },
     warning: { primary: p.yellow[900] },
     danger: { primary: p.red[700] },
@@ -83,32 +94,43 @@ export const darkColors: Colors = {
       quaternary: p.gray[600],
     },
     inverse: { primary: p.gray[100] },
-    saseBlue: { primary: p.sase.blueDark, secondary: p.sase.blueLight },
+    saseBlue: { primary: p.sase.blue[500], secondary: p.sase.blue[1000] },
     accent: {
-      primary: p.sase.orange,
-      secondary: p.sase.green,
-      tertiary: p.sase.yellow,
-      quaternary: p.sase.pink,
+      primary: p.sase.orange[500],
+      secondary: p.sase.green[500],
+      tertiary: p.sase.yellow[500],
+      quaternary: p.sase.pink[500],
     },
-    success: { primary: p.green[700] },
+    accentSubtle: {
+      primary: p.sase.orange[900],
+      secondary: p.sase.green[900],
+      tertiary: p.sase.yellow[900],
+      quaternary: p.sase.pink[900],
+    },
+    success: { primary: p.green[800] },
     warning: { primary: p.yellow[400] },
     danger: { primary: p.red[600] },
     media: { scrim: p.black[600] },
   },
   content: {
-    onBase: { primary: p.white[1000], secondary: p.white[700] },
+    onBase: { primary: p.white[700], secondary: p.white[1000] },
     onInverse: { primary: p.gray[1000] },
-    saseBlue: { primary: p.sase.blueLight },
-    onSaseBlue: { primary: p.sase.blueLight, secondary: p.sase.blueDark },
-    onAccent: { primary: p.sase.blueDark },
+    // saseBlue: { primary: p.sase.blue[500] },
+    onSaseBlue: { primary: p.sase.blue[1000], secondary: p.white[1000] },
+    onAccentSubtle: {
+      primary: p.sase.orange[200],
+      secondary: p.sase.green[200],
+      tertiary: p.sase.yellow[200],
+      quaternary: p.sase.pink[200],
+    },
     onSuccess: { primary: p.white[1000] },
     onWarning: { primary: p.yellow[800] },
     onDanger: { primary: p.red[100] },
     onMedia: { primary: p.white[1000] },
   },
   border: {
-    base: { subtle: p.gray[600], strong: p.gray[100] },
-    saseBlue: { primary: p.sase.blueLight },
+    base: { subtle: p.white[100], strong: p.gray[100] },
+    saseBlue: { primary: p.sase.blue[500] },
     success: { primary: p.green[700] },
     warning: { primary: p.yellow[400] },
     danger: { primary: p.red[600] },

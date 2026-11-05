@@ -13,6 +13,8 @@ jest.mock('expo-router', () => ({
     canGoBack: jest.fn(() => true),
   })),
   useLocalSearchParams: jest.fn(() => ({})),
+  useSegments: jest.fn(() => []),
+  usePathname: jest.fn(() => ''),
   ThemeProvider: ({ children }: { children?: React.ReactNode }) => children ?? null,
   DarkTheme: {
     dark: true,
@@ -40,6 +42,40 @@ jest.mock('expo-router', () => ({
     jest.fn(({ children }: { children?: React.ReactNode }) => children ?? null),
     { Screen: jest.fn(() => null) },
   ),
+  Tabs: Object.assign(
+    jest.fn(({ children }: { children?: React.ReactNode }) => children ?? null),
+    { Screen: jest.fn(() => null) },
+  ),
+}));
+
+// Mock expo-router/unstable-native-tabs
+const createTriggerSubcomponent = (name: string) => {
+  const comp = jest.fn(() => null);
+  Object.assign(comp, { displayName: name });
+  return comp;
+};
+
+const MockTrigger = Object.assign(
+  jest.fn(({ children }: { children?: React.ReactNode }) => children ?? null),
+  {
+    Label: createTriggerSubcomponent('NativeTabs.Trigger.Label'),
+    Icon: createTriggerSubcomponent('NativeTabs.Trigger.Icon'),
+    Badge: createTriggerSubcomponent('NativeTabs.Trigger.Badge'),
+    VectorIcon: createTriggerSubcomponent('NativeTabs.Trigger.VectorIcon'),
+  },
+);
+
+const MockNativeTabs = Object.assign(
+  jest.fn(({ children }: { children?: React.ReactNode }) => children ?? null),
+  {
+    Trigger: MockTrigger,
+    BottomAccessory: jest.fn(() => null),
+  },
+);
+
+jest.mock('expo-router/unstable-native-tabs', () => ({
+  NativeTabs: MockNativeTabs,
+  NativeTabTrigger: MockTrigger,
 }));
 
 // Mock expo-secure-store
@@ -87,3 +123,18 @@ jest.mock('@/context/AuthContext', () => ({
   })),
   AuthProvider: ({ children }: { children?: React.ReactNode }) => children ?? null,
 }));
+
+// Mock expo-camera
+jest.mock('expo-camera', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    CameraView: jest.fn(({ children, onBarcodeScanned, testID, ...props }: any) =>
+      React.createElement(View, { testID: testID || 'camera-view', ...props }, children),
+    ),
+    useCameraPermissions: jest.fn(() => [
+      { granted: true, canAskAgain: true, status: 'granted' },
+      jest.fn().mockResolvedValue({ granted: true }),
+    ]),
+  };
+});

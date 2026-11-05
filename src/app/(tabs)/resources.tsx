@@ -10,8 +10,9 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ResourceCard, ResourceCategory, ResourceRow } from '@/components/ResourceCard';
+import { ResourceCard } from '@/components/ResourceCard';
 import { getResources } from '@/services/resources';
+import { ResourceCategory, ResourceRow } from '@/types/resources';
 
 const CATEGORY_SECTIONS: { key: ResourceCategory; title: string }[] = [
   { key: 'general', title: 'General Resources' },

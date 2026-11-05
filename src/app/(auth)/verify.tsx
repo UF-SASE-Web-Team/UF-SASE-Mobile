@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { iconSize } from '@/theme';
 import { SixDigitInput } from '@/components/SixDigitInput';
 import { useAuth } from '@/context/AuthContext';
 
@@ -87,7 +88,7 @@ export default function VerifyScreen() {
         accessibilityLabel="Go back"
         accessibilityRole="button"
       >
-        <Ionicons name="arrow-back" size={24} color="#000000" />
+        <Ionicons name="arrow-back" size={iconSize.md} color="#000000" />
       </TouchableOpacity>
       <Text style={styles.title}>Check your email</Text>
       {mode === 'recovery' ? (

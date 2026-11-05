@@ -1,29 +1,12 @@
 import React from 'react';
 import { ImageBackground, Linking, Pressable, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Database } from '@/types/supabase';
+import { ProgramWithPoCs } from '@/types/programs';
 import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { type Colors, space, radius, fonts } from '@/theme';
+import { type Colors, space, radius, fonts, iconSize } from '@/theme';
 
-export type ProgramRow = Database['public']['Tables']['programs']['Row'];
-export type ProfileRow = Database['public']['Tables']['profiles']['Row'];
-export type ProgramCategory = Database['public']['Enums']['program_category'];
-
-export interface ProgramMemberWithProfile {
-  id: string;
-  user_id: string | null;
-  display_name: string;
-  academic_term: string;
-  is_poc: boolean;
-  profile: Pick<ProfileRow, 'id' | 'full_name' | 'avatar_url'> | null;
-}
-
-export interface ProgramWithPoCs extends ProgramRow {
-  pocs: ProgramMemberWithProfile[];
-}
-
-interface CardProps {
+export interface ProgramCardProps {
   program: ProgramWithPoCs;
   onPress?: (program: ProgramWithPoCs) => void;
 }
@@ -31,7 +14,7 @@ interface CardProps {
 /**
  * Top Row Card: Open / Upcoming Applications
  */
-export function ApplicationProgramCard({ program, onPress }: CardProps) {
+export function ApplicationProgramCard({ program, onPress }: ProgramCardProps) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
@@ -107,7 +90,7 @@ export function ApplicationProgramCard({ program, onPress }: CardProps) {
           {isOpen && (
             <Ionicons
               name="open-outline"
-              size={15}
+              size={iconSize.sm}
               color={colors.content.onSaseBlue.secondary}
               style={styles.buttonIcon}
             />
@@ -121,7 +104,7 @@ export function ApplicationProgramCard({ program, onPress }: CardProps) {
 /**
  * Category Row Card: Uses `short_description` with inline "Read More"
  */
-export function StandardProgramCard({ program, onPress }: CardProps) {
+export function StandardProgramCard({ program, onPress }: ProgramCardProps) {
   const styles = useThemedStyles(createStyles);
 
   const summary = program.short_description || program.description || '';
@@ -252,6 +235,6 @@ const createStyles = (colors: Colors) =>
     },
     readMoreText: {
       fontFamily: fonts.sans.bold,
-      color: colors.content.saseBlue.primary,
+      color: colors.surface.saseBlue.primary,
     },
   });

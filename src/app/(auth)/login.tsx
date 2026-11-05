@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { iconSize } from '@/theme';
 
 export default function LoginScreen() {
   const [identifier, setIdentifier] = useState('');
@@ -27,6 +28,9 @@ export default function LoginScreen() {
         { p_username: cleanIdentifier },
       );
       if (lookupError || !targetEmail) {
+        if (lookupError) {
+          console.error('Username lookup error:', lookupError);
+        }
         setLoading(false);
         Alert.alert('Login failed', 'Invalid username/email or password.');
         return;
@@ -41,6 +45,7 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (signInError) {
+      console.error('Sign-in error:', signInError);
       if (signInError.message.toLowerCase().includes('email not confirmed')) {
         Alert.alert('Email Unverified', 'Please verify your email before logging in.', [
           {
@@ -91,7 +96,7 @@ export default function LoginScreen() {
         >
           <Ionicons
             name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-            size={22}
+            size={iconSize.md}
             color="#666666"
           />
         </TouchableOpacity>

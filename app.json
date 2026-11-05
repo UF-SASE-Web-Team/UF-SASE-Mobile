@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "UF SASE Mobile",
+    "name": "UF SASE",
     "slug": "uf-sase-mobile",
     "owner": "uf-sase",
     "version": "1.0.0",
@@ -9,7 +9,7 @@
     "scheme": "ufsasemobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon",
+      "icon": "./assets/images/icon.png",
       "bundleIdentifier": "com.ufsase.mobile",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -30,13 +30,24 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow UF SASE to access your camera to scan event check-in QR codes."
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#FFFFFF",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 160,
+          "resizeMode": "contain",
+          "dark": {
+            "image": "./assets/images/splash-icon-dark.png",
+            "backgroundColor": "#121212"
+          }
         }
       ],
       "expo-sqlite",

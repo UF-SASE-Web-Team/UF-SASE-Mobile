@@ -14,6 +14,14 @@ import VerifyScreen from '@/app/(auth)/verify';
 import { supabase } from '@/lib/supabase';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
+import { ThemeProvider } from '@/context/ThemeContext';
+
+const renderVerify = async () =>
+  await render(
+    <ThemeProvider>
+      <VerifyScreen />
+    </ThemeProvider>,
+  );
 
 describe('VerifyScreen', () => {
   const mockPush = jest.fn();
@@ -48,7 +56,7 @@ describe('VerifyScreen', () => {
 
   describe('UI & Navigation', () => {
     it('renders titles and instructions with the target email', async () => {
-      await render(<VerifyScreen />);
+      await renderVerify();
 
       expect(screen.getByText('Check your email')).toBeTruthy();
       expect(screen.getByText(/test@ufl\.edu/)).toBeTruthy();
@@ -62,7 +70,7 @@ describe('VerifyScreen', () => {
         email: 'recovery@ufl.edu',
         mode: 'recovery',
       });
-      await render(<VerifyScreen />);
+      await renderVerify();
 
       expect(
         screen.getByText("If an account for recovery@ufl.edu exists, we've sent a 6-digit code."),
@@ -72,7 +80,7 @@ describe('VerifyScreen', () => {
     it('navigates back when back button pressed and canGoBack is true', async () => {
       const user = userEvent.setup();
       mockCanGoBack.mockReturnValue(true);
-      await render(<VerifyScreen />);
+      await renderVerify();
 
       await user.press(screen.getByLabelText('Go back'));
       expect(mockBack).toHaveBeenCalled();
@@ -85,7 +93,7 @@ describe('VerifyScreen', () => {
         email: 'test@ufl.edu',
         mode: 'signup',
       });
-      await render(<VerifyScreen />);
+      await renderVerify();
 
       await user.press(screen.getByLabelText('Go back'));
       expect(mockReplace).toHaveBeenCalledWith('/(auth)/signup');
@@ -98,7 +106,7 @@ describe('VerifyScreen', () => {
         email: 'test@ufl.edu',
         mode: 'recovery',
       });
-      await render(<VerifyScreen />);
+      await renderVerify();
 
       await user.press(screen.getByLabelText('Go back'));
       expect(mockReplace).toHaveBeenCalledWith('/(auth)/forgot-password');
@@ -108,7 +116,7 @@ describe('VerifyScreen', () => {
   describe('Verification flows', () => {
     it('disables verify button when code length is less than 6', async () => {
       const user = userEvent.setup();
-      await render(<VerifyScreen />);
+      await renderVerify();
 
       const verifyButton = screen.getByRole('button', { name: 'Verify' });
       expect(verifyButton.props.accessibilityState.disabled).toBe(true);
@@ -126,7 +134,7 @@ describe('VerifyScreen', () => {
       });
 
       const user = userEvent.setup();
-      await render(<VerifyScreen />);
+      await renderVerify();
 
       const otpInput = screen.getByDisplayValue('');
       await user.type(otpInput, '654321');
@@ -153,7 +161,7 @@ describe('VerifyScreen', () => {
       });
 
       const user = userEvent.setup();
-      await render(<VerifyScreen />);
+      await renderVerify();
 
       const otpInput = screen.getByDisplayValue('');
       await user.type(otpInput, '112233');
@@ -180,7 +188,7 @@ describe('VerifyScreen', () => {
       });
 
       const user = userEvent.setup();
-      await render(<VerifyScreen />);
+      await renderVerify();
 
       const otpInput = screen.getByDisplayValue('');
       await user.type(otpInput, '999999');
@@ -216,7 +224,7 @@ describe('VerifyScreen', () => {
         error: null,
       });
 
-      await render(<VerifyScreen />);
+      await renderVerify();
 
       expect(screen.getByText('Resend code (60s)')).toBeTruthy();
 
@@ -249,7 +257,7 @@ describe('VerifyScreen', () => {
         error: null,
       });
 
-      await render(<VerifyScreen />);
+      await renderVerify();
 
       await act(async () => {
         jest.advanceTimersByTime(60000);
@@ -277,7 +285,7 @@ describe('VerifyScreen', () => {
         error: { message: 'Rate limit exceeded' },
       });
 
-      await render(<VerifyScreen />);
+      await renderVerify();
 
       await act(async () => {
         jest.advanceTimersByTime(60000);

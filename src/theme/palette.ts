@@ -1,11 +1,17 @@
 export const palette = {
   sase: {
-    blueLight: '#74A9FF',
-    blueDark: '#141B4B',
-    orange: '#EE5637',
-    green: '#37BA9D',
-    yellow: '#FFC42F',
-    pink: '#D86BFF',
+    blue: {
+      100: '#ECF3FF',
+      200: '#B8D3FF',
+      500: '#74A9FF',
+      800: '#0048BD',
+      900: '#273245',
+      1000: '#141B4B',
+    },
+    orange: { 100: '#FDE7E3', 200: '#F7B0A1', 500: '#EE5637', 800: '#92230C', 900: '#422019' },
+    green: { 100: '#E3F5F1', 200: '#89DCCA', 500: '#37BA9D', 800: '#1B5B4C', 900: '#193630' },
+    yellow: { 100: '#FFF7E2', 200: '#FFD875', 500: '#FFC42F', 800: '#6B4D00', 900: '#453818' },
+    pink: { 100: '#FAEAFF', 200: '#ECB8FF', 500: '#D86BFF', 800: '#8300B2', 900: '#3D2545' },
   },
   gray: {
     100: '#F5F5F5',

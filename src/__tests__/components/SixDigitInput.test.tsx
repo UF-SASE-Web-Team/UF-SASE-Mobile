@@ -2,19 +2,22 @@
 import React, { useState } from 'react';
 import { render, screen, userEvent, cleanup } from '@testing-library/react-native';
 import { SixDigitInput, SixDigitInputProps } from '@/components/SixDigitInput';
+import { ThemeProvider } from '@/context/ThemeContext';
 
 function ControlledInput(props: Partial<SixDigitInputProps>) {
   const [val, setVal] = useState(props.value || '');
   return (
-    <SixDigitInput
-      value={val}
-      onChangeText={(next) => {
-        setVal(next);
-        props.onChangeText?.(next);
-      }}
-      onComplete={props.onComplete}
-      disabled={props.disabled}
-    />
+    <ThemeProvider>
+      <SixDigitInput
+        value={val}
+        onChangeText={(next) => {
+          setVal(next);
+          props.onChangeText?.(next);
+        }}
+        onComplete={props.onComplete}
+        disabled={props.disabled}
+      />
+    </ThemeProvider>
   );
 }
 

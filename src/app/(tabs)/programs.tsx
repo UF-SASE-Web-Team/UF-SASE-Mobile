@@ -9,13 +9,9 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  ApplicationProgramCard,
-  ProgramCategory,
-  ProgramWithPoCs,
-  StandardProgramCard,
-} from '@/components/ProgramCards';
+import { ApplicationProgramCard, StandardProgramCard } from '@/components/ProgramCards';
 import { getPrograms } from '@/services/programs';
+import { ProgramCategory, ProgramWithPoCs } from '@/types/programs';
 
 const CATEGORY_SECTIONS: { key: ProgramCategory; title: string }[] = [
   { key: 'events_and_committees', title: 'Events and Committees' },

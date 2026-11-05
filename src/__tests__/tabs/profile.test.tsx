@@ -1,9 +1,18 @@
 import React from 'react';
 import { render, screen, userEvent, waitFor, cleanup, act } from '@testing-library/react-native';
 import { Alert } from 'react-native';
-import ProfilePage from '@/app/(tabs)/profile';
+import ProfilePage from '@/app/profile';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
+import { ThemeProvider } from '@/context/ThemeContext';
+
+function renderProfile() {
+  return render(
+    <ThemeProvider>
+      <ProfilePage />
+    </ThemeProvider>,
+  );
+}
 
 describe('ProfilePage', () => {
   const mockSignOut = jest.fn();
@@ -21,17 +30,41 @@ describe('ProfilePage', () => {
   });
 
   it('renders profile title, Sign Out, and Delete Account buttons', async () => {
-    await render(<ProfilePage />);
+    await renderProfile();
 
     expect(screen.getByText('Profile')).toBeTruthy();
     expect(screen.getByText('Sign Out')).toBeTruthy();
     expect(screen.getByText('Delete Account')).toBeTruthy();
   });
 
+  describe('Theme Toggle', () => {
+    it('renders theme toggle options (Light, Dark, System)', async () => {
+      await renderProfile();
+
+      expect(screen.getByText('Theme (Temporary)')).toBeTruthy();
+      expect(screen.getByText('Light')).toBeTruthy();
+      expect(screen.getByText('Dark')).toBeTruthy();
+      expect(screen.getByText('System')).toBeTruthy();
+    });
+
+    it('allows toggling between themes', async () => {
+      const user = userEvent.setup();
+      await renderProfile();
+
+      const darkBtn = screen.getByTestId('theme-btn-dark');
+      await user.press(darkBtn);
+      expect(screen.getByTestId('theme-btn-dark')).toBeTruthy();
+
+      const lightBtn = screen.getByTestId('theme-btn-light');
+      await user.press(lightBtn);
+      expect(screen.getByTestId('theme-btn-light')).toBeTruthy();
+    });
+  });
+
   describe('Sign Out Flow', () => {
     it('prompts confirmation when Sign Out is pressed', async () => {
       const user = userEvent.setup();
-      await render(<ProfilePage />);
+      await renderProfile();
 
       await user.press(screen.getByText('Sign Out'));
 
@@ -46,7 +79,7 @@ describe('ProfilePage', () => {
       const user = userEvent.setup();
       mockSignOut.mockResolvedValueOnce(undefined);
 
-      await render(<ProfilePage />);
+      await renderProfile();
 
       await user.press(screen.getByText('Sign Out'));
 
@@ -65,7 +98,7 @@ describe('ProfilePage', () => {
   describe('Delete Account Flow', () => {
     it('shows irreversible destructive confirmation alert when Delete Account is pressed', async () => {
       const user = userEvent.setup();
-      await render(<ProfilePage />);
+      await renderProfile();
 
       await user.press(screen.getByText('Delete Account'));
 
@@ -78,7 +111,7 @@ describe('ProfilePage', () => {
 
     it('cancels deletion when Cancel is pressed in alert', async () => {
       const user = userEvent.setup();
-      await render(<ProfilePage />);
+      await renderProfile();
 
       await user.press(screen.getByText('Delete Account'));
 
@@ -95,7 +128,7 @@ describe('ProfilePage', () => {
       (supabase.rpc as jest.Mock).mockResolvedValueOnce({ error: null });
       mockSignOut.mockResolvedValueOnce(undefined);
 
-      await render(<ProfilePage />);
+      await renderProfile();
 
       await user.press(screen.getByText('Delete Account'));
 
@@ -119,7 +152,7 @@ describe('ProfilePage', () => {
         error: { message: 'Database connection failed' },
       });
 
-      await render(<ProfilePage />);
+      await renderProfile();
 
       await user.press(screen.getByText('Delete Account'));
 

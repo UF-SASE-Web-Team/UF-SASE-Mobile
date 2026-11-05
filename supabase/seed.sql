@@ -66,9 +66,12 @@ from auth.users
 on conflict (id) do nothing;
 
 insert into public.events (title, type, starts_at, ends_at, location_name, checkin_code, points_value) values
-  ('General Body Meeting', 'gbm', now() + interval '1 day', now() + interval '1 day 2 hours', 'Little Hall', '123456', 1),
-  ('Other SASE Event', 'other', now() + interval '3 day', now() + interval '3 days 2 hours', 'Reitz Union', '654321', 1),
-  ('Check-in Test Event', 'other', now() - interval '30 minutes', now() + interval '2 hours', 'Marston Library', '111111', 1);
+  ('Test Event', 'other', now() - interval '30 minutes', now() + interval '2 hours', 'LIT 223', '111111', 1);
+
+insert into public.event_links (event_id, title, url, display_order)
+select id, 'Carpool form', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 0
+from public.events
+where title = 'Test Event';
 
 insert into public.programs (
   name, slug, category, display_order,
@@ -278,5 +281,5 @@ on conflict (name) do update set
   display_order = excluded.display_order,
   image_url     = coalesce(excluded.image_url, resources.image_url);
 
-insert into public.events (title, starts_at, ends_at, location_name, checkin_code, points_value, flyer_url) values 
-    ('General Body Meeting', now() + interval '1 day', now() + interval '1 day 2 hours', 'Little Hall', 'QR Code', 1, 'https://flyer.com');
+insert into public.events (title, type, starts_at, ends_at, location_name, checkin_code, points_value, flyer_url) values 
+    ('General Body Meeting', 'gbm', now() + interval '1 day', now() + interval '1 day 2 hours', 'Little Hall', '123456', 1, 'https://flyer.com');

@@ -16,6 +16,7 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/context/AuthContext';
+import { iconSize } from '@/theme';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -117,7 +118,7 @@ export default function ResetPasswordScreen() {
             accessibilityLabel="Cancel password reset"
             accessibilityRole="button"
           >
-            <Ionicons name="arrow-back" size={24} color="#000000" />
+            <Ionicons name="arrow-back" size={iconSize.md} color="#000000" />
           </TouchableOpacity>
           <Text style={styles.title}>Set new password</Text>
           {/* <Text style={styles.subtitle}> */}
@@ -152,7 +153,7 @@ export default function ResetPasswordScreen() {
             >
               <Ionicons
                 name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                size={22}
+                size={iconSize.md}
                 color="#666666"
               />
             </TouchableOpacity>

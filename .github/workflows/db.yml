@@ -1,0 +1,42 @@
+name: Database CI
+
+on:
+  push:
+    branches:
+      - main
+      - sprint-*
+    paths:
+      - 'supabase/**'
+  pull_request:
+    branches:
+      - main
+      - sprint-*
+    paths:
+      - 'supabase/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  db-check:
+    name: Supabase tests and checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Check Supabase migrations and run tests
+        run: |
+          supabase start
+          supabase db reset
+          supabase test db
