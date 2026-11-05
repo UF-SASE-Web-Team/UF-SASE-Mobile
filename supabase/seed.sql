@@ -278,3 +278,5 @@ on conflict (name) do update set
   display_order = excluded.display_order,
   image_url     = coalesce(excluded.image_url, resources.image_url);
 
+insert into public.events (title, starts_at, ends_at, location_name, checkin_code, points_value, flyer_url) values 
+    ('General Body Meeting', now() + interval '1 day', now() + interval '1 day 2 hours', 'Little Hall', 'QR Code', 1, 'https://flyer.com');
