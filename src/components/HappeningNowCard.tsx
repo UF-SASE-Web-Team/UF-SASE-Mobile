@@ -45,15 +45,13 @@ export function HappeningNowCard({
 
   const hasEarlyDoors = Boolean(
     checkinDate &&
-      startDate &&
-      !Number.isNaN(checkinDate.getTime()) &&
-      !Number.isNaN(startDate.getTime()) &&
-      checkinDate.getTime() < startDate.getTime(),
+    startDate &&
+    !Number.isNaN(checkinDate.getTime()) &&
+    !Number.isNaN(startDate.getTime()) &&
+    checkinDate.getTime() < startDate.getTime(),
   );
 
-  const timeText = hasEarlyDoors
-    ? `Doors open ${formatTime(event.checkin_opens_at)}`
-    : timeRange;
+  const timeText = hasEarlyDoors ? `Doors open ${formatTime(event.checkin_opens_at)}` : timeRange;
 
   const subtitle = [timeText, event.location_name].filter(Boolean).join(' • ');
 

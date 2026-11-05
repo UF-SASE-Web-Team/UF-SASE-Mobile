@@ -32,13 +32,32 @@ export function EventsProvider({ children }: { children: ReactNode }) {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchEvents = useCallback(async (isRefresh = false) => {
-    if (isRefresh) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
+  useEffect(() => {
+    let isMounted = true;
 
+    getEvents()
+      .then((data) => {
+        if (!isMounted) return;
+        setEvents(data);
+        setError(null);
+      })
+      .catch((err: any) => {
+        if (!isMounted) return;
+        console.error('Error fetching events:', err.message);
+        setError(err.message || 'Failed to load events.');
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id]);
+
+  const refreshEvents = useCallback(async () => {
+    setRefreshing(true);
     try {
       const data = await getEvents();
       setEvents(data);
@@ -47,21 +66,9 @@ export function EventsProvider({ children }: { children: ReactNode }) {
       console.error('Error fetching events:', err.message);
       setError(err.message || 'Failed to load events.');
     } finally {
-      if (isRefresh) {
-        setRefreshing(false);
-      } else {
-        setLoading(false);
-      }
+      setRefreshing(false);
     }
   }, []);
-
-  useEffect(() => {
-    fetchEvents(false);
-  }, [fetchEvents, user?.id]);
-
-  const refreshEvents = useCallback(async () => {
-    await fetchEvents(true);
-  }, [fetchEvents]);
 
   const markEventAttended = useCallback((eventId: string) => {
     setEvents((prev) =>

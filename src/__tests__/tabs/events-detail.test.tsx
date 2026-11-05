@@ -157,6 +157,9 @@ describe('EventDetailScreen', () => {
       // Modal appears
       expect(await screen.findByText('Event Check-in')).toBeTruthy();
 
+      // Switch to Code mode
+      await user.press(screen.getByText('Code'));
+
       // Enter 6 digit code
       const input = screen.getByDisplayValue('');
       await user.type(input, '123456');

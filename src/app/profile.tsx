@@ -89,7 +89,11 @@ export default function ProfilePage() {
             onPress={() => router.back()}
             style={({ pressed }) => [styles.backButton, { opacity: pressed ? 0.7 : 1 }]}
           >
-            <Ionicons name="chevron-back" size={iconSize.md} color={colors.content.onBase.primary} />
+            <Ionicons
+              name="chevron-back"
+              size={iconSize.md}
+              color={colors.content.onBase.primary}
+            />
           </Pressable>
         ) : (
           <View style={styles.backButtonPlaceholder} />

@@ -1,5 +1,12 @@
 import React from 'react';
-import { render, screen, waitFor, fireEvent, renderHook, cleanup } from '@testing-library/react-native';
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  renderHook,
+  cleanup,
+} from '@testing-library/react-native';
 import { Text, Pressable } from 'react-native';
 import { EventsProvider, useEvents, useOptionalEvents } from '@/context/EventsContext';
 import { useAuth } from '@/context/AuthContext';

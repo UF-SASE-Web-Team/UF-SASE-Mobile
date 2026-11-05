@@ -514,6 +514,7 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: space['200'],
+      marginTop: space['200'],
     },
     title: {
       flex: 1,

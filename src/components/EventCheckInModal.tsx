@@ -25,6 +25,7 @@ export interface EventCheckInModalProps {
   eventTitle: string;
   pointsValue: number;
   onSuccess: () => void;
+  initialMode?: 'code' | 'qr';
 }
 
 export function EventCheckInModal({
@@ -34,12 +35,13 @@ export function EventCheckInModal({
   eventTitle,
   pointsValue,
   onSuccess,
+  initialMode = 'qr',
 }: EventCheckInModalProps) {
   const { user } = useAuth();
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
-  const [mode, setMode] = useState<'code' | 'qr'>('code');
+  const [mode, setMode] = useState<'code' | 'qr'>(initialMode);
   const [checkInCode, setCheckInCode] = useState('');
   const [checkInError, setCheckInError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,6 +54,7 @@ export function EventCheckInModal({
     setCheckInCode('');
     setCheckInError(null);
     hasScannedRef.current = false;
+    setMode(initialMode);
     onClose();
   };
 
@@ -77,10 +80,7 @@ export function EventCheckInModal({
       setCheckInCode('');
       onSuccess();
       onClose();
-      Alert.alert(
-        'Check-in successful!',
-        `You've gained +${pointsValue} points.`,
-      );
+      Alert.alert('Check-in successful!', `You've gained +${pointsValue} points.`);
     } catch (err: any) {
       setCheckInError(err.message || 'Invalid check-in code. Please try again.');
     } finally {
@@ -125,10 +125,7 @@ export function EventCheckInModal({
       await checkInToEvent(eventId, payload, method);
       onSuccess();
       onClose();
-      Alert.alert(
-        'Check-in successful!',
-        `You've gained +${pointsValue} points.`,
-      );
+      Alert.alert('Check-in successful!', `You've gained +${pointsValue} points.`);
     } catch (err: any) {
       setCheckInError(err.message || 'Invalid QR code. Please try again.');
       hasScannedRef.current = false;
@@ -163,41 +160,7 @@ export function EventCheckInModal({
           {/* Segmented Control */}
           <View style={styles.segmentContainer}>
             <Pressable
-              style={[
-                styles.segmentButton,
-                mode === 'code' && styles.segmentButtonActive,
-              ]}
-              onPress={() => handleModeChange('code')}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: mode === 'code' }}
-              accessibilityLabel="6-Digit Code"
-            >
-              <Ionicons
-                name="keypad-outline"
-                size={iconSize.sm}
-                color={
-                  mode === 'code'
-                    ? colors.content.onBase.primary
-                    : colors.content.onBase.secondary
-                }
-              />
-              <Text
-                variant="bodySmStrong"
-                color={
-                  mode === 'code'
-                    ? colors.content.onBase.primary
-                    : colors.content.onBase.secondary
-                }
-              >
-                Code
-              </Text>
-            </Pressable>
-
-            <Pressable
-              style={[
-                styles.segmentButton,
-                mode === 'qr' && styles.segmentButtonActive,
-              ]}
+              style={[styles.segmentButton, mode === 'qr' && styles.segmentButtonActive]}
               onPress={() => handleModeChange('qr')}
               accessibilityRole="tab"
               accessibilityState={{ selected: mode === 'qr' }}
@@ -207,20 +170,40 @@ export function EventCheckInModal({
                 name="qr-code-outline"
                 size={iconSize.sm}
                 color={
-                  mode === 'qr'
-                    ? colors.content.onBase.primary
-                    : colors.content.onBase.secondary
+                  mode === 'qr' ? colors.content.onBase.primary : colors.content.onBase.secondary
                 }
               />
               <Text
                 variant="bodySmStrong"
                 color={
-                  mode === 'qr'
-                    ? colors.content.onBase.primary
-                    : colors.content.onBase.secondary
+                  mode === 'qr' ? colors.content.onBase.primary : colors.content.onBase.secondary
                 }
               >
                 Scan QR
+              </Text>
+            </Pressable>
+
+            <Pressable
+              style={[styles.segmentButton, mode === 'code' && styles.segmentButtonActive]}
+              onPress={() => handleModeChange('code')}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: mode === 'code' }}
+              accessibilityLabel="6-Digit Code"
+            >
+              <Ionicons
+                name="keypad-outline"
+                size={iconSize.sm}
+                color={
+                  mode === 'code' ? colors.content.onBase.primary : colors.content.onBase.secondary
+                }
+              />
+              <Text
+                variant="bodySmStrong"
+                color={
+                  mode === 'code' ? colors.content.onBase.primary : colors.content.onBase.secondary
+                }
+              >
+                Code
               </Text>
             </Pressable>
           </View>
@@ -230,9 +213,7 @@ export function EventCheckInModal({
             color={colors.content.onBase.secondary}
             style={styles.modalSubtitle}
           >
-            {mode === 'code'
-              ? 'Enter the 6-digit code provided.'
-              : 'Scan the QR code displayed.'}
+            {mode === 'code' ? 'Enter the 6-digit code provided.' : 'Scan the QR code displayed.'}
           </Text>
 
           {mode === 'code' ? (
@@ -273,7 +254,7 @@ export function EventCheckInModal({
                     accessibilityRole="button"
                     accessibilityLabel="Enable Camera"
                   >
-                    <Text variant="bodySmStrong" color="#FFFFFF">
+                    <Text variant="bodySmStrong" color={colors.content.onSaseBlue.secondary}>
                       Enable Camera
                     </Text>
                   </Pressable>
@@ -293,11 +274,7 @@ export function EventCheckInModal({
                   {isSubmitting && (
                     <View style={styles.submittingOverlay}>
                       <ActivityIndicator size="large" color="#FFFFFF" />
-                      <Text
-                        variant="bodySmStrong"
-                        color="#FFFFFF"
-                        style={styles.submittingText}
-                      >
+                      <Text variant="bodySmStrong" color="#FFFFFF" style={styles.submittingText}>
                         Checking in...
                       </Text>
                     </View>
@@ -308,11 +285,7 @@ export function EventCheckInModal({
           )}
 
           {Boolean(checkInError) && (
-            <Text
-              variant="bodySm"
-              color={colors.content.onDanger.primary}
-              style={styles.errorText}
-            >
+            <Text variant="bodySm" color={colors.content.onDanger.primary} style={styles.errorText}>
               {checkInError}
             </Text>
           )}
@@ -343,9 +316,9 @@ export function EventCheckInModal({
                 accessibilityLabel="Submit code"
               >
                 {isSubmitting ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={colors.content.onSaseBlue.secondary} />
                 ) : (
-                  <Text variant="bodyStrong" color="#FFFFFF">
+                  <Text variant="bodyStrong" color={colors.content.onSaseBlue.secondary}>
                     Submit
                   </Text>
                 )}
@@ -368,7 +341,7 @@ const createStyles = (colors: Colors) =>
     },
     modalBackdrop: {
       ...StyleSheet.absoluteFill,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: colors.surface.media.scrim,
     },
     modalCard: {
       width: '100%',
@@ -445,12 +418,12 @@ const createStyles = (colors: Colors) =>
       width: 220,
       height: 220,
       borderRadius: radius.md,
-      borderWidth: 2,
+      borderWidth: borderWidth.lg,
       borderColor: colors.surface.saseBlue.primary,
     },
     submittingOverlay: {
       ...StyleSheet.absoluteFill,
-      backgroundColor: 'rgba(0, 0, 0, 0.65)',
+      backgroundColor: colors.surface.media.scrim,
       justifyContent: 'center',
       alignItems: 'center',
       gap: space['200'],

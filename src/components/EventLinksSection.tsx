@@ -125,12 +125,20 @@ export function EventLinksSection({
               accessibilityLabel={link.title}
             >
               <View style={styles.linkLeft}>
-                <Ionicons name={iconName} size={iconSize.sm} color={colors.surface.saseBlue.primary} />
+                <Ionicons
+                  name={iconName}
+                  size={iconSize.sm}
+                  color={colors.surface.saseBlue.primary}
+                />
                 <Text variant="bodySmStrong" numberOfLines={1} style={styles.linkTitle}>
                   {link.title}
                 </Text>
               </View>
-              <Ionicons name="open-outline" size={iconSize.sm} color={colors.content.onBase.secondary} />
+              <Ionicons
+                name="open-outline"
+                size={iconSize.sm}
+                color={colors.content.onBase.secondary}
+              />
             </Pressable>
           );
         })}

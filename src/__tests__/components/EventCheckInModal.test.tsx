@@ -51,12 +51,16 @@ describe('EventCheckInModal', () => {
   });
 
   describe('Code Mode', () => {
-    it('renders modal with title, tabs, subtitle, and input when visible', async () => {
+    it('switches to Code mode and renders input when Code tab is selected', async () => {
+      const user = userEvent.setup();
       await renderModal();
 
       expect(screen.getByText('Event Check-in')).toBeTruthy();
-      expect(screen.getByText('Code')).toBeTruthy();
       expect(screen.getByText('Scan QR')).toBeTruthy();
+      expect(screen.getByText('Code')).toBeTruthy();
+
+      await user.press(screen.getByText('Code'));
+
       expect(screen.getByText(/Enter the 6-digit code/i)).toBeTruthy();
       expect(screen.getByText('Cancel')).toBeTruthy();
       expect(screen.getByText('Submit')).toBeTruthy();
@@ -87,6 +91,8 @@ describe('EventCheckInModal', () => {
       const user = userEvent.setup();
       const { props } = await renderModal();
 
+      await user.press(screen.getByText('Code'));
+
       const input = screen.getByDisplayValue('');
       await user.type(input, '123456');
 
@@ -96,10 +102,7 @@ describe('EventCheckInModal', () => {
 
       expect(props.onSuccess).toHaveBeenCalledTimes(1);
       expect(props.onClose).toHaveBeenCalledTimes(1);
-      expect(Alert.alert).toHaveBeenCalledWith(
-        'Check-in successful!',
-        "You've gained +1 points.",
-      );
+      expect(Alert.alert).toHaveBeenCalledWith('Check-in successful!', "You've gained +1 points.");
     });
 
     it('shows error message when checkInToEvent fails', async () => {
@@ -108,6 +111,8 @@ describe('EventCheckInModal', () => {
       );
       const user = userEvent.setup();
       await renderModal();
+
+      await user.press(screen.getByText('Code'));
 
       const input = screen.getByDisplayValue('');
       await user.type(input, '000000');
@@ -119,6 +124,8 @@ describe('EventCheckInModal', () => {
       (useAuth as jest.Mock).mockReturnValue({ user: null });
       const user = userEvent.setup();
       await renderModal();
+
+      await user.press(screen.getByText('Code'));
 
       const input = screen.getByDisplayValue('');
       await user.type(input, '123456');
@@ -132,11 +139,8 @@ describe('EventCheckInModal', () => {
   });
 
   describe('QR Mode', () => {
-    it('switches to QR mode and renders camera view when permission granted', async () => {
-      const user = userEvent.setup();
+    it('renders camera view by default when permission granted', async () => {
       await renderModal();
-
-      await user.press(screen.getByText('Scan QR'));
 
       expect(screen.getByText(/Scan the QR code/i)).toBeTruthy();
       expect(screen.getByTestId('camera-view')).toBeTruthy();
@@ -152,11 +156,7 @@ describe('EventCheckInModal', () => {
       const user = userEvent.setup();
       await renderModal();
 
-      await user.press(screen.getByText('Scan QR'));
-
-      expect(
-        screen.getByText('Camera permission is required to scan QR codes.'),
-      ).toBeTruthy();
+      expect(screen.getByText('Camera permission is required to scan QR codes.')).toBeTruthy();
 
       const enableBtn = screen.getByText('Enable Camera');
       await user.press(enableBtn);
@@ -184,10 +184,7 @@ describe('EventCheckInModal', () => {
       );
       expect(props.onSuccess).toHaveBeenCalledTimes(1);
       expect(props.onClose).toHaveBeenCalledTimes(1);
-      expect(Alert.alert).toHaveBeenCalledWith(
-        'Check-in successful!',
-        "You've gained +1 points.",
-      );
+      expect(Alert.alert).toHaveBeenCalledWith('Check-in successful!', "You've gained +1 points.");
     });
 
     it('handles QR scan with 6-digit code payload using code method', async () => {
@@ -203,11 +200,7 @@ describe('EventCheckInModal', () => {
         cameraProps.onBarcodeScanned({ data: '654321' });
       });
 
-      expect(eventsService.checkInToEvent).toHaveBeenCalledWith(
-        'event-123',
-        '654321',
-        'code',
-      );
+      expect(eventsService.checkInToEvent).toHaveBeenCalledWith('event-123', '654321', 'code');
       expect(props.onSuccess).toHaveBeenCalledTimes(1);
       expect(props.onClose).toHaveBeenCalledTimes(1);
     });
@@ -225,18 +218,12 @@ describe('EventCheckInModal', () => {
         cameraProps.onBarcodeScanned({ data: 'https://ufsase.com/checkin?code=987654' });
       });
 
-      expect(eventsService.checkInToEvent).toHaveBeenCalledWith(
-        'event-123',
-        '987654',
-        'code',
-      );
+      expect(eventsService.checkInToEvent).toHaveBeenCalledWith('event-123', '987654', 'code');
       expect(props.onSuccess).toHaveBeenCalledTimes(1);
     });
 
     it('shows error message when QR check-in fails', async () => {
-      (eventsService.checkInToEvent as jest.Mock).mockRejectedValue(
-        new Error('Invalid QR code.'),
-      );
+      (eventsService.checkInToEvent as jest.Mock).mockRejectedValue(new Error('Invalid QR code.'));
       const user = userEvent.setup();
       await renderModal();
 
