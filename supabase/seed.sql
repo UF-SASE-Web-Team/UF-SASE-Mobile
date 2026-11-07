@@ -41,7 +41,9 @@ select
 from (
   values ('alice'), ('bob')
 ) as u(name)
-on conflict (id) do nothing;
+where not exists (
+  select 1 from auth.users where email = u.name || '@gmail.com'
+);
 
 insert into auth.identities (
   id,
@@ -54,7 +56,7 @@ insert into auth.identities (
   updated_at
 )
 select
-  id,
+  uuid_generate_v4(),
   id,
   format('{"sub":"%s","email":"%s"}', id::text, email)::jsonb,
   'email',
@@ -63,15 +65,22 @@ select
   current_timestamp,
   current_timestamp
 from auth.users
-on conflict (id) do nothing;
+where email in ('alice@gmail.com', 'bob@gmail.com')
+on conflict (provider_id, provider) do nothing;
 
-insert into public.events (title, type, starts_at, ends_at, location_name, checkin_code, points_value) values
-  ('Test Event', 'other', now() - interval '30 minutes', now() + interval '2 hours', 'LIT 223', '111111', 1);
+insert into public.events (title, type, starts_at, ends_at, location_name, checkin_code, points_value)
+select 'Test Event', 'other', now() - interval '30 minutes', now() + interval '2 hours', 'LIT 223', '111111', 1
+where not exists (
+  select 1 from public.events where title = 'Test Event'
+);
 
 insert into public.event_links (event_id, title, url, display_order)
 select id, 'Carpool form', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 0
 from public.events
-where title = 'Test Event';
+where title = 'Test Event'
+  and not exists (
+    select 1 from public.event_links el where el.event_id = events.id and el.title = 'Carpool form'
+  );
 
 insert into public.programs (
   name, slug, category, display_order,
@@ -281,5 +290,8 @@ on conflict (name) do update set
   display_order = excluded.display_order,
   image_url     = coalesce(excluded.image_url, resources.image_url);
 
-insert into public.events (title, type, starts_at, ends_at, location_name, checkin_code, points_value, flyer_url) values 
-    ('General Body Meeting', 'gbm', now() + interval '1 day', now() + interval '1 day 2 hours', 'Little Hall', '123456', 1, 'https://flyer.com');
+insert into public.events (title, type, starts_at, ends_at, location_name, checkin_code, points_value, flyer_url)
+select 'General Body Meeting', 'gbm', now() + interval '1 day', now() + interval '1 day 2 hours', 'Little Hall', '123456', 1, 'https://flyer.com'
+where not exists (
+  select 1 from public.events where title = 'General Body Meeting'
+);
