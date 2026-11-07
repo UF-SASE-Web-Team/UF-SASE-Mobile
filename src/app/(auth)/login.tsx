@@ -175,7 +175,7 @@ const createStyles = (colors: Colors) =>
       paddingHorizontal: space['100'],
     },
     forgotPasswordButton: {
-      paddingHorizontal: space['300']
+      paddingHorizontal: space['300'],
     },
     forgotPasswordText: {
       color: colors.surface.saseBlue.primary,
