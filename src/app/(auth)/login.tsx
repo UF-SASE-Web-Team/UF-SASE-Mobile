@@ -1,10 +1,14 @@
-import { StyleSheet, Text, TextInput, Alert, Button, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Alert, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { iconSize } from '@/theme';
+import { Button } from '@/components/Button';
+import { Text } from '@/components/Text';
+import { Input } from '@/components/Input';
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import { type Colors, iconSize, space } from '@/theme';
 
 export default function LoginScreen() {
   const [identifier, setIdentifier] = useState('');
@@ -12,6 +16,8 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   const handleSignin = async () => {
     const cleanIdentifier = identifier.trim().toLowerCase();
@@ -64,103 +70,117 @@ export default function LoginScreen() {
     }
   };
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(auth)');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <Text style={styles.title}>Welcome to UF SASE</Text>
-      {/* <Text style={styles.label}>Email or username</Text> */}
-      <TextInput
-        placeholder="Email or username"
-        autoCapitalize="none"
-        autoCorrect={false}
-        value={identifier}
-        onChangeText={setIdentifier}
-        style={styles.input}
-      />
-      {/* <Text style={styles.label}>Password</Text> */}
-      <View style={styles.passwordContainer}>
-        <TextInput
+      <TouchableOpacity
+        onPress={handleBack}
+        style={styles.backButton}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        accessibilityLabel="Go back"
+        accessibilityRole="button"
+      >
+        <Ionicons name="arrow-back" size={iconSize.md} color={colors.content.onBase.primary} />
+      </TouchableOpacity>
+
+      <Text variant="title" style={styles.title}>
+        Welcome back
+      </Text>
+
+      <View style={styles.form}>
+        <Input
+          placeholder="Email or username"
+          autoCapitalize="none"
+          autoCorrect={false}
+          value={identifier}
+          onChangeText={setIdentifier}
+          icon="person-outline"
+        />
+
+        <Input
           placeholder="Password"
           secureTextEntry={!showPassword}
           value={password}
           onChangeText={setPassword}
-          style={styles.passwordInput}
           autoCapitalize="none"
           autoCorrect={false}
+          icon="key-outline"
+          rightIcon={
+            <TouchableOpacity
+              onPress={() => setShowPassword((prev) => !prev)}
+              style={styles.eyeIcon}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+              accessibilityRole="button"
+            >
+              <Ionicons
+                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                size={iconSize.md}
+                color={colors.content.onBase.secondary}
+              />
+            </TouchableOpacity>
+          }
         />
-        <TouchableOpacity
-          onPress={() => setShowPassword((prev) => !prev)}
-          style={styles.eyeIcon}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
-          accessibilityRole="button"
-        >
-          <Ionicons
-            name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-            size={iconSize.md}
-            color="#666666"
-          />
-        </TouchableOpacity>
-      </View>
 
-      <View style={styles.buttonContainer}>
-        <Button
-          title={loading ? 'Signing in...' : 'Log in'}
-          onPress={handleSignin}
-          disabled={loading}
-        />
-        <Button
-          title="Forgot password?"
+        <TouchableOpacity
           onPress={() => router.push({ pathname: '/(auth)/forgot-password' })}
-        />
+          style={styles.forgotPasswordButton}
+          accessibilityRole="button"
+          accessibilityLabel="Forgot password?"
+        >
+          <Text variant="bodySmStrong" style={styles.forgotPasswordText}>
+            Forgot password?
+          </Text>
+        </TouchableOpacity>
+
         <Button
-          title="Create account"
-          onPress={() => router.push({ pathname: '/(auth)/signup' })}
-        />
+          variant="primary"
+          onPress={handleSignin}
+          loading={loading}
+          style={styles.loginButton}
+        >
+          {loading ? 'Signing in...' : 'Log in'}
+        </Button>
       </View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    padding: 16,
-    gap: 6,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginTop: 4,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#CCCCCC',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 16,
-  },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#CCCCCC',
-    borderRadius: 8,
-  },
-  passwordInput: {
-    flex: 1,
-    padding: 10,
-    fontSize: 16,
-  },
-  eyeIcon: {
-    paddingHorizontal: 12,
-  },
-  buttonContainer: {
-    marginTop: 12,
-    gap: 8,
-  },
-});
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.surface.base.primary,
+      paddingHorizontal: space['600'],
+      paddingTop: space['300'],
+    },
+    backButton: {
+      alignSelf: 'flex-start',
+      marginBottom: space['400'],
+    },
+    title: {
+      marginBottom: space['600'],
+    },
+    form: {
+      gap: space['400'],
+    },
+    eyeIcon: {
+      paddingHorizontal: space['100'],
+    },
+    forgotPasswordButton: {
+      alignSelf: 'flex-end',
+    },
+    forgotPasswordText: {
+      color: colors.surface.saseBlue.primary,
+    },
+    loginButton: {
+      marginTop: space['200'],
+    },
+  });

@@ -24,16 +24,15 @@ function ThemedStatusBar() {
   return <StatusBar style={isDark ? 'light' : 'dark'} />;
 }
 
-function SplashController() {
+function SplashController({ fontsReady }: { fontsReady: boolean }) {
   const { isLoading } = useAuth();
   const { isLoaded: isThemeLoaded } = useTheme();
-  const [fontsLoaded, fontError] = useFonts(fontAssets);
 
   useEffect(() => {
-    if (!isLoading && isThemeLoaded && (fontsLoaded || fontError)) {
+    if (!isLoading && isThemeLoaded && fontsReady) {
       SplashScreen.hideAsync();
     }
-  }, [isLoading, isThemeLoaded, fontsLoaded, fontError]);
+  }, [isLoading, isThemeLoaded, fontsReady]);
 
   return null;
 }
@@ -82,12 +81,19 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts(fontAssets);
+
+  // Prevent layout calculation with unmeasured fallback fonts before custom fonts load
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
+
   return (
     <ThemeProvider>
       <ThemedStatusBar />
       <AuthProvider>
         <EventsProvider>
-          <SplashController />
+          <SplashController fontsReady={Boolean(fontsLoaded || fontError)} />
           <RootNavigator />
         </EventsProvider>
       </AuthProvider>

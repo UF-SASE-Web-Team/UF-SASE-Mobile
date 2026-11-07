@@ -1,12 +1,15 @@
-import { StyleSheet, Text, Alert, Button, TouchableOpacity } from 'react-native';
+import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { iconSize } from '@/theme';
+import { Button } from '@/components/Button';
 import { SixDigitInput } from '@/components/SixDigitInput';
+import { Text } from '@/components/Text';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import { supabase } from '@/lib/supabase';
+import { type Colors, iconSize, space } from '@/theme';
 
 export default function VerifyScreen() {
   const { email, mode } = useLocalSearchParams<{ email: string; mode: string }>();
@@ -15,6 +18,8 @@ export default function VerifyScreen() {
   const [cooldown, setCooldown] = useState(60);
   const router = useRouter();
   const { setIsRecovering } = useAuth();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -88,47 +93,82 @@ export default function VerifyScreen() {
         accessibilityLabel="Go back"
         accessibilityRole="button"
       >
-        <Ionicons name="arrow-back" size={iconSize.md} color="#000000" />
+        <Ionicons name="arrow-back" size={iconSize.md} color={colors.content.onBase.primary} />
       </TouchableOpacity>
-      <Text style={styles.title}>Check your email</Text>
+
+      <Text variant="title" style={styles.title}>
+        Check your email
+      </Text>
+
       {mode === 'recovery' ? (
-        <Text>If an account for {email} exists, we&apos;ve sent a 6-digit code.</Text>
+        <Text variant="body" style={styles.instructions}>
+          If an account for {email} exists, we&apos;ve sent a 6-digit code.
+        </Text>
       ) : (
-        <Text>Enter the 6-digit code sent to {email}.</Text>
+        <Text variant="body" style={styles.instructions}>
+          Enter the 6-digit code sent to {email}.
+        </Text>
       )}
-      <SixDigitInput
-        value={token}
-        onChangeText={setToken}
-        onComplete={(code) => handleVerify(code)}
-        disabled={loading}
-      />
-      <Button
-        title={loading ? 'Verifying...' : 'Verify'}
-        onPress={() => handleVerify()}
-        disabled={loading || token.length !== 6}
-      />
-      <Button
-        title={cooldown > 0 ? `Resend code (${cooldown}s)` : 'Resend code'}
-        onPress={handleResend}
-        disabled={cooldown > 0}
-      />
+
+      <View style={styles.codeContainer}>
+        <SixDigitInput
+          value={token}
+          onChangeText={setToken}
+          onComplete={(code) => handleVerify(code)}
+          disabled={loading}
+        />
+      </View>
+
+      <View style={styles.buttonsContainer}>
+        <Button
+          variant="primary"
+          onPress={() => handleVerify()}
+          disabled={loading || token.length !== 6}
+          loading={loading}
+          accessibilityLabel="Verify"
+        >
+          Verify
+        </Button>
+
+        <Button
+          variant="secondary"
+          onPress={handleResend}
+          disabled={cooldown > 0}
+          accessibilityLabel="Resend code"
+        >
+          {cooldown > 0 ? `Resend code (${cooldown}s)` : 'Resend code'}
+        </Button>
+      </View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    padding: 16,
-    gap: 8,
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 4,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-});
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.surface.base.primary,
+      paddingHorizontal: space['600'],
+      paddingVertical: space['400'],
+      gap: space['300'],
+    },
+    backButton: {
+      alignSelf: 'flex-start',
+      marginBottom: space['100'],
+    },
+    title: {
+      marginBottom: space['100'],
+    },
+    instructions: {
+      color: colors.content.onBase.secondary,
+      marginBottom: space['300'],
+    },
+    codeContainer: {
+      alignItems: 'center',
+      marginVertical: space['300'],
+    },
+    buttonsContainer: {
+      marginTop: space['200'],
+      gap: space['300'],
+    },
+  });

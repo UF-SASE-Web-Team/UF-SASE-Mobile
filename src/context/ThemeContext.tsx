@@ -109,12 +109,18 @@ export function ThemeProvider({ children, initialMode = 'system' }: ThemeProvide
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
+const defaultThemeContext: ThemeContextType = {
+  colors: lightColors,
+  mode: 'system',
+  isDark: false,
+  keyboardAppearance: 'light',
+  isLoaded: true,
+  setMode: () => {},
+};
+
 export function useTheme(): ThemeContextType {
   const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
+  return context ?? defaultThemeContext;
 }
 
 /**
