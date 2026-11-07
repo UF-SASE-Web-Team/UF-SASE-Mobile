@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { Text } from '@/components/Text';
 import { useThemedStyles } from '@/context/ThemeContext';
 import { type Colors, borderWidth, radius, space } from '@/theme';
+import { getProfileAvatarSource } from '@/lib/profileAvatars';
 
 export interface ContactCardProps {
   name: string;
@@ -27,7 +28,7 @@ export function ContactCard({ name, avatarUrl, style, testID }: ContactCardProps
       <View style={styles.avatarWrapper}>
         {avatarUrl ? (
           <Image
-            source={{ uri: avatarUrl }}
+            source={getProfileAvatarSource(avatarUrl)}
             style={styles.avatarImage}
             contentFit="cover"
             accessibilityLabel={`${name}'s avatar`}

@@ -65,6 +65,27 @@ select
 from auth.users
 on conflict (id) do nothing;
 
+update public.profiles
+set full_name = 'Alice Gator',
+    major = 'Computer Science',
+    minor = 'Digital Arts and Sciences',
+    grad_time = '2029',
+    discord_handle = 'alice.gator',
+    instagram_handle = 'alice.gator',
+    linkedin_url = 'https://www.linkedin.com/in/alice-gator',
+    bio = 'Hi! I am a Computer Science major at UF. I love building things and meeting new people through SASE.',
+    avatar_url = 'sase-shark'
+where username = 'alice';
+
+update public.profiles
+set major = 'Mechanical Engineering',
+    grad_time = '2028',
+    instagram_handle = null,
+    linkedin_url = null,
+    bio = null,
+    avatar_url = 'sase-cat'
+where username = 'bob';
+
 insert into public.events (title, type, starts_at, ends_at, location_name, checkin_code, points_value) values
   ('Test Event', 'other', now() - interval '30 minutes', now() + interval '2 hours', 'LIT 223', '111111', 1);
 

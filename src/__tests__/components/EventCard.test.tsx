@@ -21,6 +21,7 @@ describe('EventCard', () => {
     id: 'test-event-1',
     title: 'General Body Meeting 1',
     description: 'Welcome meeting',
+    flyer_url: null,
     type: 'gbm',
     starts_at: new Date(Date.now() - 3600 * 1000 * 24).toISOString(), // 1 day ago
     ends_at: new Date(Date.now() - 3600 * 1000 * 22).toISOString(), // 22 hours ago

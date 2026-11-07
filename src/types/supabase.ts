@@ -104,6 +104,42 @@ export type Database = {
           },
         ];
       };
+      event_links: {
+        Row: {
+          created_at: string;
+          display_order: number;
+          event_id: string;
+          id: string;
+          title: string;
+          url: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          display_order?: number;
+          event_id: string;
+          id?: string;
+          title: string;
+          url: string;
+        };
+        Update: {
+          created_at?: string;
+          display_order?: number;
+          event_id?: string;
+          id?: string;
+          title?: string;
+          url?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'event_links_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: false;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       event_rsvps: {
         Row: {
           created_at: string;
@@ -147,6 +183,7 @@ export type Database = {
           created_at: string;
           description: string | null;
           ends_at: string;
+          flyer_url: string | null;
           id: string;
           lat: number | null;
           lng: number | null;
@@ -166,6 +203,7 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           ends_at: string;
+          flyer_url?: string | null;
           id?: string;
           lat?: number | null;
           lng?: number | null;
@@ -184,6 +222,7 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           ends_at?: string;
+          flyer_url?: string | null;
           id?: string;
           lat?: number | null;
           lng?: number | null;
@@ -207,11 +246,14 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null;
+          bio: string | null;
           created_at: string;
           discord_handle: string | null;
           full_name: string;
           grad_time: string | null;
           id: string;
+          instagram_handle: string | null;
+          linkedin_url: string | null;
           major: string | null;
           minor: string | null;
           role: Database['public']['Enums']['user_role'];
@@ -221,11 +263,14 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           avatar_url?: string | null;
+          bio?: string | null;
           created_at?: string;
           discord_handle?: string | null;
           full_name: string;
           grad_time?: string | null;
           id: string;
+          instagram_handle?: string | null;
+          linkedin_url?: string | null;
           major?: string | null;
           minor?: string | null;
           role?: Database['public']['Enums']['user_role'];
@@ -234,11 +279,14 @@ export type Database = {
         };
         Update: {
           avatar_url?: string | null;
+          bio?: string | null;
           created_at?: string;
           discord_handle?: string | null;
           full_name?: string;
           grad_time?: string | null;
           id?: string;
+          instagram_handle?: string | null;
+          linkedin_url?: string | null;
           major?: string | null;
           minor?: string | null;
           role?: Database['public']['Enums']['user_role'];
