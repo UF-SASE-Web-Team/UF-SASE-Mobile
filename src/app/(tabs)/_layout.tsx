@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { SaseFlask } from '@/components/icons';
 import { useTheme } from '@/theme';
 
 export default function TabsLayout() {
@@ -11,7 +11,9 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: isDark ? colors.surface.saseBlue.primary : '#0048BD',
+        tabBarActiveTintColor: isDark
+          ? colors.surface.saseBlue.primary
+          : colors.surface.saseBlue.secondary,
         tabBarInactiveTintColor: colors.content.onBase.secondary,
         tabBarStyle: {
           backgroundColor: colors.surface.base.primary,
@@ -29,12 +31,7 @@ export default function TabsLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color, size }) => (
-            <Image
-              source={require('../../../assets/icons/sase-flask.svg')}
-              style={{ width: size, height: size }}
-              tintColor={color as string}
-              contentFit="contain"
-            />
+            <SaseFlask width={size} height={size} fill={color} color={color} />
           ),
         }}
       />

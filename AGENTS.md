@@ -130,7 +130,8 @@ Keep files readable and avoid monolithic screens:
 
 Write resilient, behavior-driven tests using `@testing-library/react-native`:
 
-- **Query by Accessibility**: Prefer `getByRole`, `getByLabelText`, and `getByText`. Avoid asserting on internal React component trees.
-- **Do NOT Assert on Brittle Styles and Text**: Never assert on exact hex codes, `fontSize: 11`, or internal style objects (`props.style: [{ backgroundColor: 'transparent' }]`). If a design token or text changes, tests should still pass if user behavior is intact.
+- **Query by Accessibility**: Prefer `getByRole`, `getByLabelText`, and `getByPlaceholderText`. Avoid asserting on internal React component trees.
+- **Do NOT Assert on Brittle Styles or Static Text**: Never assert on exact hex colors, styles, headings, or marketing copy. Tests must focus on core functionality, routing, guards, and accessibility states (e.g. `aria-invalid`, `disabled`). Visual layout and copy are reviewed by the developer and must not cause test churn when refined.
+- **Test Core Primitives & Behavior, Not Declarative UI**: Verify primitive functionality, state changes, service calls, and navigation transitions rather than checking if visual text or elements are simply present.
 - **Async Renders**: Use `await render(...)` and user interaction events (`const user = userEvent.setup(); await user.press(...)`).
 - **No Snapshots**: Do not add snapshot tests; they cause high maintenance churn on trivial UI refinements.

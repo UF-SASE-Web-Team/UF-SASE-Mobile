@@ -1,22 +1,23 @@
 import {
-  StyleSheet,
-  Text,
-  TextInput,
   Alert,
-  Button,
-  View,
-  TouchableOpacity,
   KeyboardAvoidingView,
-  ScrollView,
   Platform,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState, useMemo, useRef, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { Button } from '@/components/Button';
+import { Input } from '@/components/Input';
+import { Text } from '@/components/Text';
 import { useAuth } from '@/context/AuthContext';
-import { iconSize } from '@/theme';
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import { supabase } from '@/lib/supabase';
+import { type Colors, iconSize, space } from '@/theme';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -37,6 +38,8 @@ export default function ResetPasswordScreen() {
 
   const router = useRouter();
   const { setIsRecovering, signOut } = useAuth();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const isCompletedRef = useRef(false);
 
   useEffect(() => {
@@ -101,11 +104,21 @@ export default function ResetPasswordScreen() {
     router.replace('/(auth)/login');
   };
 
+  const passwordError =
+    (touched.password || hasSubmitted) && !isPasswordValid
+      ? 'Must be at least 8 characters with letters and numbers.'
+      : undefined;
+
+  const confirmPasswordError =
+    (touched.confirmPassword || hasSubmitted) && !doPasswordsMatch
+      ? 'Passwords do not match.'
+      : undefined;
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
+        style={styles.keyboardView}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -118,22 +131,16 @@ export default function ResetPasswordScreen() {
             accessibilityLabel="Cancel password reset"
             accessibilityRole="button"
           >
-            <Ionicons name="arrow-back" size={iconSize.md} color="#000000" />
+            <Ionicons name="arrow-back" size={iconSize.md} color={colors.content.onBase.primary} />
           </TouchableOpacity>
-          <Text style={styles.title}>Set new password</Text>
-          {/* <Text style={styles.subtitle}> */}
-          {/* Create a new password that is at least 8 characters long. */}
-          {/* </Text> */}
 
-          {/* New Password */}
-          <Text style={styles.label}>New Password</Text>
-          <View
-            style={[
-              styles.inputContainer,
-              (touched.password || hasSubmitted) && !isPasswordValid && styles.inputErrorBorder,
-            ]}
-          >
-            <TextInput
+          <Text variant="title" style={styles.title}>
+            Set new password
+          </Text>
+
+          <View style={styles.form}>
+            {/* New Password */}
+            <Input
               placeholder="New password"
               secureTextEntry={!showPassword}
               textContentType="newPassword"
@@ -142,39 +149,27 @@ export default function ResetPasswordScreen() {
               value={password}
               onChangeText={setPassword}
               onBlur={() => markTouched('password')}
-              style={styles.input}
+              icon="key-outline"
+              error={passwordError}
+              rightIcon={
+                <TouchableOpacity
+                  onPress={() => setShowPassword((prev) => !prev)}
+                  style={styles.eyeIcon}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                  accessibilityRole="button"
+                >
+                  <Ionicons
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={iconSize.md}
+                    color={colors.content.onBase.secondary}
+                  />
+                </TouchableOpacity>
+              }
             />
-            <TouchableOpacity
-              onPress={() => setShowPassword((prev) => !prev)}
-              style={styles.eyeIcon}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
-              accessibilityRole="button"
-            >
-              <Ionicons
-                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                size={iconSize.md}
-                color="#666666"
-              />
-            </TouchableOpacity>
-          </View>
-          {(touched.password || hasSubmitted) && !isPasswordValid && (
-            <Text style={[styles.statusText, styles.statusError]}>
-              Must be at least 8 characters with letters and numbers.
-            </Text>
-          )}
 
-          {/* Confirm Password */}
-          <Text style={styles.label}>Confirm Password</Text>
-          <View
-            style={[
-              styles.inputContainer,
-              (touched.confirmPassword || hasSubmitted) &&
-                !doPasswordsMatch &&
-                styles.inputErrorBorder,
-            ]}
-          >
-            <TextInput
+            {/* Confirm Password */}
+            <Input
               placeholder="Confirm new password"
               secureTextEntry={!showPassword}
               textContentType="newPassword"
@@ -183,19 +178,20 @@ export default function ResetPasswordScreen() {
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               onBlur={() => markTouched('confirmPassword')}
-              style={styles.input}
+              icon="key-outline"
+              error={confirmPasswordError}
             />
           </View>
-          {(touched.confirmPassword || hasSubmitted) && !doPasswordsMatch && (
-            <Text style={[styles.statusText, styles.statusError]}>Passwords do not match.</Text>
-          )}
 
           <View style={styles.buttonContainer}>
             <Button
-              title={loading ? 'Updating password...' : 'Update password'}
+              variant="primary"
               onPress={handleUpdatePassword}
-              disabled={loading}
-            />
+              loading={loading}
+              accessibilityLabel="Update password"
+            >
+              Update password
+            </Button>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -203,59 +199,35 @@ export default function ResetPasswordScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    gap: 8,
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 4,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '600',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 8,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginTop: 4,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#CCCCCC',
-    borderRadius: 8,
-  },
-  inputErrorBorder: {
-    borderColor: '#dc2626',
-  },
-  input: {
-    flex: 1,
-    padding: 10,
-    fontSize: 16,
-  },
-  eyeIcon: {
-    paddingHorizontal: 12,
-  },
-  statusText: {
-    fontSize: 12,
-    marginTop: -4,
-    marginBottom: 4,
-  },
-  statusError: {
-    color: '#dc2626',
-  },
-  buttonContainer: {
-    marginTop: 16,
-  },
-});
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.surface.base.primary,
+    },
+    keyboardView: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingHorizontal: space['600'],
+      paddingVertical: space['400'],
+      gap: space['400'],
+    },
+    backButton: {
+      alignSelf: 'flex-start',
+      marginBottom: space['100'],
+    },
+    title: {
+      marginBottom: space['200'],
+    },
+    form: {
+      gap: space['400'],
+    },
+    eyeIcon: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    buttonContainer: {
+      marginTop: space['200'],
+    },
+  });
