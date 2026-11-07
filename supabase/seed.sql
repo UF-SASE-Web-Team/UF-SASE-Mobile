@@ -31,17 +31,41 @@ select
   current_timestamp,
   current_timestamp,
   '{"provider":"email","providers":["email"]}',
-  json_build_object(
-    'username', u.name,
-    'full_name', initcap(u.name) || ' Gator'
-  ),
+  u.meta,
   current_timestamp,
   current_timestamp,
   '', '', '', ''
 from (
-  values ('alice'), ('bob')
-) as u(name)
-on conflict (id) do nothing;
+  values
+    (
+      'alice',
+      json_build_object(
+        'username', 'alice',
+        'full_name', 'Alice Gator',
+        'major', 'Computer Science',
+        'minor', 'Digital Arts and Sciences',
+        'grad_time', '2029',
+        'discord_handle', 'alice.gator',
+        'instagram_handle', 'alice.gator',
+        'linkedin_url', 'https://www.linkedin.com/in/alice-gator',
+        'bio', 'Hi! I am a Computer Science major at UF. I love building things and meeting new people through SASE.',
+        'avatar_url', 'sase-shark'
+      )
+    ),
+    (
+      'bob',
+      json_build_object(
+        'username', 'bob',
+        'full_name', 'Bob Gator',
+        'major', 'Mechanical Engineering',
+        'grad_time', '2028',
+        'avatar_url', 'sase-cat'
+      )
+    )
+) as u(name, meta)
+where not exists (
+  select 1 from auth.users where email = u.name || '@gmail.com'
+);
 
 insert into auth.identities (
   id,
@@ -54,7 +78,7 @@ insert into auth.identities (
   updated_at
 )
 select
-  id,
+  uuid_generate_v4(),
   id,
   format('{"sub":"%s","email":"%s"}', id::text, email)::jsonb,
   'email',
@@ -63,7 +87,8 @@ select
   current_timestamp,
   current_timestamp
 from auth.users
-on conflict (id) do nothing;
+where email in ('alice@gmail.com', 'bob@gmail.com')
+on conflict (provider_id, provider) do nothing;
 
 update public.profiles
 set full_name = 'Alice Gator',
@@ -86,13 +111,19 @@ set major = 'Mechanical Engineering',
     avatar_url = 'sase-cat'
 where username = 'bob';
 
-insert into public.events (title, type, starts_at, ends_at, location_name, checkin_code, points_value) values
-  ('Test Event', 'other', now() - interval '30 minutes', now() + interval '2 hours', 'LIT 223', '111111', 1);
+insert into public.events (title, type, starts_at, ends_at, location_name, checkin_code, points_value)
+select 'Test Event', 'other', now() - interval '30 minutes', now() + interval '2 hours', 'LIT 223', '111111', 1
+where not exists (
+  select 1 from public.events where title = 'Test Event'
+);
 
 insert into public.event_links (event_id, title, url, display_order)
 select id, 'Carpool form', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 0
 from public.events
-where title = 'Test Event';
+where title = 'Test Event'
+  and not exists (
+    select 1 from public.event_links el where el.event_id = events.id and el.title = 'Carpool form'
+  );
 
 insert into public.programs (
   name, slug, category, display_order,
@@ -302,5 +333,8 @@ on conflict (name) do update set
   display_order = excluded.display_order,
   image_url     = coalesce(excluded.image_url, resources.image_url);
 
-insert into public.events (title, type, starts_at, ends_at, location_name, checkin_code, points_value, flyer_url) values 
-    ('General Body Meeting', 'gbm', now() + interval '1 day', now() + interval '1 day 2 hours', 'Little Hall', '123456', 1, 'https://flyer.com');
+insert into public.events (title, type, starts_at, ends_at, location_name, checkin_code, points_value, flyer_url)
+select 'General Body Meeting', 'gbm', now() + interval '1 day', now() + interval '1 day 2 hours', 'Little Hall', '123456', 1, 'https://flyer.com'
+where not exists (
+  select 1 from public.events where title = 'General Body Meeting'
+);

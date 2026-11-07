@@ -35,6 +35,7 @@ describe('EventCard', () => {
     checkin_closes_at: null,
     created_at: new Date().toISOString(),
     program_id: null,
+    flyer_url: null,
   };
 
   describe('Past events', () => {

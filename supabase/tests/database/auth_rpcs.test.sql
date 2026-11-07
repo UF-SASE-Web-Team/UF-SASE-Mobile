@@ -18,6 +18,12 @@ select has_function(
 
 select has_function(
   'public',
+  'suggest_username',
+  'Function public.suggest_username() should exist'
+);
+
+select has_function(
+  'public',
   'handle_new_user',
   'Function public.handle_new_user() should exist'
 );
@@ -277,6 +283,36 @@ select is(
   (select count(*) from public.check_ins where user_id is null),
   1::bigint,
   'Check-in user_id should be set to null when user is deleted'
+);
+
+-- 6. Test suggest_username RPC
+select matches(
+  public.suggest_username(),
+  '^[a-z][a-z0-9]*(?:[._][a-z0-9]+)*$',
+  'Suggested username should match valid username format regex'
+);
+
+select ok(
+  length(public.suggest_username()) between 3 and 20,
+  'Suggested username length should be between 3 and 20 characters'
+);
+
+select is(
+  public.check_username_available(public.suggest_username()),
+  true,
+  'Suggested username should be available in profiles'
+);
+
+select matches(
+  public.suggest_username('_'),
+  '^[a-z]+_[a-z]+[0-9]*$',
+  'Suggested username with underscore separator should match adjective_noun format'
+);
+
+select matches(
+  public.suggest_username('-'),
+  '^[a-z][a-z0-9]*(?:[._][a-z0-9]+)*$',
+  'Suggested username with invalid separator falls back to valid format without hyphens'
 );
 
 select * from finish();

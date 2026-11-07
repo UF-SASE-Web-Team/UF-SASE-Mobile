@@ -1,22 +1,24 @@
 import {
-  StyleSheet,
-  Text,
-  TextInput,
   Alert,
-  Button,
-  View,
-  TouchableOpacity,
   ActivityIndicator,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { iconSize } from '@/theme';
+import { Button } from '@/components/Button';
+import { Input } from '@/components/Input';
+import { Text } from '@/components/Text';
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import { supabase } from '@/lib/supabase';
+import { suggestUsername } from '@/services/auth';
+import { type Colors, iconSize, space } from '@/theme';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_REGEX = /^[a-z][a-z0-9]*(?:[._][a-z0-9]+)*$/;
@@ -56,14 +58,17 @@ export default function SignupScreen() {
     networkError: false,
   });
   const [isRequestInFlight, setIsRequestInFlight] = useState(false);
+  const [isSuggesting, setIsSuggesting] = useState(false);
 
   const router = useRouter();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   // Field refs to smoothly focus the first broken field on submit
-  const emailInputRef = useRef<TextInput>(null);
-  const passwordInputRef = useRef<TextInput>(null);
-  const nameInputRef = useRef<TextInput>(null);
-  const usernameInputRef = useRef<TextInput>(null);
+  const emailInputRef = useRef<any>(null);
+  const passwordInputRef = useRef<any>(null);
+  const nameInputRef = useRef<any>(null);
+  const usernameInputRef = useRef<any>(null);
 
   // --- Synchronous Derived State ---
   const cleanEmail = email.trim().toLowerCase();
@@ -101,6 +106,9 @@ export default function SignupScreen() {
   // Debounced Supabase RPC call
   useEffect(() => {
     if (!cleanUsername || !isUsernameFormatValid) return;
+    if (serverCheck.evaluatedUsername === cleanUsername && serverCheck.isAvailable === true) {
+      return;
+    }
 
     let isMounted = true;
     const timer = setTimeout(async () => {
@@ -124,7 +132,34 @@ export default function SignupScreen() {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [cleanUsername, isUsernameFormatValid]);
+  }, [
+    cleanUsername,
+    isUsernameFormatValid,
+    serverCheck.evaluatedUsername,
+    serverCheck.isAvailable,
+  ]);
+
+  const handleSuggestUsername = async () => {
+    if (isSuggesting) return;
+    try {
+      setIsSuggesting(true);
+      const suggested = await suggestUsername();
+      const cleanSuggested = suggested.trim().toLowerCase();
+      setUsername(cleanSuggested);
+      setServerCheck({
+        evaluatedUsername: cleanSuggested,
+        isAvailable: true,
+        networkError: false,
+      });
+    } catch {
+      Alert.alert(
+        'Suggestion Failed',
+        'Could not generate a suggested username. Please try again or type one manually.',
+      );
+    } finally {
+      setIsSuggesting(false);
+    }
+  };
 
   const getReadableErrorMessage = (error: any) => {
     const msg = error?.message?.toLowerCase() ?? '';
@@ -199,11 +234,82 @@ export default function SignupScreen() {
     }
   };
 
+  // --- Field Errors ---
+  const emailError =
+    (touched.email || hasSubmitted) && !isEmailValid
+      ? 'Please enter a valid email address.'
+      : undefined;
+
+  const passwordError =
+    (touched.password || hasSubmitted) && !isPasswordValid
+      ? 'Must be at least 8 characters with letters and numbers.'
+      : undefined;
+
+  const fullNameError =
+    (touched.fullName || hasSubmitted) && !cleanFullName
+      ? 'Please enter your full name.'
+      : undefined;
+
+  const usernameError = useMemo(() => {
+    if (!(touched.username || hasSubmitted)) return undefined;
+    if (usernameStatus === 'taken') return 'Username is already taken.';
+    if (usernameStatus === 'invalid')
+      return '3-20 letters, numbers, . or _. Must start with a letter.';
+    if (usernameStatus === 'error') return 'Could not verify username. Check connection.';
+    return undefined;
+  }, [touched.username, hasSubmitted, usernameStatus]);
+
+  const renderUsernameRightIcon = () => {
+    if (isSuggesting) {
+      return (
+        <View style={styles.iconButton} accessibilityLabel="Generating suggested username">
+          <ActivityIndicator size="small" color={colors.content.onBase.secondary} />
+        </View>
+      );
+    }
+    if (usernameStatus === 'checking') {
+      return (
+        <View style={styles.iconButton}>
+          <ActivityIndicator size="small" color={colors.content.onBase.secondary} />
+        </View>
+      );
+    }
+    if (usernameStatus === 'available') {
+      return (
+        <View style={styles.iconButton} accessibilityLabel="Username available">
+          <Ionicons
+            name="checkmark-circle"
+            size={iconSize.md}
+            color={colors.border.success.primary}
+          />
+        </View>
+      );
+    }
+    if (username.length > 0) {
+      return (
+        <TouchableOpacity
+          onPress={() => setUsername('')}
+          style={styles.iconButton}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityLabel="Clear username"
+          accessibilityRole="button"
+        >
+          <Ionicons
+            name="close-outline"
+            size={iconSize.md}
+            color={colors.content.onBase.secondary}
+          />
+        </TouchableOpacity>
+      );
+    }
+    return null;
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
+        style={styles.keyboardView}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -216,20 +322,16 @@ export default function SignupScreen() {
             accessibilityLabel="Go back"
             accessibilityRole="button"
           >
-            <Ionicons name="arrow-back" size={iconSize.md} color="#000000" />
+            <Ionicons name="arrow-back" size={iconSize.md} color={colors.content.onBase.primary} />
           </TouchableOpacity>
 
-          <Text style={styles.title}>Get started</Text>
+          <Text variant="title" style={styles.title}>
+            Get started
+          </Text>
 
-          {/* Email */}
-          <Text style={styles.label}>Email</Text>
-          <View
-            style={[
-              styles.inputContainer,
-              (touched.email || hasSubmitted) && !isEmailValid && styles.inputErrorBorder,
-            ]}
-          >
-            <TextInput
+          <View style={styles.form}>
+            {/* Email */}
+            <Input
               ref={emailInputRef}
               placeholder="Email"
               autoCapitalize="none"
@@ -239,75 +341,59 @@ export default function SignupScreen() {
               value={email}
               onChangeText={setEmail}
               onBlur={() => markTouched('email')}
-              style={styles.input}
+              icon="mail-outline"
+              error={emailError}
+              rightIcon={
+                email.length > 0 ? (
+                  <TouchableOpacity
+                    onPress={() => setEmail('')}
+                    style={styles.iconButton}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    accessibilityLabel="Clear email"
+                    accessibilityRole="button"
+                  >
+                    <Ionicons
+                      name="close-outline"
+                      size={iconSize.md}
+                      color={colors.content.onBase.secondary}
+                    />
+                  </TouchableOpacity>
+                ) : null
+              }
             />
-            {email.length > 0 && (
-              <TouchableOpacity
-                onPress={() => setEmail('')}
-                style={styles.clearIcon}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                accessibilityLabel="Clear email"
-                accessibilityRole="button"
-              >
-                <Ionicons name="close-outline" size={iconSize.md} color="#999999" />
-              </TouchableOpacity>
-            )}
-          </View>
-          {(touched.email || hasSubmitted) && !isEmailValid && (
-            <Text style={[styles.statusText, styles.statusError]}>
-              Please enter a valid email address.
-            </Text>
-          )}
 
-          {/* Password */}
-          <Text style={styles.label}>Password</Text>
-          <View
-            style={[
-              styles.inputContainer,
-              (touched.password || hasSubmitted) && !isPasswordValid && styles.inputErrorBorder,
-            ]}
-          >
-            <TextInput
+            {/* Password */}
+            <Input
               ref={passwordInputRef}
               placeholder="Password"
               secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoCorrect={false}
               textContentType="newPassword"
               value={password}
               onChangeText={setPassword}
               onBlur={() => markTouched('password')}
-              style={styles.input}
-              autoCapitalize="none"
-              autoCorrect={false}
+              icon="key-outline"
+              error={passwordError}
+              rightIcon={
+                <TouchableOpacity
+                  onPress={() => setShowPassword((prev) => !prev)}
+                  style={styles.iconButton}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                  accessibilityRole="button"
+                >
+                  <Ionicons
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={iconSize.md}
+                    color={colors.content.onBase.secondary}
+                  />
+                </TouchableOpacity>
+              }
             />
-            <TouchableOpacity
-              onPress={() => setShowPassword((prev) => !prev)}
-              style={styles.eyeIcon}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
-              accessibilityRole="button"
-            >
-              <Ionicons
-                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                size={iconSize.md}
-                color="#666666"
-              />
-            </TouchableOpacity>
-          </View>
-          {(touched.password || hasSubmitted) && !isPasswordValid && (
-            <Text style={[styles.statusText, styles.statusError]}>
-              Must be at least 8 characters with letters and numbers.
-            </Text>
-          )}
 
-          {/* Full Name */}
-          <Text style={styles.label}>Name</Text>
-          <View
-            style={[
-              styles.inputContainer,
-              (touched.fullName || hasSubmitted) && !cleanFullName && styles.inputErrorBorder,
-            ]}
-          >
-            <TextInput
+            {/* Full Name */}
+            <Input
               ref={nameInputRef}
               placeholder="Full name"
               value={fullName}
@@ -316,101 +402,71 @@ export default function SignupScreen() {
               textContentType="name"
               onChangeText={setFullName}
               onBlur={() => markTouched('fullName')}
-              style={styles.input}
+              icon="person-outline"
+              error={fullNameError}
+              rightIcon={
+                fullName.length > 0 ? (
+                  <TouchableOpacity
+                    onPress={() => setFullName('')}
+                    style={styles.iconButton}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    accessibilityLabel="Clear full name"
+                    accessibilityRole="button"
+                  >
+                    <Ionicons
+                      name="close-outline"
+                      size={iconSize.md}
+                      color={colors.content.onBase.secondary}
+                    />
+                  </TouchableOpacity>
+                ) : null
+              }
             />
-            {fullName.length > 0 && (
+
+            {/* Username */}
+            <View style={styles.usernameGroup}>
+              <Input
+                ref={usernameInputRef}
+                placeholder="Username"
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="username"
+                value={username}
+                onChangeText={setUsername}
+                onBlur={() => markTouched('username')}
+                icon="at-outline"
+                error={usernameError}
+                rightIcon={renderUsernameRightIcon()}
+              />
               <TouchableOpacity
-                onPress={() => setFullName('')}
-                style={styles.clearIcon}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                accessibilityLabel="Clear full name"
+                onPress={handleSuggestUsername}
+                disabled={isSuggesting}
+                style={styles.suggestButton}
+                accessibilityLabel="Suggest username"
                 accessibilityRole="button"
               >
-                <Ionicons name="close-outline" size={iconSize.md} color="#999999" />
+                <Ionicons
+                  name="sparkles-outline"
+                  size={iconSize.sm}
+                  color={colors.surface.saseBlue.primary}
+                />
+                <Text variant="bodySmStrong" style={styles.suggestButtonText}>
+                  {isSuggesting ? 'Generating...' : 'Suggest username'}
+                </Text>
               </TouchableOpacity>
-            )}
+            </View>
           </View>
-          {(touched.fullName || hasSubmitted) && !cleanFullName && (
-            <Text style={[styles.statusText, styles.statusError]}>
-              Please enter your full name.
-            </Text>
-          )}
-
-          {/* Username */}
-          <Text style={styles.label}>Username</Text>
-          <View
-            style={[
-              styles.inputContainer,
-              (touched.username || hasSubmitted) &&
-                usernameStatus !== 'available' &&
-                usernameStatus !== 'idle' &&
-                usernameStatus !== 'checking' &&
-                styles.inputErrorBorder,
-            ]}
-          >
-            <TextInput
-              ref={usernameInputRef}
-              placeholder="Username"
-              autoCapitalize="none"
-              autoCorrect={false}
-              textContentType="username"
-              value={username}
-              onChangeText={setUsername}
-              onBlur={() => markTouched('username')}
-              style={styles.input}
-            />
-            {usernameStatus === 'checking' && (
-              <View style={styles.indicatorIcon}>
-                <ActivityIndicator size="small" color="#666666" />
-              </View>
-            )}
-            {usernameStatus === 'available' && (
-              <View style={styles.indicatorIcon} accessibilityLabel="Username available">
-                <Ionicons name="checkmark-circle" size={iconSize.md} color="#16a34a" />
-              </View>
-            )}
-            {username.length > 0 &&
-              usernameStatus !== 'checking' &&
-              usernameStatus !== 'available' && (
-                <TouchableOpacity
-                  onPress={() => setUsername('')}
-                  style={styles.clearIcon}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  accessibilityLabel="Clear username"
-                  accessibilityRole="button"
-                >
-                  <Ionicons name="close-outline" size={iconSize.md} color="#999999" />
-                </TouchableOpacity>
-              )}
-          </View>
-
-          {(touched.username || hasSubmitted) && (
-            <>
-              {usernameStatus === 'taken' && (
-                <Text style={[styles.statusText, styles.statusError]}>
-                  Username is already taken.
-                </Text>
-              )}
-              {usernameStatus === 'invalid' && (
-                <Text style={[styles.statusText, styles.statusError]}>
-                  3-20 letters, numbers, . or _. Must start with a letter.
-                </Text>
-              )}
-              {usernameStatus === 'error' && (
-                <Text style={[styles.statusText, styles.statusError]}>
-                  Could not verify username. Check connection.
-                </Text>
-              )}
-            </>
-          )}
 
           {/* Action Button */}
           <View style={styles.buttonContainer}>
             <Button
-              title={loading ? 'Creating account...' : 'Create account'}
+              variant="primary"
               onPress={handleSignup}
-              disabled={loading} // Only disabled when in-flight request is running
-            />
+              loading={loading}
+              accessibilityLabel="Create account"
+            >
+              Create account
+            </Button>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -418,65 +474,49 @@ export default function SignupScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    gap: 6,
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 4,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginTop: 4,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#CCCCCC',
-    borderRadius: 8,
-  },
-  inputErrorBorder: {
-    borderColor: '#dc2626',
-  },
-  input: {
-    flex: 1,
-    padding: 10,
-    fontSize: 16,
-  },
-  clearIcon: {
-    paddingHorizontal: 8,
-  },
-  indicatorIcon: {
-    paddingHorizontal: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  eyeIcon: {
-    paddingHorizontal: 12,
-  },
-  statusText: {
-    fontSize: 12,
-    marginTop: -2,
-    marginBottom: 4,
-    color: '#666666',
-  },
-  statusError: {
-    color: '#dc2626',
-  },
-  buttonContainer: {
-    marginTop: 16,
-    gap: 8,
-  },
-});
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.surface.base.primary,
+    },
+    keyboardView: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingHorizontal: space['600'],
+      paddingVertical: space['400'],
+      gap: space['400'],
+    },
+    backButton: {
+      alignSelf: 'flex-start',
+      marginBottom: space['100'],
+    },
+    title: {
+      marginBottom: space['200'],
+    },
+    form: {
+      gap: space['400'],
+    },
+    iconButton: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    usernameGroup: {
+      gap: space['150'],
+    },
+    suggestButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space['100'],
+      alignSelf: 'flex-start',
+      paddingVertical: space['050'],
+      paddingHorizontal: space['300'],
+    },
+    suggestButtonText: {
+      color: colors.surface.saseBlue.primary,
+    },
+    buttonContainer: {
+      marginTop: space['200'],
+    },
+  });

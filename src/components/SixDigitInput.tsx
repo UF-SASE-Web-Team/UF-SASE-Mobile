@@ -1,4 +1,11 @@
-import { StyleSheet, TextInput, View } from 'react-native';
+import {
+  NativeSyntheticEvent,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  TextInputKeyPressEventData,
+  View,
+} from 'react-native';
 import { useState, useRef } from 'react';
 import { Text } from '@/components/Text';
 import { useThemedStyles, useTheme } from '@/context/ThemeContext';
@@ -19,8 +26,22 @@ export function SixDigitInput({ value, onChangeText, onComplete, disabled }: Six
 
   const digits = Array.from({ length: 6 }, (_, i) => value[i] || '');
 
+  const handleKeyPress = ({ nativeEvent }: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+    if (nativeEvent.key === 'Backspace' && value.length === 6) {
+      onChangeText(value.slice(0, -1));
+    }
+  };
+
   return (
-    <View style={[styles.otpContainer, disabled && styles.otpContainerDisabled]}>
+    <Pressable
+      onPress={() => {
+        if (!disabled) {
+          inputRef.current?.focus();
+        }
+      }}
+      style={[styles.otpContainer, disabled && styles.otpContainerDisabled]}
+      accessible={false}
+    >
       {digits.map((digit, index) => {
         const isFilled = Boolean(digit);
         const isCurrent = isFocused && index === value.length;
@@ -48,6 +69,8 @@ export function SixDigitInput({ value, onChangeText, onComplete, disabled }: Six
             onComplete?.(numericText);
           }
         }}
+        onKeyPress={handleKeyPress}
+        selection={{ start: value.length, end: value.length }}
         keyboardType="number-pad"
         keyboardAppearance={keyboardAppearance}
         maxLength={6}
@@ -63,7 +86,7 @@ export function SixDigitInput({ value, onChangeText, onComplete, disabled }: Six
         accessibilityRole="none"
         accessibilityLabel="6-digit verification code"
       />
-    </View>
+    </Pressable>
   );
 }
 
