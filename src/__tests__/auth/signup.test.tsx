@@ -315,4 +315,43 @@ describe('SignupScreen', () => {
       );
     });
   });
+
+  it('suggests a username when the suggest button is pressed', async () => {
+    (supabase.rpc as jest.Mock).mockResolvedValueOnce({
+      data: 'derpytoaster',
+      error: null,
+    });
+
+    const user = userEvent.setup();
+    await render(<SignupScreen />);
+
+    await user.press(screen.getByRole('button', { name: /suggest username/i }));
+
+    await waitFor(() => {
+      expect(supabase.rpc).toHaveBeenCalledWith('suggest_username', {
+        p_separator: undefined,
+      });
+      expect(screen.getByPlaceholderText('Username').props.value).toBe('derpytoaster');
+      expect(screen.getByLabelText('Username available')).toBeTruthy();
+    });
+  });
+
+  it('shows an alert when suggest username RPC fails', async () => {
+    (supabase.rpc as jest.Mock).mockResolvedValueOnce({
+      data: null,
+      error: { message: 'Network error' },
+    });
+
+    const user = userEvent.setup();
+    await render(<SignupScreen />);
+
+    await user.press(screen.getByRole('button', { name: /suggest username/i }));
+
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith(
+        'Suggestion Failed',
+        expect.stringMatching(/could not generate a suggested username/i),
+      );
+    });
+  });
 });
