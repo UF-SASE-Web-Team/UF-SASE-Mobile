@@ -175,7 +175,7 @@ const createStyles = (colors: Colors) =>
       paddingHorizontal: space['100'],
     },
     forgotPasswordButton: {
-      alignSelf: 'flex-end',
+      paddingHorizontal: space['300']
     },
     forgotPasswordText: {
       color: colors.surface.saseBlue.primary,

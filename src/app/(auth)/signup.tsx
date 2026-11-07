@@ -17,6 +17,7 @@ import { Input } from '@/components/Input';
 import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { supabase } from '@/lib/supabase';
+import { suggestUsername } from '@/services/auth';
 import { type Colors, iconSize, space } from '@/theme';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -57,6 +58,7 @@ export default function SignupScreen() {
     networkError: false,
   });
   const [isRequestInFlight, setIsRequestInFlight] = useState(false);
+  const [isSuggesting, setIsSuggesting] = useState(false);
 
   const router = useRouter();
   const { colors } = useTheme();
@@ -104,6 +106,9 @@ export default function SignupScreen() {
   // Debounced Supabase RPC call
   useEffect(() => {
     if (!cleanUsername || !isUsernameFormatValid) return;
+    if (serverCheck.evaluatedUsername === cleanUsername && serverCheck.isAvailable === true) {
+      return;
+    }
 
     let isMounted = true;
     const timer = setTimeout(async () => {
@@ -127,7 +132,34 @@ export default function SignupScreen() {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [cleanUsername, isUsernameFormatValid]);
+  }, [
+    cleanUsername,
+    isUsernameFormatValid,
+    serverCheck.evaluatedUsername,
+    serverCheck.isAvailable,
+  ]);
+
+  const handleSuggestUsername = async () => {
+    if (isSuggesting) return;
+    try {
+      setIsSuggesting(true);
+      const suggested = await suggestUsername();
+      const cleanSuggested = suggested.trim().toLowerCase();
+      setUsername(cleanSuggested);
+      setServerCheck({
+        evaluatedUsername: cleanSuggested,
+        isAvailable: true,
+        networkError: false,
+      });
+    } catch {
+      Alert.alert(
+        'Suggestion Failed',
+        'Could not generate a suggested username. Please try again or type one manually.',
+      );
+    } finally {
+      setIsSuggesting(false);
+    }
+  };
 
   const getReadableErrorMessage = (error: any) => {
     const msg = error?.message?.toLowerCase() ?? '';
@@ -228,6 +260,13 @@ export default function SignupScreen() {
   }, [touched.username, hasSubmitted, usernameStatus]);
 
   const renderUsernameRightIcon = () => {
+    if (isSuggesting) {
+      return (
+        <View style={styles.iconButton} accessibilityLabel="Generating suggested username">
+          <ActivityIndicator size="small" color={colors.content.onBase.secondary} />
+        </View>
+      );
+    }
     if (usernameStatus === 'checking') {
       return (
         <View style={styles.iconButton}>
@@ -385,19 +424,37 @@ export default function SignupScreen() {
             />
 
             {/* Username */}
-            <Input
-              ref={usernameInputRef}
-              placeholder="Username"
-              autoCapitalize="none"
-              autoCorrect={false}
-              textContentType="username"
-              value={username}
-              onChangeText={setUsername}
-              onBlur={() => markTouched('username')}
-              icon="at-outline"
-              error={usernameError}
-              rightIcon={renderUsernameRightIcon()}
-            />
+            <View style={styles.usernameGroup}>
+              <Input
+                ref={usernameInputRef}
+                placeholder="Username"
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="username"
+                value={username}
+                onChangeText={setUsername}
+                onBlur={() => markTouched('username')}
+                icon="at-outline"
+                error={usernameError}
+                rightIcon={renderUsernameRightIcon()}
+              />
+              <TouchableOpacity
+                onPress={handleSuggestUsername}
+                disabled={isSuggesting}
+                style={styles.suggestButton}
+                accessibilityLabel="Suggest username"
+                accessibilityRole="button"
+              >
+                <Ionicons
+                  name="sparkles-outline"
+                  size={iconSize.sm}
+                  color={colors.surface.saseBlue.primary}
+                />
+                <Text variant="bodySmStrong" style={styles.suggestButtonText}>
+                  {isSuggesting ? 'Generating...' : 'Suggest username'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Action Button */}
@@ -444,6 +501,20 @@ const createStyles = (colors: Colors) =>
     iconButton: {
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    usernameGroup: {
+      gap: space['150'],
+    },
+    suggestButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space['100'],
+      alignSelf: 'flex-start',
+      paddingVertical: space['050'],
+      paddingHorizontal: space['300'],
+    },
+    suggestButtonText: {
+      color: colors.surface.saseBlue.primary,
     },
     buttonContainer: {
       marginTop: space['200'],

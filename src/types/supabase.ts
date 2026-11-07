@@ -104,6 +104,42 @@ export type Database = {
           },
         ];
       };
+      event_links: {
+        Row: {
+          created_at: string;
+          display_order: number;
+          event_id: string;
+          id: string;
+          title: string;
+          url: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          display_order?: number;
+          event_id: string;
+          id?: string;
+          title: string;
+          url: string;
+        };
+        Update: {
+          created_at?: string;
+          display_order?: number;
+          event_id?: string;
+          id?: string;
+          title?: string;
+          url?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'event_links_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: false;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       event_rsvps: {
         Row: {
           created_at: string;
@@ -147,6 +183,7 @@ export type Database = {
           created_at: string;
           description: string | null;
           ends_at: string;
+          flyer_url: string | null;
           id: string;
           lat: number | null;
           lng: number | null;
@@ -166,6 +203,7 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           ends_at: string;
+          flyer_url?: string | null;
           id?: string;
           lat?: number | null;
           lng?: number | null;
@@ -184,6 +222,7 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           ends_at?: string;
+          flyer_url?: string | null;
           id?: string;
           lat?: number | null;
           lng?: number | null;
@@ -425,6 +464,7 @@ export type Database = {
       check_username_available: { Args: { input_username: string }; Returns: boolean };
       delete_user_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       get_email_from_username: { Args: { p_username: string }; Returns: string };
+      suggest_username: { Args: { p_separator?: string }; Returns: string };
       toggle_event_rsvp: { Args: { p_event_id: string }; Returns: boolean };
     };
     Enums: {
