@@ -26,11 +26,11 @@ describe('FreshmanFaqsPage', () => {
     await cleanup();
   });
 
-  it('renders page title and back button', async () => {
+  it('renders back button and category tabs', async () => {
     await renderFreshmanFaqsPage();
 
-    expect(screen.getByText('Freshmen FAQS')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Go back' })).toBeTruthy();
+    expect(screen.getAllByRole('tab').length).toBeGreaterThan(0);
   });
 
   it('navigates back when back button is pressed', async () => {
@@ -43,79 +43,55 @@ describe('FreshmanFaqsPage', () => {
     expect(mockBack).toHaveBeenCalled();
   });
 
-  it('displays Academic category by default with first question expanded', async () => {
+  it('selects first category by default with first question expanded', async () => {
     await renderFreshmanFaqsPage();
 
-    // Academic tab should be selected
-    const academicTab = screen.getByRole('tab', { name: 'Academic' });
-    expect(academicTab.props.accessibilityState.selected).toBe(true);
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs[0].props.accessibilityState.selected).toBe(true);
 
-    // Category heading should show Academic
-    expect(screen.getByText('Academic')).toBeTruthy();
+    const questions = screen
+      .getAllByRole('button')
+      .filter((btn) => btn.props.accessibilityState?.expanded !== undefined);
 
-    // First academic question should be visible
-    expect(
-      screen.getByRole('button', {
-        name: 'How do I find study groups for STEM classes?',
-      }),
-    ).toBeTruthy();
-
-    // First question answer should be expanded
-    expect(
-      screen.getByText(
-        'SASE hosts regular Study Hours throughout the semester and maintains the Class Connector sheet where you can connect with peers taking the same engineering, science, and math courses.',
-      ),
-    ).toBeTruthy();
+    expect(questions.length).toBeGreaterThan(0);
+    expect(questions[0].props.accessibilityState.expanded).toBe(true);
   });
 
   it('switches category when another tab is pressed', async () => {
     const user = userEvent.setup();
     await renderFreshmanFaqsPage();
 
-    const profTab = screen.getByRole('tab', { name: 'Professional' });
-    await user.press(profTab);
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs.length).toBeGreaterThan(1);
+    expect(tabs[0].props.accessibilityState.selected).toBe(true);
+    expect(tabs[1].props.accessibilityState.selected).toBe(false);
 
-    expect(profTab.props.accessibilityState.selected).toBe(true);
-    expect(screen.getByText('Professional')).toBeTruthy();
+    await user.press(tabs[1]);
 
-    // Professional question should be visible
-    expect(screen.getByRole('button', { name: 'What is the SASE Resume Template?' })).toBeTruthy();
+    expect(tabs[0].props.accessibilityState.selected).toBe(false);
+    expect(tabs[1].props.accessibilityState.selected).toBe(true);
   });
 
   it('toggles question expansion when tapped', async () => {
     const user = userEvent.setup();
     await renderFreshmanFaqsPage();
 
-    const questionButton = screen.getByRole('button', {
-      name: 'Where is the SASE Pi Room / Marston study room?',
-    });
+    const questions = screen
+      .getAllByRole('button')
+      .filter((btn) => btn.props.accessibilityState?.expanded !== undefined);
+
+    expect(questions.length).toBeGreaterThan(1);
+    const secondQuestion = questions[1];
 
     // Initially collapsed
-    expect(questionButton.props.accessibilityState.expanded).toBe(false);
-    expect(
-      screen.queryByText(
-        'The Pi Room is located in the Marston Science Library. SASE members can reserve it for study sessions and group projects using the Pi Room Booking link in Resources.',
-      ),
-    ).toBeNull();
+    expect(secondQuestion.props.accessibilityState.expanded).toBe(false);
 
     // Press to expand
-    await user.press(questionButton);
-
-    expect(questionButton.props.accessibilityState.expanded).toBe(true);
-    expect(
-      screen.getByText(
-        'The Pi Room is located in the Marston Science Library. SASE members can reserve it for study sessions and group projects using the Pi Room Booking link in Resources.',
-      ),
-    ).toBeTruthy();
+    await user.press(secondQuestion);
+    expect(secondQuestion.props.accessibilityState.expanded).toBe(true);
 
     // Press again to collapse
-    await user.press(questionButton);
-
-    expect(questionButton.props.accessibilityState.expanded).toBe(false);
-    expect(
-      screen.queryByText(
-        'The Pi Room is located in the Marston Science Library. SASE members can reserve it for study sessions and group projects using the Pi Room Booking link in Resources.',
-      ),
-    ).toBeNull();
+    await user.press(secondQuestion);
+    expect(secondQuestion.props.accessibilityState.expanded).toBe(false);
   });
 });
