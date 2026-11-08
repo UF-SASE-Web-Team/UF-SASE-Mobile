@@ -22,7 +22,7 @@ const mockResources: ResourceRow[] = [
     id: 'res-faq',
     name: 'Freshmen FAQs',
     category: 'sase',
-    url: 'https://ufsase.com/freshman-faq',
+    url: 'ufsasemobile://resources/freshman-faqs',
     display_order: 10,
     image_url: 'https://example.com/freshman-faq.png',
     created_at: new Date().toISOString(),

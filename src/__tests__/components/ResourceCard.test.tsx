@@ -1,6 +1,7 @@
 import React from 'react';
 import { Linking } from 'react-native';
 import { cleanup, render, screen, userEvent } from '@testing-library/react-native';
+import { useRouter } from 'expo-router';
 import { ResourceCard, ResourceCardProps } from '@/components/ResourceCard';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { ResourceRow } from '@/types/resources';
@@ -46,20 +47,27 @@ describe('ResourceCard', () => {
     expect(screen.getByRole('button', { name: 'Custom Linktree Name' })).toBeTruthy();
   });
 
-  it('renders chevron when isInternal is true', async () => {
+  it('renders chevron and routes via deeplink URL when isInternal is true or url is deeplink', async () => {
+    const user = userEvent.setup();
+    const mockPush = jest.fn();
+    (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
+
     const internalResource: ResourceRow = {
       ...baseResource,
       id: 'res-faq',
       name: 'Freshmen FAQs',
+      url: 'ufsasemobile://resources/freshman-faqs',
     };
 
     await renderResourceCard({
       resource: internalResource,
-      isInternal: true,
     });
 
     const button = screen.getByRole('button', { name: 'Freshmen FAQs' });
     expect(button.props.accessibilityHint).toBe('Navigates to in-app screen');
+
+    await user.press(button);
+    expect(mockPush).toHaveBeenCalledWith('/resources/freshman-faqs');
   });
 
   it('calls custom onPress handler when pressed', async () => {

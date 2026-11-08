@@ -71,6 +71,7 @@ function RootNavigator() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="events/[id]" />
           <Stack.Screen name="profile" />
+          <Stack.Screen name="resources/freshman-faqs" />
         </Stack.Protected>
         <Stack.Protected guard={!isAuthenticated}>
           <Stack.Screen name="(auth)" />

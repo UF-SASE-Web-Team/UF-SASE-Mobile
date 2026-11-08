@@ -23,7 +23,9 @@ import {
   getResourceDisplayName,
   getTopResourceOrder,
   isInternalResource,
+  isInternalUrl,
   isTopResource,
+  resolveInternalPath,
 } from '@/types/resources';
 
 function chunkPairs<T>(items: T[]): { id: string; items: T[] }[] {
@@ -108,18 +110,19 @@ export default function ResourcesPage() {
   };
 
   const handleCardPress = async (resource: ResourceRow) => {
-    if (isInternalResource(resource)) {
-      // In-app navigation for internal resources (denoted by right chevron)
-      const targetRoute = (resource as any).internal_route || '/resources/freshman-faqs';
+    if (!resource.url) return;
+
+    if (isInternalUrl(resource.url)) {
+      // In-app navigation for deeplinks (denoted by right chevron)
+      const targetRoute = resolveInternalPath(resource.url);
       try {
         router.push(targetRoute as any);
-      } catch {
-        console.log('Internal route not yet implemented:', targetRoute);
+      } catch (err: any) {
+        console.warn(`Failed to navigate to route: ${targetRoute}`, err?.message);
       }
       return;
     }
 
-    if (!resource.url) return;
     try {
       const supported = await Linking.canOpenURL(resource.url);
       if (supported) {

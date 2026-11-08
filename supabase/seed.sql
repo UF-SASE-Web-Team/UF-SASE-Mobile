@@ -208,7 +208,7 @@ values
   ),
   (
     'Freshman FAQs', 'sase',
-    'https://ufsase.com/freshman-faq',
+    'ufsasemobile://resources/freshman-faqs',
     10,
     'https://yoazhfliefswktpszaob.supabase.co/storage/v1/object/public/public-assets/resources/freshman-faq.png'
   ),

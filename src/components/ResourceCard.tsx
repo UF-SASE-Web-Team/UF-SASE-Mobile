@@ -1,10 +1,11 @@
 import React from 'react';
 import { Image, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/Text';
 import { useThemedStyles } from '@/context/ThemeContext';
 import { type Colors, fonts, radius, space } from '@/theme';
-import { ResourceRow } from '@/types/resources';
+import { ResourceRow, isInternalUrl, resolveInternalPath } from '@/types/resources';
 
 export interface ResourceCardProps {
   resource: ResourceRow;
@@ -18,13 +19,15 @@ export interface ResourceCardProps {
 export function ResourceCard({
   resource,
   displayName,
-  isInternal = false,
+  isInternal,
   width,
   onPress,
   testID,
 }: ResourceCardProps) {
+  const router = useRouter();
   const styles = useThemedStyles(createStyles);
   const title = displayName || resource.name;
+  const hasChevron = isInternal !== undefined ? isInternal : isInternalUrl(resource.url);
 
   const handlePress = async () => {
     if (onPress) {
@@ -33,6 +36,16 @@ export function ResourceCard({
     }
 
     if (resource.url) {
+      if (isInternalUrl(resource.url)) {
+        const route = resolveInternalPath(resource.url);
+        try {
+          router.push(route as any);
+        } catch (err: any) {
+          console.warn(`Failed to navigate to route: ${route}`, err?.message);
+        }
+        return;
+      }
+
       try {
         const supported = await Linking.canOpenURL(resource.url);
         if (supported) {
@@ -51,7 +64,7 @@ export function ResourceCard({
       testID={testID}
       accessibilityRole="button"
       accessibilityLabel={title}
-      accessibilityHint={isInternal ? 'Navigates to in-app screen' : 'Opens external link'}
+      accessibilityHint={hasChevron ? 'Navigates to in-app screen' : 'Opens external link'}
       style={({ pressed }) => [
         styles.card,
         width ? { width } : null,
@@ -77,7 +90,7 @@ export function ResourceCard({
         {title}
       </Text>
 
-      {isInternal && (
+      {hasChevron && (
         <Ionicons
           name="chevron-forward"
           size={16}
