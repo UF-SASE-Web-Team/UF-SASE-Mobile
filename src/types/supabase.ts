@@ -246,11 +246,14 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null;
+          bio: string | null;
           created_at: string;
           discord_handle: string | null;
           full_name: string;
           grad_time: string | null;
           id: string;
+          instagram_handle: string | null;
+          linkedin_url: string | null;
           major: string | null;
           minor: string | null;
           role: Database['public']['Enums']['user_role'];
@@ -260,11 +263,14 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           avatar_url?: string | null;
+          bio?: string | null;
           created_at?: string;
           discord_handle?: string | null;
           full_name: string;
           grad_time?: string | null;
           id: string;
+          instagram_handle?: string | null;
+          linkedin_url?: string | null;
           major?: string | null;
           minor?: string | null;
           role?: Database['public']['Enums']['user_role'];
@@ -273,11 +279,14 @@ export type Database = {
         };
         Update: {
           avatar_url?: string | null;
+          bio?: string | null;
           created_at?: string;
           discord_handle?: string | null;
           full_name?: string;
           grad_time?: string | null;
           id?: string;
+          instagram_handle?: string | null;
+          linkedin_url?: string | null;
           major?: string | null;
           minor?: string | null;
           role?: Database['public']['Enums']['user_role'];
