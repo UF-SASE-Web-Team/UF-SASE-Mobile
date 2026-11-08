@@ -31,16 +31,38 @@ select
   current_timestamp,
   current_timestamp,
   '{"provider":"email","providers":["email"]}',
-  json_build_object(
-    'username', u.name,
-    'full_name', initcap(u.name) || ' Gator'
-  ),
+  u.meta,
   current_timestamp,
   current_timestamp,
   '', '', '', ''
 from (
-  values ('alice'), ('bob')
-) as u(name)
+  values
+    (
+      'alice',
+      json_build_object(
+        'username', 'alice',
+        'full_name', 'Alice Gator',
+        'major', 'Computer Science',
+        'minor', 'Digital Arts and Sciences',
+        'grad_time', '2029',
+        'discord_handle', 'alice.gator',
+        'instagram_handle', 'alice.gator',
+        'linkedin_url', 'https://www.linkedin.com/in/alice-gator',
+        'bio', 'Hi! I am a Computer Science major at UF. I love building things and meeting new people through SASE.',
+        'avatar_url', 'sase-shark'
+      )
+    ),
+    (
+      'bob',
+      json_build_object(
+        'username', 'bob',
+        'full_name', 'Bob Gator',
+        'major', 'Mechanical Engineering',
+        'grad_time', '2028',
+        'avatar_url', 'sase-cat'
+      )
+    )
+) as u(name, meta)
 where not exists (
   select 1 from auth.users where email = u.name || '@gmail.com'
 );
@@ -67,6 +89,27 @@ select
 from auth.users
 where email in ('alice@gmail.com', 'bob@gmail.com')
 on conflict (provider_id, provider) do nothing;
+
+update public.profiles
+set full_name = 'Alice Gator',
+    major = 'Computer Science',
+    minor = 'Digital Arts and Sciences',
+    grad_time = '2029',
+    discord_handle = 'alice.gator',
+    instagram_handle = 'alice.gator',
+    linkedin_url = 'https://www.linkedin.com/in/alice-gator',
+    bio = 'Hi! I am a Computer Science major at UF. I love building things and meeting new people through SASE.',
+    avatar_url = 'sase-shark'
+where username = 'alice';
+
+update public.profiles
+set major = 'Mechanical Engineering',
+    grad_time = '2028',
+    instagram_handle = null,
+    linkedin_url = null,
+    bio = null,
+    avatar_url = 'sase-cat'
+where username = 'bob';
 
 insert into public.events (title, type, starts_at, ends_at, location_name, checkin_code, points_value)
 select 'Test Event', 'other', now() - interval '30 minutes', now() + interval '2 hours', 'LIT 223', '111111', 1
