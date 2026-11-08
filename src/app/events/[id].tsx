@@ -9,6 +9,7 @@ import {
   TextLayoutEventData,
   View,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -122,6 +123,7 @@ export default function EventDetailScreen() {
       <View style={styles.container}>
         {/* Backdrop Linear Gradient */}
         <LinearGradient
+          testID="event-backdrop-gradient"
           colors={[colors.surface.saseBlue.secondary, colors.surface.saseBlue.primary]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -139,7 +141,7 @@ export default function EventDetailScreen() {
           style={[
             styles.cardContainer,
             styles.loadingCardContainer,
-            { marginTop: insets.top + 80 },
+            { marginTop: insets.top + 160 },
           ]}
         >
           <ActivityIndicator
@@ -212,13 +214,26 @@ export default function EventDetailScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Backdrop Linear Gradient */}
-      <LinearGradient
-        colors={[colors.surface.saseBlue.secondary, colors.surface.saseBlue.primary]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.backdropGradient}
-      />
+      {/* Backdrop: Blurred flyer if flyer_url exists, otherwise Linear Gradient */}
+      {event.flyer_url ? (
+        <Image
+          testID="event-backdrop-image"
+          source={{ uri: event.flyer_url }}
+          blurRadius={12}
+          contentFit="cover"
+          style={styles.backdropImage}
+          accessibilityRole="image"
+          accessibilityLabel="Event flyer"
+        />
+      ) : (
+        <LinearGradient
+          testID="event-backdrop-gradient"
+          colors={[colors.surface.saseBlue.secondary, colors.surface.saseBlue.primary]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.backdropGradient}
+        />
+      )}
 
       {/* Floating Back Button */}
       <BackButton
@@ -233,7 +248,7 @@ export default function EventDetailScreen() {
         contentContainerStyle={[
           styles.scrollContent,
           {
-            paddingTop: insets.top + 120,
+            paddingTop: insets.top + 160,
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -473,6 +488,14 @@ const createStyles = (colors: Colors) =>
       left: 0,
       right: 0,
       height: 600,
+    },
+    backdropImage: {
+      position: 'absolute',
+      top: -200,
+      left: 0,
+      right: 0,
+      height: 600,
+      backgroundColor: colors.surface.saseBlue.primary,
     },
     floatingBackButton: {
       position: 'absolute',
