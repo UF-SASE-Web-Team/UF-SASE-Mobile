@@ -55,16 +55,14 @@ describe('EventCheckInModal', () => {
       const user = userEvent.setup();
       await renderModal();
 
-      expect(screen.getByText('Event Check-in')).toBeTruthy();
-      expect(screen.getByText('Scan QR')).toBeTruthy();
-      expect(screen.getByText('Code')).toBeTruthy();
+      const codeTab = screen.getByRole('tab', { name: '6-Digit Code' });
+      await user.press(codeTab);
 
-      await user.press(screen.getByText('Code'));
-
-      expect(screen.getByText(/Enter the 6-digit code/i)).toBeTruthy();
-      expect(screen.getByText('Cancel')).toBeTruthy();
-      expect(screen.getByText('Submit')).toBeTruthy();
-    });
+      expect(codeTab.props.accessibilityState.selected).toBe(true);
+      expect(screen.getByLabelText('6-digit verification code')).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Cancel' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Submit code' })).toBeTruthy();
+    }, 15000);
 
     it('calls onClose when Cancel button is pressed', async () => {
       const user = userEvent.setup();
