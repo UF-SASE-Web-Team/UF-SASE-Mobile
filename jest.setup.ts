@@ -139,3 +139,12 @@ jest.mock('expo-camera', () => {
     ]),
   };
 });
+
+// Mock @react-native-masked-view/masked-view
+jest.mock('@react-native-masked-view/masked-view', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return jest.fn(({ maskElement, children, ...props }: any) =>
+    React.createElement(View, props, maskElement),
+  );
+});

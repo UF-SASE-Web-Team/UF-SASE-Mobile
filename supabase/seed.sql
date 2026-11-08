@@ -223,6 +223,67 @@ on conflict (slug) do update set
   description       = excluded.description,
   image_url         = excluded.image_url;
 
+-- Sub-programs for SWEET
+insert into public.programs (
+  parent_id, name, slug, category, display_order,
+  short_description, description
+)
+select
+  p.id,
+  sub.name,
+  sub.slug,
+  null,
+  sub.display_order,
+  sub.short_description,
+  sub.description
+from public.programs p
+cross join (
+  values
+    (
+      'SWEET Beginner Team',
+      'sweet-beginner-team',
+      10,
+      $$Introductory team for software development.$$,
+      $$For everyone interested in learning how to build software and gain foundational skills!$$
+    ),
+    (
+      'SASE Mobile Team',
+      'sase-mobile-team',
+      20,
+      $$UF SASE official mobile app team.$$,
+      $$For those that want to create the Live UF SASE mobile app!$$
+    )
+) as sub(name, slug, display_order, short_description, description)
+where p.slug = 'sweet'
+on conflict (slug) do update set
+  parent_id         = excluded.parent_id,
+  name              = excluded.name,
+  category          = excluded.category,
+  display_order     = excluded.display_order,
+  short_description = excluded.short_description,
+  description       = excluded.description;
+
+-- Points of contact for SASE Interns
+insert into public.program_members (
+  program_id, user_id, display_name, academic_term, is_poc
+)
+select
+  prog.id,
+  prof.id,
+  prof.full_name,
+  term.id,
+  true
+from public.programs prog
+cross join public.profiles prof
+cross join (
+  select id from public.academic_terms where is_current = true limit 1
+) term
+where prog.slug = 'interns'
+  and prof.username in ('alice', 'bob')
+on conflict (program_id, user_id, academic_term) do update set
+  is_poc = excluded.is_poc,
+  display_name = excluded.display_name;
+
 insert into public.resources (name, category, url, is_top, image_url)
 values
   (

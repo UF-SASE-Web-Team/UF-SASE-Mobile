@@ -58,6 +58,20 @@ export async function updatePassword(password: string): Promise<void> {
   if (error) throw error;
 }
 
+export type ContactProfile = Pick<Profile, 'id' | 'full_name' | 'avatar_url'>;
+
+export async function getProfilesByIds(userIds: string[]): Promise<ContactProfile[]> {
+  if (!userIds || userIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url')
+    .in('id', userIds);
+
+  if (error) throw error;
+  return data || [];
+}
+
 export async function deleteAccount(): Promise<void> {
   const { error } = await supabase.rpc('delete_user_account');
   if (error) throw error;

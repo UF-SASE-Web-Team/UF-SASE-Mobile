@@ -1,4 +1,4 @@
-import { getProfile, updateProfile } from '@/services/profiles';
+import { getProfile, getProfilesByIds, updateProfile } from '@/services/profiles';
 import { supabase } from '@/lib/supabase';
 import { profileFixture } from '@/test-utils/profile';
 
@@ -54,5 +54,26 @@ describe('Profile service', () => {
     await expect(updateProfile(profileFixture.id, { full_name: 'Alice' })).rejects.toThrow(
       'Update failed',
     );
+  });
+
+  it('fetches multiple profiles by userIds', async () => {
+    const mockProfiles = [
+      { id: 'u1', full_name: 'Alice User', avatar_url: 'https://example.com/a.png' },
+      { id: 'u2', full_name: 'Bob User', avatar_url: null },
+    ];
+    const inMock = jest.fn().mockResolvedValue({ data: mockProfiles, error: null });
+    const select = jest.fn().mockReturnValue({ in: inMock });
+    (supabase.from as jest.Mock) = jest.fn().mockReturnValue({ select });
+
+    const result = await getProfilesByIds(['u1', 'u2']);
+    expect(supabase.from).toHaveBeenCalledWith('profiles');
+    expect(select).toHaveBeenCalledWith('id, full_name, avatar_url');
+    expect(inMock).toHaveBeenCalledWith('id', ['u1', 'u2']);
+    expect(result).toEqual(mockProfiles);
+  });
+
+  it('returns empty array when userIds is empty', async () => {
+    const result = await getProfilesByIds([]);
+    expect(result).toEqual([]);
   });
 });

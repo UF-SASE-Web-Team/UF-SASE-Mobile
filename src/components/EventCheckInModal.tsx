@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -48,9 +48,21 @@ export function EventCheckInModal({
 
   const [permission, requestPermission] = useCameraPermissions();
   const hasScannedRef = useRef(false);
+  const cooldownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (cooldownTimeoutRef.current) {
+        clearTimeout(cooldownTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleClose = () => {
     if (isSubmitting) return;
+    if (cooldownTimeoutRef.current) {
+      clearTimeout(cooldownTimeoutRef.current);
+    }
     setCheckInCode('');
     setCheckInError(null);
     hasScannedRef.current = false;
@@ -60,6 +72,9 @@ export function EventCheckInModal({
 
   const handleModeChange = (newMode: 'code' | 'qr') => {
     if (isSubmitting) return;
+    if (cooldownTimeoutRef.current) {
+      clearTimeout(cooldownTimeoutRef.current);
+    }
     setCheckInError(null);
     hasScannedRef.current = false;
     setMode(newMode);
@@ -128,7 +143,13 @@ export function EventCheckInModal({
       Alert.alert('Check-in successful!', `You've gained +${pointsValue} points.`);
     } catch (err: any) {
       setCheckInError(err.message || 'Invalid QR code. Please try again.');
-      hasScannedRef.current = false;
+      // Cooldown for 2.5 seconds before allowing another scan attempt
+      if (cooldownTimeoutRef.current) {
+        clearTimeout(cooldownTimeoutRef.current);
+      }
+      cooldownTimeoutRef.current = setTimeout(() => {
+        hasScannedRef.current = false;
+      }, 2500);
     } finally {
       setIsSubmitting(false);
     }
@@ -208,16 +229,15 @@ export function EventCheckInModal({
             </Pressable>
           </View>
 
-          <Text
-            variant="bodySm"
-            color={colors.content.onBase.secondary}
-            style={styles.modalSubtitle}
-          >
-            {mode === 'code' ? 'Enter the 6-digit code provided.' : 'Scan the QR code displayed.'}
-          </Text>
-
           {mode === 'code' ? (
             <View style={styles.modalInputWrapper}>
+              <Text
+                variant="bodySm"
+                color={colors.content.onBase.secondary}
+                style={styles.codePromptText}
+              >
+                Enter the 6-digit code provided.
+              </Text>
               <SixDigitInput
                 value={checkInCode}
                 onChangeText={(text) => {
@@ -227,67 +247,86 @@ export function EventCheckInModal({
                 onComplete={handleCheckInSubmit}
                 disabled={isSubmitting}
               />
-            </View>
-          ) : (
-            <View style={styles.scannerContainer}>
-              {permission === null ? (
-                <View style={styles.permissionPlaceholder}>
-                  <ActivityIndicator size="small" color={colors.content.onBase.primary} />
-                </View>
-              ) : !permission.granted ? (
-                <View style={styles.permissionPlaceholder}>
-                  <Ionicons
-                    name="camera-outline"
-                    size={iconSize.lg}
-                    color={colors.content.onBase.secondary}
-                  />
-                  <Text
-                    variant="bodySm"
-                    color={colors.content.onBase.secondary}
-                    style={styles.permissionText}
-                  >
-                    Camera permission is required to scan QR codes.
-                  </Text>
-                  <Pressable
-                    style={styles.permissionButton}
-                    onPress={requestPermission}
-                    accessibilityRole="button"
-                    accessibilityLabel="Enable Camera"
-                  >
-                    <Text variant="bodySmStrong" color={colors.content.onSaseBlue.secondary}>
-                      Enable Camera
-                    </Text>
-                  </Pressable>
-                </View>
-              ) : (
-                <View style={styles.cameraViewport}>
-                  <CameraView
-                    style={StyleSheet.absoluteFill}
-                    facing="back"
-                    barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-                    onBarcodeScanned={isSubmitting ? undefined : handleBarcodeScanned}
-                    testID="camera-view"
-                  />
-                  <View style={styles.reticleOverlay} pointerEvents="none">
-                    <View style={styles.reticleBox} />
-                  </View>
-                  {isSubmitting && (
-                    <View style={styles.submittingOverlay}>
-                      <ActivityIndicator size="large" color="#FFFFFF" />
-                      <Text variant="bodySmStrong" color="#FFFFFF" style={styles.submittingText}>
-                        Checking in...
-                      </Text>
-                    </View>
-                  )}
-                </View>
+              {Boolean(checkInError) && (
+                <Text
+                  variant="bodySm"
+                  color={colors.surface.danger.primary}
+                  style={styles.errorText}
+                >
+                  {checkInError}
+                </Text>
               )}
             </View>
-          )}
-
-          {Boolean(checkInError) && (
-            <Text variant="bodySm" color={colors.content.onDanger.primary} style={styles.errorText}>
-              {checkInError}
-            </Text>
+          ) : (
+            <View style={styles.scannerWrapper}>
+              <Text
+                variant="bodySm"
+                color={
+                  checkInError ? colors.surface.danger.primary : colors.content.onBase.secondary
+                }
+                style={styles.scannerPromptText}
+                numberOfLines={2}
+              >
+                {checkInError ?? 'Scan the QR code displayed.'}
+              </Text>
+              <View style={styles.scannerContainer}>
+                {permission === null ? (
+                  <View style={styles.permissionPlaceholder}>
+                    <ActivityIndicator size="small" color={colors.content.onBase.primary} />
+                  </View>
+                ) : !permission.granted ? (
+                  <View style={styles.permissionPlaceholder}>
+                    <Ionicons
+                      name="camera-outline"
+                      size={iconSize.lg}
+                      color={colors.content.onBase.secondary}
+                    />
+                    <Text
+                      variant="bodySm"
+                      color={colors.content.onBase.secondary}
+                      style={styles.permissionText}
+                    >
+                      Camera permission is required to scan QR codes.
+                    </Text>
+                    <Pressable
+                      style={styles.permissionButton}
+                      onPress={requestPermission}
+                      accessibilityRole="button"
+                      accessibilityLabel="Enable Camera"
+                    >
+                      <Text variant="bodySmStrong" color={colors.content.onSaseBlue.secondary}>
+                        Enable Camera
+                      </Text>
+                    </Pressable>
+                  </View>
+                ) : (
+                  <View style={styles.cameraViewport}>
+                    <CameraView
+                      style={StyleSheet.absoluteFill}
+                      facing="back"
+                      barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+                      onBarcodeScanned={isSubmitting ? undefined : handleBarcodeScanned}
+                      testID="camera-view"
+                    />
+                    <View style={styles.reticleOverlay} pointerEvents="none">
+                      <View style={styles.reticleBox} />
+                    </View>
+                    {isSubmitting && (
+                      <View style={styles.submittingOverlay}>
+                        <ActivityIndicator size="large" color={colors.content.onMedia.primary} />
+                        <Text
+                          variant="bodySmStrong"
+                          color={colors.content.onMedia.primary}
+                          style={styles.submittingText}
+                        >
+                          Checking in...
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+              </View>
+            </View>
           )}
 
           <View style={styles.modalActions}>
@@ -385,19 +424,32 @@ const createStyles = (colors: Colors) =>
       shadowRadius: 2,
       elevation: 2,
     },
-    modalSubtitle: {
+    codePromptText: {
       textAlign: 'center',
-      marginBottom: space['100'],
     },
     modalInputWrapper: {
-      marginVertical: space['200'],
+      width: '100%',
+      maxWidth: 300,
+      height: 326,
+      marginVertical: space['150'],
+      justifyContent: 'center',
       alignItems: 'center',
+      gap: space['200'],
+    },
+    scannerWrapper: {
+      width: '100%',
+      maxWidth: 300,
+      alignItems: 'center',
+      marginVertical: space['150'],
+      gap: space['200'],
+    },
+    scannerPromptText: {
+      textAlign: 'center',
     },
     scannerContainer: {
       width: '100%',
-      maxWidth: 320,
+      maxWidth: 300,
       aspectRatio: 1,
-      marginVertical: space['150'],
       borderRadius: radius.lg,
       overflow: 'hidden',
       backgroundColor: colors.surface.base.secondary,
@@ -419,7 +471,7 @@ const createStyles = (colors: Colors) =>
       height: 220,
       borderRadius: radius.md,
       borderWidth: borderWidth.lg,
-      borderColor: colors.surface.saseBlue.primary,
+      borderColor: colors.surface.media.scrim,
     },
     submittingOverlay: {
       ...StyleSheet.absoluteFill,

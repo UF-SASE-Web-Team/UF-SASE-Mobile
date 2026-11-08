@@ -409,4 +409,35 @@ describe('EventDetailScreen', () => {
       expect(aboutText.props.numberOfLines).toBeUndefined();
     });
   });
+
+  describe('Backdrop display', () => {
+    it('renders blurred flyer image when flyer_url is present', async () => {
+      const flyerUrl = 'https://example.com/flyer.jpg';
+      (eventsService.getEvent as jest.Mock).mockResolvedValue({
+        ...baseEvent,
+        flyer_url: flyerUrl,
+      });
+
+      await renderScreen();
+      await screen.findByText('GBM 2: SASE Story');
+
+      const backdropImage = screen.getByTestId('event-backdrop-image');
+      expect(backdropImage).toBeTruthy();
+      expect(backdropImage.props.source).toEqual([{ uri: flyerUrl }]);
+      expect(screen.queryByTestId('event-backdrop-gradient')).toBeNull();
+    });
+
+    it('renders linear gradient background when flyer_url is not present', async () => {
+      (eventsService.getEvent as jest.Mock).mockResolvedValue({
+        ...baseEvent,
+        flyer_url: null,
+      });
+
+      await renderScreen();
+      await screen.findByText('GBM 2: SASE Story');
+
+      expect(screen.getByTestId('event-backdrop-gradient')).toBeTruthy();
+      expect(screen.queryByTestId('event-backdrop-image')).toBeNull();
+    });
+  });
 });

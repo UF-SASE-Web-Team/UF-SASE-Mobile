@@ -220,6 +220,30 @@ describe('EventCheckInModal', () => {
       expect(props.onSuccess).toHaveBeenCalledTimes(1);
     });
 
+    it('throttles rapid duplicate scans when check-in fails', async () => {
+      (eventsService.checkInToEvent as jest.Mock).mockRejectedValue(new Error('Invalid QR code.'));
+      const user = userEvent.setup();
+      await renderModal();
+
+      await user.press(screen.getByText('Scan QR'));
+
+      const cameraProps = (CameraView as unknown as jest.Mock).mock.calls.at(-1)?.[0];
+
+      await act(async () => {
+        cameraProps.onBarcodeScanned({ data: 'https://invalid-qr' });
+      });
+
+      expect(eventsService.checkInToEvent).toHaveBeenCalledTimes(1);
+
+      // Attempt immediate second scan during cooldown
+      await act(async () => {
+        cameraProps.onBarcodeScanned({ data: 'https://invalid-qr' });
+      });
+
+      // Should not call checkInToEvent again immediately
+      expect(eventsService.checkInToEvent).toHaveBeenCalledTimes(1);
+    });
+
     it('shows error message when QR check-in fails', async () => {
       (eventsService.checkInToEvent as jest.Mock).mockRejectedValue(new Error('Invalid QR code.'));
       const user = userEvent.setup();

@@ -1,116 +1,191 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { isSupabaseConfigured } from '@/lib/env';
-import { iconSize, useTheme } from '@/theme';
+import { Image } from 'expo-image';
+import { EventCheckInModal } from '@/components/EventCheckInModal';
+import { HappeningNowCard } from '@/components/HappeningNowCard';
+import { SaseFlask, SaseLogo } from '@/components/icons';
+import { useAuth } from '@/context/AuthContext';
+import { useEvents } from '@/context/EventsContext';
+import { useProfile } from '@/context/ProfileContext';
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import { getProfileAvatarSource, profileAvatars } from '@/lib/profileAvatars';
+import { borderWidth, radius, space, type Colors } from '@/theme';
+import { EventRow, EventWithRsvp } from '@/types/events';
 
 export default function HomePage() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { user } = useAuth();
+  const { colors, isDark } = useTheme();
+  const styles = useThemedStyles(createStyles);
+  const { profile } = useProfile();
+  const { activeEvents, refreshing, refreshEvents, markEventAttended } = useEvents();
+
+  const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
+  const [selectedCheckInEvent, setSelectedCheckInEvent] = useState<EventRow | null>(null);
+
+  const imageFailed = failedAvatarUrl === (profile?.avatar_url ?? '__fallback__');
+
+  const logoColor = isDark ? colors.surface.saseBlue.primary : colors.surface.saseBlue.secondary;
+
+  const avatarSource = imageFailed
+    ? profileAvatars[0].source
+    : getProfileAvatarSource(profile?.avatar_url);
+
+  const handleCardPress = (event: EventRow) => {
+    router.push(`/events/${event.id}` as any);
+  };
+
+  const handleCheckInPress = (event: EventRow) => {
+    if (!user) {
+      Alert.alert('Sign in required', 'Please sign in to check in to events.');
+      return;
+    }
+    if ((event as EventWithRsvp).has_attended) {
+      Alert.alert('Already checked in', 'You have already checked in to this event.');
+      return;
+    }
+    setSelectedCheckInEvent(event);
+  };
 
   return (
-    <SafeAreaView
-      style={[styles.safeArea, { backgroundColor: colors.surface.base.primary }]}
-      edges={['top']}
-    >
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.content.onBase.primary }]}>Home</Text>
+        <View
+          style={styles.logoRow}
+          accessible
+          accessibilityRole="image"
+          accessibilityLabel="UF SASE Logo"
+          testID="home-sase-logo"
+        >
+          <SaseFlask
+            width={26}
+            height={36}
+            fill={logoColor}
+            color={logoColor}
+            testID="home-sase-flask"
+          />
+          <SaseLogo
+            width={132}
+            height={30}
+            fill={logoColor}
+            color={logoColor}
+            testID="home-sase-brand"
+          />
+        </View>
+
         <Pressable
           accessibilityLabel="Profile"
           accessibilityRole="button"
           testID="home-profile-button"
           onPress={() => router.push('/profile')}
-          style={({ pressed }) => [
-            styles.profileButton,
-            {
-              backgroundColor: colors.surface.base.secondary,
-              opacity: pressed ? 0.7 : 1,
-            },
-          ]}
+          style={({ pressed }) => [styles.profileButton, pressed && styles.profileButtonPressed]}
         >
-          <Ionicons
-            name="person-outline"
-            size={iconSize.md}
-            color={colors.content.onBase.primary}
+          <Image
+            source={avatarSource}
+            style={styles.profileAvatar}
+            contentFit="cover"
+            accessibilityLabel={
+              profile?.full_name ? `${profile.full_name}'s profile picture` : 'Profile picture'
+            }
+            testID="home-profile-image"
+            onError={() => setFailedAvatarUrl(profile?.avatar_url ?? '__fallback__')}
           />
         </Pressable>
       </View>
-      <View style={styles.container}>
-        <View
-          style={[
-            styles.statusCard,
-            {
-              backgroundColor: colors.surface.base.secondary,
-              borderColor: colors.border.base.subtle,
-              borderWidth: 1,
-            },
-          ]}
-        >
-          <View
-            style={[
-              styles.statusDot,
-              isSupabaseConfigured ? styles.statusReady : styles.statusWaiting,
-            ]}
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refreshEvents}
+            tintColor={colors.surface.saseBlue.primary}
           />
-          <Text style={[styles.statusTitle, { color: colors.content.onBase.primary }]}>
-            {isSupabaseConfigured ? 'Supabase variable loaded' : 'Supabase variable not loaded'}
-          </Text>
-        </View>
-      </View>
+        }
+      >
+        {/* Happening Now Banner(s) */}
+        {activeEvents.length > 0 && (
+          <View style={styles.happeningNowContainer}>
+            {activeEvents.map((event) => (
+              <HappeningNowCard
+                key={event.id}
+                event={event}
+                hasCheckedIn={event.has_attended}
+                onCheckInPress={handleCheckInPress}
+                onPress={handleCardPress}
+              />
+            ))}
+          </View>
+        )}
+      </ScrollView>
+
+      {selectedCheckInEvent && (
+        <EventCheckInModal
+          visible={Boolean(selectedCheckInEvent)}
+          onClose={() => setSelectedCheckInEvent(null)}
+          eventId={selectedCheckInEvent.id}
+          eventTitle={selectedCheckInEvent.title}
+          pointsValue={selectedCheckInEvent.points_value}
+          onSuccess={() => {
+            const eventId = selectedCheckInEvent.id;
+            markEventAttended(eventId);
+            setSelectedCheckInEvent(null);
+            refreshEvents();
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-  },
-  profileButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    gap: 16,
-  },
-  statusCard: {
-    alignItems: 'flex-start',
-    borderRadius: 12,
-    flexDirection: 'row',
-    gap: 12,
-    padding: 16,
-  },
-  statusDot: {
-    borderRadius: 6,
-    height: 12,
-    marginTop: 4,
-    width: 12,
-  },
-  statusReady: {
-    backgroundColor: '#34A853',
-  },
-  statusWaiting: {
-    backgroundColor: '#FBBC05',
-  },
-  statusTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.surface.base.primary,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: space['400'],
+      paddingTop: space['300'],
+      paddingBottom: space['400'],
+    },
+    logoRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space['200'],
+    },
+    profileButton: {
+      width: 40,
+      height: 40,
+      borderRadius: radius.full,
+      overflow: 'hidden',
+      backgroundColor: colors.surface.base.secondary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: borderWidth.sm,
+      borderColor: colors.border.base.subtle,
+    },
+    profileButtonPressed: {
+      opacity: 0.7,
+    },
+    profileAvatar: {
+      width: 40,
+      height: 40,
+      borderRadius: radius.full,
+    },
+    scrollContent: {
+      paddingHorizontal: space['400'],
+      paddingTop: space['200'],
+      paddingBottom: space['1000'],
+    },
+    happeningNowContainer: {
+      gap: space['400'],
+      marginBottom: space['400'],
+    },
+  });

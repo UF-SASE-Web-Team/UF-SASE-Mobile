@@ -5,21 +5,28 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { ApplicationProgramCard, StandardProgramCard } from '@/components/ProgramCards';
+import { Text } from '@/components/Text';
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { getPrograms } from '@/services/programs';
+import { type Colors, space } from '@/theme';
 import { ProgramCategory, ProgramWithPoCs } from '@/types/programs';
 
 const CATEGORY_SECTIONS: { key: ProgramCategory; title: string }[] = [
-  { key: 'events_and_committees', title: 'Events and Committees' },
+  { key: 'events_and_committees', title: 'Leadership' },
   { key: 'technical_and_research', title: 'Professional Development' },
   { key: 'community', title: 'Community' },
 ];
 
 export default function ProgramsPage() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
+
+  const router = useRouter();
   const [programs, setPrograms] = useState<ProgramWithPoCs[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -91,14 +98,16 @@ export default function ProgramsPage() {
   }, [programs]);
 
   const handleCardPress = (program: ProgramWithPoCs) => {
-    // Navigate to program detail screen, e.g. router.push(`/programs/${program.slug}`)
-    console.log('Pressed program:', program.slug);
+    router.push({
+      pathname: `/programs/${program.slug}`,
+      params: { name: program.name },
+    } as any);
   };
 
   if (loading) {
     return (
       <SafeAreaView style={styles.centered} edges={['top']}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={colors.surface.saseBlue.primary} />
       </SafeAreaView>
     );
   }
@@ -106,7 +115,9 @@ export default function ProgramsPage() {
   if (error) {
     return (
       <SafeAreaView style={styles.centered} edges={['top']}>
-        <Text style={styles.errorText}>Failed to load programs: {error}</Text>
+        <Text variant="body" color={colors.content.onDanger.primary}>
+          Failed to load programs: {error}
+        </Text>
       </SafeAreaView>
     );
   }
@@ -115,19 +126,24 @@ export default function ProgramsPage() {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.surface.saseBlue.primary}
+          />
+        }
       >
         {/* Top Header */}
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerTitle}>Programs</Text>
-          <View style={styles.avatarPlaceholder} />
+        <View style={styles.header}>
+          <Text variant="display">Programs</Text>
         </View>
 
         {/* Row 0: Open Applications (Duplicated & Sorted by Closest Deadline) */}
         {openApplicationPrograms.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Open Applications</Text>
+              <Text variant="title">Open Applications</Text>
             </View>
             <FlatList
               horizontal
@@ -151,7 +167,7 @@ export default function ProgramsPage() {
           return (
             <View key={section.key} style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>{section.title}</Text>
+                <Text variant="title">{section.title}</Text>
               </View>
 
               <FlatList
@@ -167,66 +183,53 @@ export default function ProgramsPage() {
             </View>
           );
         })}
+
+        {programs.length === 0 && (
+          <View style={styles.emptyContainer}>
+            <Text variant="body" color={colors.content.onBase.secondary}>
+              No programs found.
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-  },
-  scrollContent: {
-    paddingVertical: 16,
-    paddingBottom: 40,
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 20,
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#000',
-  },
-  avatarPlaceholder: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#D9D9D9',
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
-  },
-  horizontalList: {
-    paddingLeft: 16,
-    paddingRight: 4,
-  },
-  errorText: {
-    color: '#D32F2F',
-    textAlign: 'center',
-    padding: 16,
-  },
-});
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.surface.base.primary,
+    },
+    centered: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.surface.base.primary,
+    },
+    scrollContent: {
+      paddingTop: space['300'],
+      paddingBottom: space['1000'],
+    },
+    header: {
+      paddingHorizontal: space['400'],
+      marginBottom: space['400'],
+    },
+    section: {
+      marginBottom: space['600'],
+    },
+    sectionHeader: {
+      paddingHorizontal: space['400'],
+      marginBottom: space['300'],
+    },
+    horizontalList: {
+      paddingLeft: space['400'],
+      paddingRight: space['100'],
+    },
+    emptyContainer: {
+      paddingVertical: space['800'],
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });

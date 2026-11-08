@@ -41,6 +41,7 @@ export async function getPrograms(): Promise<ProgramWithPoCs[]> {
     `,
     )
     .eq('is_active', true)
+    .is('parent_id', null)
     .eq('program_members.is_poc', true)
     .eq('program_members.term.is_current', true)
     .order('display_order', { ascending: true });
@@ -57,4 +58,57 @@ export async function getPrograms(): Promise<ProgramWithPoCs[]> {
       pocs: activePocs,
     };
   });
+}
+
+export async function getProgramBySlug(slug: string): Promise<ProgramWithPoCs | null> {
+  const { data, error: fetchError } = await supabase
+    .from('programs')
+    .select(
+      `
+      id,
+      parent_id,
+      name,
+      slug,
+      category,
+      display_order,
+      short_description,
+      description,
+      image_url,
+      is_active,
+      application_url,
+      opens_at,
+      closes_at,
+      created_at,
+      updated_at,
+      program_members (
+        id,
+        user_id,
+        display_name,
+        is_poc,
+        academic_term,
+        profile:profiles (
+          id,
+          full_name,
+          avatar_url
+        ),
+        term:academic_terms (
+          is_current
+        )
+      )
+    `,
+    )
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (fetchError) throw fetchError;
+  if (!data) return null;
+
+  const activePocs = (data.program_members || []).filter(
+    (m: any) => m.is_poc && m.term?.is_current,
+  );
+  return {
+    ...data,
+    pocs: activePocs,
+  };
 }

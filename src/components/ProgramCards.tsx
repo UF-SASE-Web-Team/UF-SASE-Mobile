@@ -1,14 +1,73 @@
 import React from 'react';
-import { ImageBackground, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Image, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ProgramWithPoCs } from '@/types/programs';
 import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { type Colors, space, radius, fonts, iconSize } from '@/theme';
+import { type Colors, space, radius, iconSize, borderWidth } from '@/theme';
 
 export interface ProgramCardProps {
   program: ProgramWithPoCs;
   onPress?: (program: ProgramWithPoCs) => void;
+}
+
+/**
+ * Standard Program Card: Redesigned with visual image banner, soft fade,
+ * prominent program title, and circular chevron action button.
+ */
+export function StandardProgramCard({ program, onPress }: ProgramCardProps) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
+
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      onPress={() => onPress?.(program)}
+      accessibilityRole="button"
+      accessibilityLabel={program.name}
+    >
+      {/* Full-bleed Background Image */}
+      {program.image_url ? (
+        <Image
+          source={{ uri: program.image_url }}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+          accessibilityRole="image"
+          accessibilityLabel={`${program.name} banner`}
+        />
+      ) : (
+        <View style={styles.placeholderContainer}>
+          <Ionicons name="sparkles-outline" size={32} color={colors.content.onBase.secondary} />
+        </View>
+      )}
+
+      {/* Bottom Fade Gradient */}
+      <LinearGradient
+        colors={['transparent', 'rgba(12, 12, 13, 0.4)', colors.surface.media.scrim]}
+        style={styles.bottomFadeGradient}
+        pointerEvents="none"
+      />
+
+      {/* Card Body: Title & Action Chevron */}
+      <View style={styles.contentContainer}>
+        <View style={styles.titleWrapper}>
+          <Text variant="bodyStrong" color={colors.content.onMedia.primary} numberOfLines={2}>
+            {program.name}
+          </Text>
+        </View>
+
+        <View style={styles.actionCircle} aria-hidden>
+          <Ionicons
+            name="chevron-forward"
+            size={16}
+            color={colors.content.onSaseBlue.primary}
+            style={styles.actionChevron}
+          />
+        </View>
+      </View>
+    </Pressable>
+  );
 }
 
 /**
@@ -44,37 +103,67 @@ export function ApplicationProgramCard({ program, onPress }: ProgramCardProps) {
   };
 
   return (
-    <Pressable style={styles.card} onPress={() => onPress?.(program)}>
-      <ImageBackground
-        source={program.image_url ? { uri: program.image_url } : undefined}
-        style={styles.imageHeader}
-        imageStyle={styles.imageStyle}
-      >
-        {isUpcoming && (
-          <View style={styles.statusBadge}>
-            <Text style={styles.statusBadgeText}>Waiting</Text>
-            <View style={styles.statusDot} />
+    <Pressable
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      onPress={() => onPress?.(program)}
+      accessibilityRole="button"
+      accessibilityLabel={program.name}
+    >
+      <View style={styles.appImageContainer}>
+        {program.image_url ? (
+          <Image
+            source={{ uri: program.image_url }}
+            style={styles.image}
+            resizeMode="cover"
+            accessibilityRole="image"
+            accessibilityLabel={`${program.name} banner`}
+          />
+        ) : (
+          <View style={styles.placeholderContainer}>
+            <Ionicons name="sparkles-outline" size={32} color={colors.content.onBase.secondary} />
           </View>
         )}
 
-        <Text style={styles.cardTitle} numberOfLines={2}>
-          {program.name}
-        </Text>
-      </ImageBackground>
+        <LinearGradient
+          colors={[`${colors.surface.base.secondary}00`, colors.surface.base.secondary]}
+          style={styles.imageFadeGradient}
+          pointerEvents="none"
+        />
+
+        {isUpcoming && (
+          <View style={styles.statusBadge}>
+            <Text variant="bodySmStrong">Waiting</Text>
+            <View style={styles.statusDot} />
+          </View>
+        )}
+      </View>
 
       <View style={styles.appCardFooter}>
-        <Text style={styles.statusSubtext} numberOfLines={1}>
+        <Text variant="bodySmStrong" numberOfLines={1}>
+          {program.name}
+        </Text>
+
+        <Text variant="bodySm" color={colors.content.onBase.secondary} numberOfLines={1}>
           {isUpcoming ? (
             <>
-              Applications open <Text style={styles.boldText}>soon!</Text>
+              Applications open{' '}
+              <Text variant="bodySmStrong" color={colors.content.onBase.primary}>
+                soon!
+              </Text>
             </>
           ) : closesAt ? (
             <>
-              Apply by <Text style={styles.boldText}>{formatShortDate(closesAt)}!</Text>
+              Apply by{' '}
+              <Text variant="bodySmStrong" color={colors.content.onBase.primary}>
+                {formatShortDate(closesAt)}!
+              </Text>
             </>
           ) : (
             <>
-              Applications <Text style={styles.boldText}>open!</Text>
+              Applications{' '}
+              <Text variant="bodySmStrong" color={colors.content.onBase.primary}>
+                open!
+              </Text>
             </>
           )}
         </Text>
@@ -83,8 +172,13 @@ export function ApplicationProgramCard({ program, onPress }: ProgramCardProps) {
           style={[styles.applyButton, !isOpen && styles.applyButtonDisabled]}
           disabled={!isOpen || !program.application_url}
           onPress={handleApplyPress}
+          accessibilityRole="button"
+          accessibilityLabel={`Apply to ${program.name}`}
         >
-          <Text style={[styles.applyButtonText, !isOpen && styles.applyButtonTextDisabled]}>
+          <Text
+            variant="bodySmStrong"
+            color={isOpen ? colors.content.onSaseBlue.secondary : colors.content.onBase.secondary}
+          >
             Apply
           </Text>
           {isOpen && (
@@ -101,57 +195,86 @@ export function ApplicationProgramCard({ program, onPress }: ProgramCardProps) {
   );
 }
 
-/**
- * Category Row Card: Uses `short_description` with inline "Read More"
- */
-export function StandardProgramCard({ program, onPress }: ProgramCardProps) {
-  const styles = useThemedStyles(createStyles);
-
-  const summary = program.short_description || program.description || '';
-  const maxChars = 82;
-  const truncated =
-    summary.length > maxChars ? `${summary.slice(0, maxChars).trimEnd()}... ` : `${summary} `;
-
-  return (
-    <Pressable style={styles.card} onPress={() => onPress?.(program)}>
-      <ImageBackground
-        source={program.image_url ? { uri: program.image_url } : undefined}
-        style={styles.imageHeader}
-        imageStyle={styles.imageStyle}
-      >
-        <Text style={styles.cardTitle} numberOfLines={2}>
-          {program.name}
-        </Text>
-      </ImageBackground>
-
-      <View style={styles.standardCardBody}>
-        <Text style={styles.descriptionText} numberOfLines={4}>
-          {truncated}
-          <Text style={styles.readMoreText}>Read More</Text>
-        </Text>
-      </View>
-    </Pressable>
-  );
-}
+export { StandardProgramCard as ProgramCard };
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     card: {
-      width: 164,
+      width: 168,
+      height: 218,
       backgroundColor: colors.surface.base.secondary,
       borderRadius: radius.lg,
+      borderWidth: borderWidth.sm,
+      borderColor: colors.border.base.subtle,
       overflow: 'hidden',
       marginRight: space['300'],
+      justifyContent: 'flex-end',
+      position: 'relative',
     },
-    imageHeader: {
-      height: 125,
+    cardPressed: {
+      opacity: 0.85,
+    },
+    backgroundImage: {
+      ...StyleSheet.absoluteFill,
+      width: '100%',
+      height: '100%',
+    },
+    image: {
+      width: '100%',
+      height: '100%',
+    },
+    placeholderContainer: {
+      ...StyleSheet.absoluteFill,
+      alignItems: 'center',
+      justifyContent: 'center',
       backgroundColor: colors.surface.base.tertiary,
-      padding: space['300'],
+    },
+    bottomFadeGradient: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 120,
+    },
+    imageFadeGradient: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 48,
+    },
+    contentContainer: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      justifyContent: 'space-between',
+      paddingHorizontal: space['300'],
+      paddingBottom: space['300'],
+      gap: space['200'],
+      zIndex: 1,
+    },
+    titleWrapper: {
+      flex: 1,
       justifyContent: 'flex-end',
     },
-    imageStyle: {
-      borderTopLeftRadius: radius.lg,
-      borderTopRightRadius: radius.lg,
+    actionCircle: {
+      width: 34,
+      height: 34,
+      borderRadius: radius.full,
+      backgroundColor: colors.content.onMedia.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    },
+    actionChevron: {
+      marginLeft: 1,
+    },
+    // Application Program Card Styles
+    appImageContainer: {
+      height: 105,
+      width: '100%',
+      backgroundColor: colors.surface.base.tertiary,
+      position: 'relative',
+      overflow: 'hidden',
     },
     statusBadge: {
       position: 'absolute',
@@ -165,76 +288,32 @@ const createStyles = (colors: Colors) =>
       borderRadius: radius.md,
       gap: space['100'],
     },
-    statusBadgeText: {
-      fontFamily: fonts.sans.semibold,
-      fontSize: 10,
-      color: colors.content.onBase.primary,
-    },
     statusDot: {
       width: space['200'],
       height: space['200'],
       borderRadius: radius.sm,
       backgroundColor: colors.content.onBase.secondary,
     },
-    cardTitle: {
-      fontFamily: fonts.sans.bold,
-      fontSize: 16,
-      lineHeight: 20,
-      color: '#FFFFFF',
-      textShadowColor: 'rgba(0, 0, 0, 0.75)',
-      textShadowOffset: { width: 0, height: 1 },
-      textShadowRadius: 3,
-    },
     appCardFooter: {
-      paddingHorizontal: space['200'],
+      flex: 1,
+      paddingHorizontal: space['250'],
       paddingVertical: space['200'],
       justifyContent: 'space-between',
-      gap: space['200'],
-    },
-    statusSubtext: {
-      fontFamily: fonts.sans.regular,
-      fontSize: 11,
-      color: colors.content.onBase.secondary,
-    },
-    boldText: {
-      fontFamily: fonts.sans.bold,
-      color: colors.content.onBase.primary,
+      gap: space['100'],
     },
     applyButton: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: colors.surface.saseBlue.primary,
-      paddingVertical: space['200'],
+      paddingVertical: space['150'],
       borderRadius: radius.lg,
       gap: space['150'],
     },
     applyButtonDisabled: {
       backgroundColor: colors.surface.base.tertiary,
     },
-    applyButtonText: {
-      fontFamily: fonts.sans.semibold,
-      fontSize: 14,
-      color: colors.content.onSaseBlue.secondary,
-    },
-    applyButtonTextDisabled: {
-      color: colors.content.onBase.secondary,
-    },
     buttonIcon: {
       marginLeft: space['050'],
-    },
-    standardCardBody: {
-      padding: space['200'],
-      minHeight: 74,
-    },
-    descriptionText: {
-      fontFamily: fonts.sans.regular,
-      fontSize: 11,
-      lineHeight: 14,
-      color: colors.content.onBase.secondary,
-    },
-    readMoreText: {
-      fontFamily: fonts.sans.bold,
-      color: colors.surface.saseBlue.primary,
     },
   });
