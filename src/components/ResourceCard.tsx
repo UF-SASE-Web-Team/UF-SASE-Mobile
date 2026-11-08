@@ -9,24 +9,16 @@ import { ResourceRow, isInternalUrl, resolveInternalPath } from '@/types/resourc
 
 export interface ResourceCardProps {
   resource: ResourceRow;
-  displayName?: string;
   isInternal?: boolean;
   width?: number;
   onPress?: (resource: ResourceRow) => void;
   testID?: string;
 }
 
-export function ResourceCard({
-  resource,
-  displayName,
-  isInternal,
-  width,
-  onPress,
-  testID,
-}: ResourceCardProps) {
+export function ResourceCard({ resource, isInternal, width, onPress, testID }: ResourceCardProps) {
   const router = useRouter();
   const styles = useThemedStyles(createStyles);
-  const title = displayName || resource.name;
+  const title = resource.name;
   const hasChevron = isInternal !== undefined ? isInternal : isInternalUrl(resource.url);
 
   const handlePress = async () => {
@@ -108,7 +100,7 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       minHeight: 56,
-      backgroundColor: colors.surface.base.primary,
+      backgroundColor: colors.surface.base.secondary,
       borderRadius: radius.lg,
       borderWidth: 1.5,
       borderColor: colors.border.base.strong,

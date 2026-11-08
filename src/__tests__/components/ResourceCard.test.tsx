@@ -25,7 +25,7 @@ describe('ResourceCard', () => {
     name: 'Linktree',
     category: 'general',
     url: 'https://linktr.ee/ufsase',
-    display_order: 10,
+    is_top: true,
     image_url: 'https://example.com/linktree.png',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -36,15 +36,6 @@ describe('ResourceCard', () => {
 
     expect(screen.getByRole('button', { name: 'Linktree' })).toBeTruthy();
     expect(screen.getByLabelText('Linktree icon')).toBeTruthy();
-  });
-
-  it('uses displayName when provided', async () => {
-    await renderResourceCard({
-      resource: baseResource,
-      displayName: 'Custom Linktree Name',
-    });
-
-    expect(screen.getByRole('button', { name: 'Custom Linktree Name' })).toBeTruthy();
   });
 
   it('renders chevron and routes via deeplink URL when isInternal is true or url is deeplink', async () => {

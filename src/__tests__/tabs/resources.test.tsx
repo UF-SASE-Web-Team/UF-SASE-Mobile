@@ -9,6 +9,8 @@ import { useRouter } from 'expo-router';
 
 jest.mock('@/services/resources');
 
+const { organizeResourceSections } = jest.requireActual('@/services/resources');
+
 function renderResourcesPage() {
   return render(
     <ThemeProvider>
@@ -23,7 +25,7 @@ const mockResources: ResourceRow[] = [
     name: 'Freshmen FAQs',
     category: 'sase',
     url: 'ufsasemobile://resources/freshman-faqs',
-    display_order: 10,
+    is_top: true,
     image_url: 'https://example.com/freshman-faq.png',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -33,7 +35,7 @@ const mockResources: ResourceRow[] = [
     name: 'Linktree',
     category: 'general',
     url: 'https://linktr.ee/ufsase',
-    display_order: 20,
+    is_top: true,
     image_url: 'https://example.com/linktree.png',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -43,7 +45,7 @@ const mockResources: ResourceRow[] = [
     name: "SASE's Gcal",
     category: 'general',
     url: 'https://calendar.google.com',
-    display_order: 30,
+    is_top: true,
     image_url: 'https://example.com/gcal.png',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -53,7 +55,7 @@ const mockResources: ResourceRow[] = [
     name: 'SASE Resume Template',
     category: 'professional',
     url: 'https://drive.google.com/resume',
-    display_order: 40,
+    is_top: true,
     image_url: 'https://example.com/resume.png',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -63,7 +65,7 @@ const mockResources: ResourceRow[] = [
     name: 'Pi Room Booking',
     category: 'sase',
     url: 'https://docs.google.com/marston',
-    display_order: 20,
+    is_top: false,
     image_url: 'https://example.com/marston.png',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -73,7 +75,7 @@ const mockResources: ResourceRow[] = [
     name: 'Board OH',
     category: 'sase',
     url: 'https://docs.google.com/board-oh',
-    display_order: 30,
+    is_top: false,
     image_url: 'https://example.com/board.png',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -83,7 +85,7 @@ const mockResources: ResourceRow[] = [
     name: 'Research Resources',
     category: 'academic',
     url: 'https://docs.google.com/research',
-    display_order: 10,
+    is_top: false,
     image_url: 'https://example.com/research.png',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -93,7 +95,7 @@ const mockResources: ResourceRow[] = [
     name: 'Internship Resources',
     category: 'professional',
     url: 'https://drive.google.com/internship',
-    display_order: 20,
+    is_top: false,
     image_url: 'https://example.com/internship.png',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -108,7 +110,9 @@ describe('ResourcesPage', () => {
     (useRouter as jest.Mock).mockReturnValue({
       push: mockPush,
     });
-    (resourcesService.getResources as jest.Mock).mockResolvedValue(mockResources);
+    (resourcesService.getResourceSections as jest.Mock).mockResolvedValue(
+      organizeResourceSections(mockResources),
+    );
   });
 
   afterEach(async () => {
@@ -187,7 +191,9 @@ describe('ResourcesPage', () => {
   });
 
   it('displays error state when fetching fails', async () => {
-    (resourcesService.getResources as jest.Mock).mockRejectedValue(new Error('Network error'));
+    (resourcesService.getResourceSections as jest.Mock).mockRejectedValue(
+      new Error('Network error'),
+    );
 
     await renderResourcesPage();
 
