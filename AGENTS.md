@@ -117,7 +117,7 @@ Keep files readable and avoid monolithic screens:
   ```bash
   npm run db:types
   ```
-  This runs `supabase gen types typescript --local > src/types/supabase.ts` and formats the output.
+  This runs `supabase gen types typescript > src/types/supabase.ts` and formats the output.
 - **Domain Types Derivation**:
   Domain types in `src/types/` (e.g. `src/types/events.ts`, `src/types/programs.ts`) must derive directly from generated Supabase types (`Database['public']['Tables'][...]['Row']` or `Database['public']['Enums'][...]`). Do not manually redeclare database column shapes.
 - **Services Layer**: Keep raw Supabase client calls and RPC functions in `src/services/` (e.g. `src/services/events.ts`). Screens and components should consume typed service functions.

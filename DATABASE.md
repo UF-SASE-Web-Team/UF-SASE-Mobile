@@ -52,11 +52,11 @@ A migration is an SQL file that describes an addition to the schema and lives in
 
 ### Remote Commands
 
-| Supabase Command                 | Description                                   |
-| -------------------------------- | --------------------------------------------- |
-| `npx supabase migration list`    | List local and remote migration history       |
-| `npx supabase db push --dry-run` | Preview what push would apply                 |
-| `npx supabase db push`           | Apply pending migrations to the linked remote |
+| Supabase Command                          | Description                                   |
+| ----------------------------------------- | --------------------------------------------- |
+| `npx supabase migration list --remote`    | List local and remote migration history       |
+| `npx supabase db push --remote --dry-run` | Preview what push would apply                 |
+| `npx supabase db push --remote`           | Apply pending migrations to the linked remote |
 
 ## Creating Migrations
 
