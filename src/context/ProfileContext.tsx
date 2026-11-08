@@ -77,10 +77,17 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;
 }
 
+const defaultProfileContext: ProfileContextValue = {
+  profile: null,
+  isLoading: false,
+  error: null,
+  reload: () => {},
+  save: async () => {},
+};
+
 export function useProfile() {
   const context = useContext(ProfileContext);
-  if (!context) throw new Error('useProfile must be used within a ProfileProvider');
-  return context;
+  return context ?? defaultProfileContext;
 }
 
 export function getProfileError(cause: unknown, fallback: string): string {

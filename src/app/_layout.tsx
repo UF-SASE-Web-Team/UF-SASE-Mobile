@@ -10,6 +10,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { EventsProvider } from '@/context/EventsContext';
+import { ProfileProvider } from '@/context/ProfileContext';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { fontAssets } from '@/theme';
 
@@ -70,6 +71,7 @@ function RootNavigator() {
         <Stack.Protected guard={isAuthenticated}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="events/[id]" />
+          <Stack.Screen name="programs/[slug]" />
           <Stack.Screen name="profile" />
           <Stack.Screen name="resources/freshman-faqs" />
         </Stack.Protected>
@@ -93,10 +95,12 @@ export default function RootLayout() {
     <ThemeProvider>
       <ThemedStatusBar />
       <AuthProvider>
-        <EventsProvider>
-          <SplashController fontsReady={Boolean(fontsLoaded || fontError)} />
-          <RootNavigator />
-        </EventsProvider>
+        <ProfileProvider>
+          <EventsProvider>
+            <SplashController fontsReady={Boolean(fontsLoaded || fontError)} />
+            <RootNavigator />
+          </EventsProvider>
+        </ProfileProvider>
       </AuthProvider>
     </ThemeProvider>
   );

@@ -16,7 +16,7 @@ import { ResourceCard } from '@/components/ResourceCard';
 import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { getResourceSections } from '@/services/resources';
-import { type Colors, fonts, space, iconSize } from '@/theme';
+import { type Colors, space, iconSize } from '@/theme';
 import {
   ResourceRow,
   ResourceSection,
@@ -161,7 +161,7 @@ export default function ResourcesPage() {
                   accessibilityLabel={`Toggle ${section.title}`}
                   accessibilityState={{ expanded: isExpanded }}
                 >
-                  <Text style={styles.sectionTitle}>{section.title}</Text>
+                  <Text variant="title">{section.title}</Text>
                   <Ionicons
                     name={isExpanded ? 'chevron-up' : 'chevron-down'}
                     size={iconSize.md}
@@ -170,7 +170,7 @@ export default function ResourcesPage() {
                 </Pressable>
               ) : (
                 <View style={styles.staticSectionHeader}>
-                  <Text style={styles.sectionTitle}>{section.title}</Text>
+                  <Text variant="title">{section.title}</Text>
                 </View>
               )}
 
@@ -227,12 +227,6 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       paddingVertical: space['150'],
       marginBottom: space['300'],
-    },
-    sectionTitle: {
-      fontFamily: fonts.sans.bold,
-      fontSize: 20,
-      lineHeight: 24,
-      color: colors.content.onBase.primary,
     },
     chevronColor: {
       color: colors.content.onBase.primary,
