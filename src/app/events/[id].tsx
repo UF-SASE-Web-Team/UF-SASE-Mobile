@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { BackButton } from '@/components/BackButton';
 import { EventCheckInModal } from '@/components/EventCheckInModal';
 import { EventContactsSection } from '@/components/EventContactsSection';
 import { EventLinksSection } from '@/components/EventLinksSection';
@@ -128,14 +129,11 @@ export default function EventDetailScreen() {
         />
 
         {/* Floating Back Button */}
-        <Pressable
-          style={[styles.backButton, { top: insets.top + space['200'] }]}
-          onPress={handleBack}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-        >
-          <Ionicons name="chevron-back" size={iconSize.md} color={colors.content.onMedia.primary} />
-        </Pressable>
+        <BackButton
+          variant="onMedia"
+          fallbackRoute="/events"
+          style={[styles.floatingBackButton, { top: insets.top + space['200'] }]}
+        />
 
         <View
           style={[
@@ -223,14 +221,11 @@ export default function EventDetailScreen() {
       />
 
       {/* Floating Back Button */}
-      <Pressable
-        style={[styles.backButton, { top: insets.top + space['200'] }]}
-        onPress={handleBack}
-        accessibilityRole="button"
-        accessibilityLabel="Go back"
-      >
-        <Ionicons name="chevron-back" size={iconSize.md} color={colors.content.onMedia.primary} />
-      </Pressable>
+      <BackButton
+        variant="onMedia"
+        fallbackRoute="/events"
+        style={[styles.floatingBackButton, { top: insets.top + space['200'] }]}
+      />
 
       {/* Content ScrollView */}
       <ScrollView
@@ -479,16 +474,10 @@ const createStyles = (colors: Colors) =>
       right: 0,
       height: 600,
     },
-    backButton: {
+    floatingBackButton: {
       position: 'absolute',
       left: space['400'],
       zIndex: 10,
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: 'rgba(0, 0, 0, 0.45)',
-      alignItems: 'center',
-      justifyContent: 'center',
     },
     scrollView: {
       flex: 1,

@@ -90,7 +90,7 @@ export const darkColors: Colors = {
     base: {
       primary: p.gray[1000],
       secondary: p.gray[900],
-      tertiary: p.gray[700],
+      tertiary: p.gray[800],
       quaternary: p.gray[600],
     },
     inverse: { primary: p.gray[100] },

@@ -1,15 +1,15 @@
-import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { SixDigitInput } from '@/components/SixDigitInput';
 import { Text } from '@/components/Text';
 import { useAuth } from '@/context/AuthContext';
-import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import { useThemedStyles } from '@/context/ThemeContext';
 import { supabase } from '@/lib/supabase';
-import { type Colors, iconSize, space } from '@/theme';
+import { type Colors, space } from '@/theme';
 
 export default function VerifyScreen() {
   const { email, mode } = useLocalSearchParams<{ email: string; mode: string }>();
@@ -18,7 +18,6 @@ export default function VerifyScreen() {
   const [cooldown, setCooldown] = useState(60);
   const router = useRouter();
   const { setIsRecovering } = useAuth();
-  const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
   useEffect(() => {
@@ -76,25 +75,12 @@ export default function VerifyScreen() {
     }
   };
 
-  const handleBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace(mode === 'recovery' ? '/(auth)/forgot-password' : '/(auth)/signup');
-    }
-  };
-
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <TouchableOpacity
-        onPress={handleBack}
+      <BackButton
+        fallbackRoute={mode === 'recovery' ? '/(auth)/forgot-password' : '/(auth)/signup'}
         style={styles.backButton}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        accessibilityLabel="Go back"
-        accessibilityRole="button"
-      >
-        <Ionicons name="arrow-back" size={iconSize.md} color={colors.content.onBase.primary} />
-      </TouchableOpacity>
+      />
 
       <Text variant="title" style={styles.title}>
         Check your email

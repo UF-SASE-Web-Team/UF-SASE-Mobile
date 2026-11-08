@@ -10,20 +10,12 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { BackButton } from '@/components/BackButton';
 import { Text } from '@/components/Text';
 import { ProfileButton } from './ProfileButton';
 import { useProfile } from '@/context/ProfileContext';
-import {
-  useThemedStyles,
-  useTheme,
-  type Colors,
-  borderWidth,
-  iconSize,
-  radius,
-  space,
-} from '@/theme';
+import { useThemedStyles, useTheme, type Colors, iconSize, space } from '@/theme';
 
 interface ProfileScreenProps {
   children: ReactNode;
@@ -40,7 +32,6 @@ export function ProfileScreen({
   backLabel = 'Back',
   footer,
 }: ProfileScreenProps) {
-  const router = useRouter();
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -48,7 +39,6 @@ export function ProfileScreen({
     () => ({ paddingBottom: Math.max(insets.bottom, space['400']) }),
     [insets.bottom],
   );
-  const goBack = onBack ?? (() => (router.canGoBack() ? router.back() : router.replace('/(tabs)')));
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -64,18 +54,7 @@ export function ProfileScreen({
         >
           <View style={styles.content}>
             <View style={styles.toolbar}>
-              <Pressable
-                accessibilityLabel={backLabel}
-                accessibilityRole="button"
-                onPress={goBack}
-                style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}
-              >
-                <Ionicons
-                  name="chevron-back"
-                  size={iconSize.md}
-                  color={colors.content.onBase.primary}
-                />
-              </Pressable>
+              <BackButton fallbackRoute="/(tabs)" onPress={onBack} accessibilityLabel={backLabel} />
               {onEdit && (
                 <Pressable
                   accessibilityLabel="Edit profile"
@@ -150,16 +129,6 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-    },
-    backButton: {
-      width: 44,
-      height: 44,
-      borderRadius: radius.full,
-      backgroundColor: colors.surface.base.secondary,
-      borderWidth: borderWidth.sm,
-      borderColor: colors.border.base.subtle,
-      alignItems: 'center',
-      justifyContent: 'center',
     },
     editButton: {
       width: 44,
