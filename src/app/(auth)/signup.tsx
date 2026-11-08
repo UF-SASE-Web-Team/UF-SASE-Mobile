@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Text } from '@/components/Text';
@@ -226,14 +227,6 @@ export default function SignupScreen() {
     }
   };
 
-  const handleBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/(auth)/login');
-    }
-  };
-
   // --- Field Errors ---
   const emailError =
     (touched.email || hasSubmitted) && !isEmailValid
@@ -315,15 +308,7 @@ export default function SignupScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <TouchableOpacity
-            onPress={handleBack}
-            style={styles.backButton}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityLabel="Go back"
-            accessibilityRole="button"
-          >
-            <Ionicons name="arrow-back" size={iconSize.md} color={colors.content.onBase.primary} />
-          </TouchableOpacity>
+          <BackButton fallbackRoute="/(auth)/login" style={styles.backButton} />
 
           <Text variant="title" style={styles.title}>
             Get started

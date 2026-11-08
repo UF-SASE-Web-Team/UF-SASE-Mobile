@@ -1,59 +1,95 @@
 import React from 'react';
-import { ImageBackground, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Image, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { ResourceRow } from '@/types/resources';
 import { Text } from '@/components/Text';
-import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { type Colors, space, radius, fonts, iconSize } from '@/theme';
+import { useThemedStyles } from '@/context/ThemeContext';
+import { type Colors, fonts, radius, space } from '@/theme';
+import { ResourceRow, isInternalUrl, resolveInternalPath } from '@/types/resources';
 
 export interface ResourceCardProps {
   resource: ResourceRow;
+  isInternal?: boolean;
   width?: number;
   onPress?: (resource: ResourceRow) => void;
+  testID?: string;
 }
 
-export function ResourceCard({ resource, width, onPress }: ResourceCardProps) {
-  const { colors } = useTheme();
+export function ResourceCard({ resource, isInternal, width, onPress, testID }: ResourceCardProps) {
+  const router = useRouter();
   const styles = useThemedStyles(createStyles);
+  const title = resource.name;
+  const hasChevron = isInternal !== undefined ? isInternal : isInternalUrl(resource.url);
 
-  const handleOpenPress = async () => {
+  const handlePress = async () => {
     if (onPress) {
       onPress(resource);
       return;
     }
 
     if (resource.url) {
-      const supported = await Linking.canOpenURL(resource.url);
-      if (supported) {
-        await Linking.openURL(resource.url);
+      if (isInternalUrl(resource.url)) {
+        const route = resolveInternalPath(resource.url);
+        try {
+          router.push(route as any);
+        } catch (err: any) {
+          console.warn(`Failed to navigate to route: ${route}`, err?.message);
+        }
+        return;
+      }
+
+      try {
+        const supported = await Linking.canOpenURL(resource.url);
+        if (supported) {
+          await Linking.openURL(resource.url);
+        } else {
+          console.warn(`Cannot open URL: ${resource.url}`);
+        }
+      } catch (err: any) {
+        console.error('Failed to open resource URL:', err.message);
       }
     }
   };
 
   return (
-    <Pressable style={[styles.card, width ? { width } : null]} onPress={handleOpenPress}>
-      <ImageBackground
-        source={resource.image_url ? { uri: resource.image_url } : undefined}
-        style={styles.imageHeader}
-      >
-        <View style={styles.titleContainer}>
-          <Text style={styles.cardTitle} numberOfLines={2}>
-            {resource.name}
-          </Text>
-        </View>
-      </ImageBackground>
-
-      <View style={styles.cardFooter}>
-        <View style={styles.openButton}>
-          <Text style={styles.openButtonText}>Open</Text>
-          <Ionicons
-            name="open-outline"
-            size={iconSize.sm}
-            color={colors.content.onBase.primary}
-            style={styles.buttonIcon}
+    <Pressable
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      accessibilityHint={hasChevron ? 'Navigates to in-app screen' : 'Opens external link'}
+      style={({ pressed }) => [
+        styles.card,
+        width ? { width } : null,
+        pressed && styles.pressedCard,
+      ]}
+      onPress={handlePress}
+    >
+      <View style={styles.iconContainer}>
+        {resource.image_url ? (
+          <Image
+            source={{ uri: resource.image_url }}
+            style={styles.iconImage}
+            resizeMode="contain"
+            accessibilityRole="image"
+            accessibilityLabel={`${title} icon`}
           />
-        </View>
+        ) : (
+          <Ionicons name="document-text-outline" size={22} color={styles.defaultIconColor.color} />
+        )}
       </View>
+
+      <Text style={styles.cardTitle} numberOfLines={2}>
+        {title}
+      </Text>
+
+      {hasChevron && (
+        <Ionicons
+          name="chevron-forward"
+          size={16}
+          color={styles.chevronColor.color}
+          style={styles.chevron}
+        />
+      )}
     </Pressable>
   );
 }
@@ -61,50 +97,50 @@ export function ResourceCard({ resource, width, onPress }: ResourceCardProps) {
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     card: {
-      width: 164,
-      backgroundColor: colors.surface.base.secondary,
-      borderRadius: radius.lg,
-      overflow: 'hidden',
-    },
-    imageHeader: {
-      height: 125,
-      backgroundColor: colors.surface.base.tertiary,
-      padding: space['200'],
-      justifyContent: 'flex-end',
-    },
-    titleContainer: {
-      backgroundColor: colors.surface.base.primary,
-      borderRadius: radius.sm,
-      paddingHorizontal: space['150'],
-      paddingVertical: space['050'],
-      alignSelf: 'flex-start',
-      maxWidth: '100%',
-    },
-    cardTitle: {
-      fontFamily: fonts.sans.bold,
-      fontSize: 14,
-      lineHeight: 18,
-      color: colors.content.onBase.primary,
-    },
-    cardFooter: {
-      paddingHorizontal: space['200'],
-      paddingVertical: space['200'],
-    },
-    openButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.surface.base.tertiary,
-      paddingVertical: space['200'],
+      minHeight: 56,
+      backgroundColor: colors.surface.base.secondary,
       borderRadius: radius.lg,
-      gap: space['150'],
+      borderWidth: 1.5,
+      borderColor: colors.border.base.strong,
+      paddingHorizontal: space['250'],
+      paddingVertical: space['150'],
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.12,
+      shadowRadius: 3,
+      elevation: 2,
     },
-    openButtonText: {
-      fontFamily: fonts.sans.semibold,
-      fontSize: 14,
+    pressedCard: {
+      opacity: 0.7,
+    },
+    iconContainer: {
+      width: 32,
+      height: 32,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    iconImage: {
+      width: 30,
+      height: 30,
+    },
+    defaultIconColor: {
       color: colors.content.onBase.primary,
     },
-    buttonIcon: {
+    cardTitle: {
+      flex: 1,
+      fontFamily: fonts.sans.semibold,
+      fontSize: 13,
+      lineHeight: 16,
+      color: colors.content.onBase.primary,
+      marginLeft: space['200'],
+      marginRight: space['050'],
+    },
+    chevronColor: {
+      color: colors.content.onBase.primary,
+    },
+    chevron: {
       marginLeft: space['050'],
     },
   });

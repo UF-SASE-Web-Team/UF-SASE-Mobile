@@ -2,53 +2,71 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Linking,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
-  Text,
   View,
   useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { ResourceCard } from '@/components/ResourceCard';
-import { getResources } from '@/services/resources';
-import { ResourceCategory, ResourceRow } from '@/types/resources';
-
-const CATEGORY_SECTIONS: { key: ResourceCategory; title: string }[] = [
-  { key: 'general', title: 'General Resources' },
-  { key: 'sase', title: 'SASE Resources' },
-  { key: 'academic', title: 'Academic Resources' },
-  { key: 'professional', title: 'Professional Resources' },
-];
+import { Text } from '@/components/Text';
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import { getResourceSections } from '@/services/resources';
+import { type Colors, fonts, space, iconSize } from '@/theme';
+import {
+  ResourceRow,
+  ResourceSection,
+  isInternalResource,
+  isInternalUrl,
+  resolveInternalPath,
+} from '@/types/resources';
 
 export default function ResourcesPage() {
   const { width } = useWindowDimensions();
-  const [resources, setResources] = useState<ResourceRow[]>([]);
+  const router = useRouter();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
+
+  const [sections, setSections] = useState<ResourceSection[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 16px screen padding on left and right (32px), 12px gap between two columns
-  const cardWidth = Math.max(140, Math.floor((width - 32 - 12) / 2));
+  // Default state: all collapsible sections closed
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    sase: false,
+    academic: false,
+    professional: false,
+  });
+
+  // Calculate card width for 2-column layout (16px screen padding on each side, 12px gap)
+  const cardWidth = Math.max(140, Math.floor((width - space['400'] * 2 - space['300']) / 2));
 
   useEffect(() => {
     let isMounted = true;
 
-    getResources()
-      .then((data) => {
+    async function load() {
+      try {
+        const data = await getResourceSections();
         if (!isMounted) return;
-        setResources(data);
+        setSections(data);
         setError(null);
-      })
-      .catch((err: any) => {
+      } catch (err: any) {
         if (!isMounted) return;
         console.error('Error fetching resources:', err.message);
         setError(err.message);
-      })
-      .finally(() => {
-        if (!isMounted) return;
-        setLoading(false);
-      });
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    load();
 
     return () => {
       isMounted = false;
@@ -58,8 +76,8 @@ export default function ResourcesPage() {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      const data = await getResources();
-      setResources(data);
+      const data = await getResourceSections();
+      setSections(data);
       setError(null);
     } catch (err: any) {
       console.error('Error fetching resources:', err.message);
@@ -69,8 +87,27 @@ export default function ResourcesPage() {
     }
   };
 
+  const toggleSection = (sectionKey: string) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey],
+    }));
+  };
+
   const handleCardPress = async (resource: ResourceRow) => {
     if (!resource.url) return;
+
+    if (isInternalUrl(resource.url)) {
+      // In-app navigation for deeplinks (denoted by right chevron)
+      const targetRoute = resolveInternalPath(resource.url);
+      try {
+        router.push(targetRoute as any);
+      } catch (err: any) {
+        console.warn(`Failed to navigate to route: ${targetRoute}`, err?.message);
+      }
+      return;
+    }
+
     try {
       const supported = await Linking.canOpenURL(resource.url);
       if (supported) {
@@ -86,7 +123,7 @@ export default function ResourcesPage() {
   if (loading) {
     return (
       <SafeAreaView style={styles.centered} edges={['top']}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={colors.surface.saseBlue.primary} />
       </SafeAreaView>
     );
   }
@@ -94,14 +131,12 @@ export default function ResourcesPage() {
   if (error) {
     return (
       <SafeAreaView style={styles.centered} edges={['top']}>
-        <Text style={styles.errorText}>Failed to load resources: {error}</Text>
+        <Text variant="body" color={colors.content.onDanger.primary} style={styles.errorText}>
+          Failed to load resources: {error}
+        </Text>
       </SafeAreaView>
     );
   }
-
-  const otherResources = resources.filter(
-    (r) => !r.category || !CATEGORY_SECTIONS.some((s) => s.key === r.category),
-  );
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -109,124 +144,106 @@ export default function ResourcesPage() {
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
       >
-        {/* Top Header */}
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerTitle}>Resources</Text>
-          <View style={styles.avatarPlaceholder} />
+        <View style={styles.header}>
+          <Text variant="display">Resources</Text>
         </View>
 
-        {/* Category Sections */}
-        {CATEGORY_SECTIONS.map((section) => {
-          const categoryResources = resources.filter((r) => r.category === section.key);
-
-          if (categoryResources.length === 0) return null;
+        {sections.map((section) => {
+          const isExpanded = Boolean(openSections[section.key]);
 
           return (
-            <View key={section.key} style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>{section.title}</Text>
-              </View>
-
-              <View style={styles.gridContainer}>
-                {categoryResources.map((item) => (
-                  <ResourceCard
-                    key={item.id}
-                    resource={item}
-                    width={cardWidth}
-                    onPress={handleCardPress}
+            <View key={section.key} style={styles.sectionContainer}>
+              {section.collapsible ? (
+                <Pressable
+                  style={styles.collapsibleSectionHeader}
+                  onPress={() => toggleSection(section.key)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Toggle ${section.title}`}
+                  accessibilityState={{ expanded: isExpanded }}
+                >
+                  <Text style={styles.sectionTitle}>{section.title}</Text>
+                  <Ionicons
+                    name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                    size={iconSize.md}
+                    color={styles.chevronColor.color}
                   />
-                ))}
-              </View>
+                </Pressable>
+              ) : (
+                <View style={styles.staticSectionHeader}>
+                  <Text style={styles.sectionTitle}>{section.title}</Text>
+                </View>
+              )}
+
+              {(!section.collapsible || isExpanded) && (
+                <View style={styles.gridContainer}>
+                  {section.items.map((resource: ResourceRow) => (
+                    <ResourceCard
+                      key={resource.id}
+                      resource={resource}
+                      isInternal={isInternalResource(resource)}
+                      width={cardWidth}
+                      onPress={handleCardPress}
+                    />
+                  ))}
+                </View>
+              )}
             </View>
           );
         })}
-
-        {/* Fallback for any uncategorized resources */}
-        {otherResources.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Other Resources</Text>
-            </View>
-
-            <View style={styles.gridContainer}>
-              {otherResources.map((item) => (
-                <ResourceCard
-                  key={item.id}
-                  resource={item}
-                  width={cardWidth}
-                  onPress={handleCardPress}
-                />
-              ))}
-            </View>
-          </View>
-        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-  },
-  scrollContent: {
-    paddingVertical: 16,
-    paddingBottom: 40,
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 20,
-  },
-  headerTitleGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  backButton: {
-    padding: 4,
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#000',
-  },
-  avatarPlaceholder: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#D9D9D9',
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    paddingHorizontal: 16,
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
-  },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  errorText: {
-    color: '#D32F2F',
-    textAlign: 'center',
-    padding: 16,
-  },
-});
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.surface.base.primary,
+    },
+    centered: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.surface.base.primary,
+    },
+    scrollContent: {
+      paddingHorizontal: space['400'],
+      paddingTop: space['300'],
+      paddingBottom: space['800'],
+    },
+    header: {
+      marginBottom: space['400'],
+    },
+    sectionContainer: {
+      marginBottom: space['400'],
+    },
+    staticSectionHeader: {
+      marginBottom: space['300'],
+    },
+    collapsibleSectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: space['150'],
+      marginBottom: space['300'],
+    },
+    sectionTitle: {
+      fontFamily: fonts.sans.bold,
+      fontSize: 20,
+      lineHeight: 24,
+      color: colors.content.onBase.primary,
+    },
+    chevronColor: {
+      color: colors.content.onBase.primary,
+    },
+    gridContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: space['300'],
+    },
+    errorText: {
+      textAlign: 'center',
+      padding: space['400'],
+    },
+  });

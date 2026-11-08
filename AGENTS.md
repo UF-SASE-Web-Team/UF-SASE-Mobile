@@ -45,13 +45,18 @@ Never use hardcoded hex colors (`#FFFFFF`), raw pixels (`padding: 13`), or inlin
 
 - **Colors**: Access via `useTheme()` or `useThemedStyles(createStyles)`
   - Surfaces: `colors.surface.base.*`, `colors.surface.saseBlue.*`, `colors.surface.accentSubtle.*`, `colors.surface.media.scrim`
-  - Content: `colors.content.onBase.*`, `colors.content.onSaseBlue.*`, `colors.surface.onAccentSubtle.*`, `colors.content.onMedia.primary`
+  - Content: `colors.content.onBase.*`, `colors.content.onSaseBlue.*`, `colors.content.onAccentSubtle.*`, `colors.content.onMedia.primary`
   - Borders: `colors.border.base.*`
 - **Spacing**: `space['050']` (2px) through `space['1200']` (48px)
 - **Radii**: `radius.sm` (8), `radius.md` (12), `radius.lg` (24), `radius.xl` (32), `radius.full` (9999)
 - **Borders**: `borderWidth.sm` (1), `borderWidth.lg` (2)
 - **Icons**: `iconSize.sm` (16), `iconSize.md` (24), `iconSize.lg` (36)
 - **Typography**: Prefer `<Text variant="...">` (`display`, `title`, `bodyStrong`, `body`, `bodySmStrong`, `bodySm`)
+
+### Token Usage Rules
+
+- **Content vs. Surface**: `colors.content.*` tokens are strictly for **text and icons**. `colors.surface.*` tokens are strictly for **backgrounds, containers, and card surfaces**—never use `surface` tokens for text or icons.
+- **Porting Designs (Figma / Mockups)**: When copying over designs, always map them to the **closest existing tokens**. If an exact match does not exist, tune or add new tokens into `@/theme` carefully and intentionally with full consideration of the overall design system (light/dark mode compatibility, contrast, and semantic naming), rather than using one-off values.
 
 ### Pattern: Themed Styles
 
@@ -117,7 +122,7 @@ Keep files readable and avoid monolithic screens:
   ```bash
   npm run db:types
   ```
-  This runs `supabase gen types typescript --local > src/types/supabase.ts` and formats the output.
+  This runs `supabase gen types typescript > src/types/supabase.ts` and formats the output.
 - **Domain Types Derivation**:
   Domain types in `src/types/` (e.g. `src/types/events.ts`, `src/types/programs.ts`) must derive directly from generated Supabase types (`Database['public']['Tables'][...]['Row']` or `Database['public']['Enums'][...]`). Do not manually redeclare database column shapes.
 - **Services Layer**: Keep raw Supabase client calls and RPC functions in `src/services/` (e.g. `src/services/events.ts`). Screens and components should consume typed service functions.

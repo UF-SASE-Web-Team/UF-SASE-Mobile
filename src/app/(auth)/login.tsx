@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { BackButton } from '@/components/BackButton';
 import { Button } from '@/components/Button';
 import { Text } from '@/components/Text';
 import { Input } from '@/components/Input';
@@ -70,25 +71,9 @@ export default function LoginScreen() {
     }
   };
 
-  const handleBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/(auth)');
-    }
-  };
-
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <TouchableOpacity
-        onPress={handleBack}
-        style={styles.backButton}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        accessibilityLabel="Go back"
-        accessibilityRole="button"
-      >
-        <Ionicons name="arrow-back" size={iconSize.md} color={colors.content.onBase.primary} />
-      </TouchableOpacity>
+      <BackButton fallbackRoute="/(auth)" style={styles.backButton} />
 
       <Text variant="title" style={styles.title}>
         Welcome back

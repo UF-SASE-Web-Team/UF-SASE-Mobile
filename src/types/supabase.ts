@@ -415,9 +415,9 @@ export type Database = {
         Row: {
           category: Database['public']['Enums']['resource_category'] | null;
           created_at: string;
-          display_order: number;
           id: string;
           image_url: string | null;
+          is_top: boolean;
           name: string;
           updated_at: string;
           url: string;
@@ -426,9 +426,9 @@ export type Database = {
         Insert: {
           category?: Database['public']['Enums']['resource_category'] | null;
           created_at?: string;
-          display_order?: number;
           id?: string;
           image_url?: string | null;
+          is_top?: boolean;
           name: string;
           updated_at?: string;
           url: string;
@@ -436,9 +436,9 @@ export type Database = {
         Update: {
           category?: Database['public']['Enums']['resource_category'] | null;
           created_at?: string;
-          display_order?: number;
           id?: string;
           image_url?: string | null;
+          is_top?: boolean;
           name?: string;
           updated_at?: string;
           url?: string;
