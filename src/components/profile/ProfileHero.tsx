@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/Text';
 import { getProfileAvatarSource, profileAvatars } from '@/lib/profileAvatars';
 import type { ProfileWithPrograms } from '@/types/profiles';
@@ -10,7 +11,6 @@ import {
   type Colors,
   borderWidth,
   iconSize,
-  profileLayout,
   radius,
   space,
 } from '@/theme';
@@ -48,13 +48,7 @@ export function ProfileHero({ profile, onEditAvatar }: ProfileHeroProps) {
             hitSlop={space['100']}
             style={({ pressed }) => [styles.editAvatar, pressed && styles.pressed]}
           >
-            <Image
-              source={require('@/assets/icons/profile/pencil.svg')}
-              style={styles.pencil}
-              contentFit="contain"
-              tintColor={colors.content.onBase.brand}
-              accessible={false}
-            />
+            <Ionicons name="pencil" size={iconSize.md} color={colors.content.onBase.primary} />
           </Pressable>
         )}
       </View>
@@ -74,7 +68,7 @@ export function ProfileHero({ profile, onEditAvatar }: ProfileHeroProps) {
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     hero: { alignItems: 'center', paddingBottom: space['200'], marginTop: -space['200'] },
-    avatarContainer: { width: profileLayout.avatarSize, height: profileLayout.avatarSize },
+    avatarContainer: { width: 140, height: 140 },
     avatarRing: {
       width: '100%',
       height: '100%',
@@ -86,7 +80,7 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.surface.base.primary,
       overflow: 'hidden',
     },
-    avatar: { width: profileLayout.avatarImageSize, height: profileLayout.avatarImageSize },
+    avatar: { width: 123, height: 123 },
     editAvatar: {
       position: 'absolute',
       top: -space['100'],
@@ -98,23 +92,22 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    pencil: { width: profileLayout.pencilSize, height: profileLayout.pencilSize },
     role: {
-      color: colors.content.onBase.brand,
+      color: colors.content.onBase.primary,
       marginTop: space['200'],
       textAlign: 'center',
       lineHeight: space['500'],
     },
     programs: {
-      color: colors.content.onBase.brand,
+      color: colors.content.onBase.primary,
       marginTop: space['200'],
       textAlign: 'center',
     },
     username: {
-      color: colors.content.onBase.brand,
+      color: colors.content.onBase.primary,
       marginTop: space['200'],
       textAlign: 'center',
       lineHeight: space['500'],
     },
-    pressed: { opacity: profileLayout.pressedOpacity },
+    pressed: { opacity: 0.7 },
   });

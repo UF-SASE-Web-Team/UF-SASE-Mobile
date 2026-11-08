@@ -4,15 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/Text';
 import { ProfileSheet } from './ProfileSheet';
 import { profileAvatars } from '@/lib/profileAvatars';
-import {
-  useTheme,
-  useThemedStyles,
-  type Colors,
-  iconSize,
-  profileLayout,
-  radius,
-  space,
-} from '@/theme';
+import { useTheme, useThemedStyles, type Colors, iconSize, radius, space } from '@/theme';
 
 interface AvatarPickerProps {
   visible: boolean;
@@ -76,6 +68,6 @@ const createStyles = (colors: Colors) =>
       gap: space['400'],
     },
     selected: { backgroundColor: colors.surface.base.tertiary },
-    image: { width: profileLayout.avatarOptionSize, height: profileLayout.avatarOptionSize },
+    image: { width: 122, height: 122 },
     label: { flex: 1 },
   });

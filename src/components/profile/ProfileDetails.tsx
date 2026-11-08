@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Text } from '@/components/Text';
 import type { Profile } from '@/types/profiles';
-import { useTheme, useThemedStyles, type Colors, profileLayout, radius, space } from '@/theme';
+import { useTheme, useThemedStyles, type Colors, radius, space } from '@/theme';
 
 export function ProfileCard({
   children,
@@ -30,7 +30,7 @@ export function ProfileCard({
 }
 
 export const academicFields = [
-  { key: 'full_name', label: 'Name' },
+  { key: 'full_name', label: 'Full Name' },
   { key: 'major', label: 'Major' },
   { key: 'minor', label: 'Minor' },
   { key: 'grad_time', label: 'Grad Year' },
@@ -84,26 +84,26 @@ const createStyles = (colors: Colors) =>
   StyleSheet.create({
     details: { gap: space['200'] },
     border: {
-      padding: profileLayout.gradientBorder,
-      borderRadius: profileLayout.cardRadius + profileLayout.gradientBorder,
+      padding: 5,
+      borderRadius: 35,
     },
     card: {
       backgroundColor: colors.surface.base.secondary,
-      borderRadius: profileLayout.cardRadius,
+      borderRadius: 30,
       padding: space['250'],
       gap: space['200'],
     },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
-      minHeight: profileLayout.academicRowHeight,
+      minHeight: 42,
       gap: space['100'],
     },
-    socialRow: { minHeight: profileLayout.socialRowHeight },
-    label: { width: '26%', color: colors.content.onBase.brand, lineHeight: space['500'] },
+    socialRow: { minHeight: 38 },
+    label: { width: '26%', color: colors.content.onBase.primary, lineHeight: space['500'] },
     valuePill: {
       flex: 1,
-      minHeight: profileLayout.fieldHeight,
+      minHeight: 32,
       backgroundColor: colors.surface.base.tertiary,
       borderRadius: radius.full,
       paddingHorizontal: space['200'],
@@ -115,7 +115,7 @@ const createStyles = (colors: Colors) =>
     bio: {
       color: colors.content.onBase.secondary,
       lineHeight: space['500'],
-      minHeight: profileLayout.bioHeight - space['500'],
+      minHeight: 100,
       paddingTop: space['100'],
     },
   });

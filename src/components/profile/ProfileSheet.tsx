@@ -4,15 +4,7 @@ import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, View } fr
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/Text';
-import {
-  useTheme,
-  useThemedStyles,
-  type Colors,
-  iconSize,
-  profileLayout,
-  radius,
-  space,
-} from '@/theme';
+import { useTheme, useThemedStyles, type Colors, iconSize, radius, space } from '@/theme';
 
 interface ProfileSheetProps {
   title: string;
@@ -89,7 +81,7 @@ const createStyles = (colors: Colors) =>
     },
     sheet: {
       width: '100%',
-      maxWidth: profileLayout.sheetMaxWidth,
+      maxWidth: 560,
       maxHeight: '85%',
       borderTopLeftRadius: radius.xl,
       borderTopRightRadius: radius.xl,
@@ -99,7 +91,7 @@ const createStyles = (colors: Colors) =>
     },
     grabber: {
       alignSelf: 'center',
-      width: profileLayout.grabberWidth,
+      width: 60,
       height: space['100'],
       borderRadius: radius.full,
       backgroundColor: colors.border.base.subtle,
@@ -107,13 +99,13 @@ const createStyles = (colors: Colors) =>
     },
     header: { flexDirection: 'row', alignItems: 'center', marginBottom: space['400'] },
     closeButton: {
-      width: profileLayout.touchTarget,
-      height: profileLayout.touchTarget,
+      width: 44,
+      height: 44,
       borderRadius: radius.full,
       backgroundColor: colors.surface.base.secondary,
       alignItems: 'center',
       justifyContent: 'center',
     },
     title: { flex: 1, textAlign: 'center' },
-    placeholder: { width: profileLayout.touchTarget },
+    placeholder: { width: 44 },
   });

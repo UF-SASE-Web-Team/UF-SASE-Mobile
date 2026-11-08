@@ -1,15 +1,7 @@
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Text } from '@/components/Text';
-import {
-  useTheme,
-  useThemedStyles,
-  type Colors,
-  fonts,
-  profileLayout,
-  radius,
-  space,
-} from '@/theme';
+import { useTheme, useThemedStyles, type Colors, fonts, radius, space } from '@/theme';
 
 interface ProfileButtonProps {
   title: string;
@@ -85,7 +77,7 @@ const createStyles = (colors: Colors) =>
       elevation: space['050'],
     },
     content: {
-      minHeight: profileLayout.actionHeight,
+      minHeight: 50,
       borderRadius: radius.full,
       paddingHorizontal: space['400'],
       paddingVertical: space['200'],
@@ -101,9 +93,9 @@ const createStyles = (colors: Colors) =>
       flexShrink: 1,
     },
     secondary: { backgroundColor: colors.surface.base.tertiary },
-    secondaryLabel: { color: colors.content.onBase.brand },
-    danger: { backgroundColor: colors.surface.danger.secondary },
-    dangerLabel: { color: colors.content.onDanger.secondary },
-    pressed: { opacity: profileLayout.pressedOpacity },
-    disabled: { opacity: profileLayout.disabledOpacity },
+    secondaryLabel: { color: colors.content.onBase.primary },
+    danger: { backgroundColor: colors.surface.danger.primary },
+    dangerLabel: { color: colors.content.onDanger.primary },
+    pressed: { opacity: 0.7 },
+    disabled: { opacity: 0.5 },
   });

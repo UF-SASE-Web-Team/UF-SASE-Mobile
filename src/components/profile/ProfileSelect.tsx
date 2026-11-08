@@ -10,7 +10,6 @@ import {
   useThemedStyles,
   type Colors,
   iconSize,
-  profileLayout,
   radius,
   space,
   textStyles,
@@ -89,7 +88,7 @@ export function ProfileSelect({
               {item}
             </Text>
             {item === value && (
-              <Ionicons name="checkmark" size={iconSize.md} color={colors.content.onBase.brand} />
+              <Ionicons name="checkmark" size={iconSize.md} color={colors.content.onBase.primary} />
             )}
           </Pressable>
         )}
@@ -110,7 +109,7 @@ const createStyles = (colors: Colors) =>
     option: {
       flexDirection: 'row',
       alignItems: 'center',
-      minHeight: profileLayout.touchTarget,
+      minHeight: 44,
       paddingHorizontal: space['300'],
       paddingVertical: space['200'],
       gap: space['200'],

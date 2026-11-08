@@ -12,7 +12,6 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Image } from 'expo-image';
 import { Text } from '@/components/Text';
 import { ProfileButton } from './ProfileButton';
 import { useProfile } from '@/context/ProfileContext';
@@ -22,7 +21,6 @@ import {
   type Colors,
   borderWidth,
   iconSize,
-  profileLayout,
   radius,
   space,
 } from '@/theme';
@@ -85,12 +83,10 @@ export function ProfileScreen({
                   onPress={onEdit}
                   style={({ pressed }) => [styles.editButton, pressed && styles.pressed]}
                 >
-                  <Image
-                    source={require('@/assets/icons/profile/pencil.svg')}
-                    style={styles.pencil}
-                    tintColor={colors.content.onBase.brand}
-                    contentFit="contain"
-                    accessible={false}
+                  <Ionicons
+                    name="pencil"
+                    size={iconSize.md}
+                    color={colors.content.onBase.primary}
                   />
                 </Pressable>
               )}
@@ -137,7 +133,7 @@ const createStyles = (colors: Colors) =>
     scrollContent: { flexGrow: 1, alignItems: 'center', paddingBottom: space['200'] },
     footer: {
       width: '100%',
-      maxWidth: profileLayout.contentMaxWidth,
+      maxWidth: 480,
       alignSelf: 'center',
       paddingHorizontal: space['500'],
       paddingTop: space['200'],
@@ -146,18 +142,18 @@ const createStyles = (colors: Colors) =>
     content: {
       flexGrow: 1,
       width: '100%',
-      maxWidth: profileLayout.contentMaxWidth,
+      maxWidth: 480,
       paddingHorizontal: space['500'],
     },
     toolbar: {
-      height: profileLayout.touchTarget,
+      height: 44,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
     },
     backButton: {
-      width: profileLayout.touchTarget,
-      height: profileLayout.touchTarget,
+      width: 44,
+      height: 44,
       borderRadius: radius.full,
       backgroundColor: colors.surface.base.secondary,
       borderWidth: borderWidth.sm,
@@ -166,13 +162,12 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'center',
     },
     editButton: {
-      width: profileLayout.touchTarget,
-      height: profileLayout.touchTarget,
+      width: 44,
+      height: 44,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    pencil: { width: profileLayout.pencilSize, height: profileLayout.pencilSize },
-    pressed: { opacity: profileLayout.pressedOpacity },
+    pressed: { opacity: 0.7 },
     status: {
       flex: 1,
       justifyContent: 'center',

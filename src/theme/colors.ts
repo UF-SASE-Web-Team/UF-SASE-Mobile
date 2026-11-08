@@ -10,18 +10,18 @@ export type Colors = {
     accentSubtle: { primary: string; secondary: string; tertiary: string; quaternary: string };
     success: { primary: string };
     warning: { primary: string };
-    danger: { primary: string; secondary: string };
+    danger: { primary: string };
     media: { scrim: string };
   };
   // text, icons
   content: {
-    onBase: { primary: string; secondary: string; brand: string };
+    onBase: { primary: string; secondary: string };
     onInverse: { primary: string };
     onSaseBlue: { primary: string; secondary: string };
     onAccentSubtle: { primary: string; secondary: string; tertiary: string; quaternary: string };
     onSuccess: { primary: string };
     onWarning: { primary: string };
-    onDanger: { primary: string; secondary: string };
+    onDanger: { primary: string };
     onMedia: { primary: string };
   };
   border: {
@@ -57,11 +57,11 @@ export const lightColors: Colors = {
     },
     success: { primary: p.green[500] },
     warning: { primary: p.yellow[400] },
-    danger: { primary: p.red[600], secondary: p.red[800] },
+    danger: { primary: p.red[600] },
     media: { scrim: p.black[600] },
   },
   content: {
-    onBase: { primary: p.gray[900], secondary: p.gray[600], brand: p.sase.blue[1000] },
+    onBase: { primary: p.gray[900], secondary: p.gray[600] },
     onInverse: { primary: p.gray[100] },
     // saseBlue: { primary: p.sase.blue[1000] },
     onSaseBlue: { primary: p.sase.blue[1000], secondary: p.white[1000] },
@@ -73,7 +73,7 @@ export const lightColors: Colors = {
     },
     onSuccess: { primary: p.green[800] },
     onWarning: { primary: p.yellow[800] },
-    onDanger: { primary: p.red[100], secondary: p.red[300] },
+    onDanger: { primary: p.red[100] },
     onMedia: { primary: p.white[1000] },
   },
   border: {
@@ -109,11 +109,11 @@ export const darkColors: Colors = {
     },
     success: { primary: p.green[800] },
     warning: { primary: p.yellow[400] },
-    danger: { primary: p.red[600], secondary: p.red[800] },
+    danger: { primary: p.red[600] },
     media: { scrim: p.black[600] },
   },
   content: {
-    onBase: { primary: p.white[700], secondary: p.white[1000], brand: p.sase.blue[200] },
+    onBase: { primary: p.white[700], secondary: p.white[1000] },
     onInverse: { primary: p.gray[1000] },
     // saseBlue: { primary: p.sase.blue[500] },
     onSaseBlue: { primary: p.sase.blue[1000], secondary: p.white[1000] },
@@ -125,7 +125,7 @@ export const darkColors: Colors = {
     },
     onSuccess: { primary: p.white[1000] },
     onWarning: { primary: p.yellow[800] },
-    onDanger: { primary: p.red[100], secondary: p.red[300] },
+    onDanger: { primary: p.red[100] },
     onMedia: { primary: p.white[1000] },
   },
   border: {

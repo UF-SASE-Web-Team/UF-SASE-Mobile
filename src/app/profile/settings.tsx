@@ -19,7 +19,6 @@ import {
   type ThemeMode,
   fonts,
   iconSize,
-  profileLayout,
   radius,
   space,
 } from '@/theme';
@@ -163,7 +162,7 @@ export default function AccountSettingsPage() {
                 <Ionicons
                   name="chevron-down"
                   size={iconSize.sm}
-                  color={colors.content.onBase.brand}
+                  color={colors.content.onBase.primary}
                 />
               </View>
             </MenuView>
@@ -206,7 +205,7 @@ const createStyles = (colors: Colors) =>
       paddingTop: space['200'],
     },
     themeRow: {
-      minHeight: profileLayout.actionHeight,
+      minHeight: 50,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -221,7 +220,11 @@ const createStyles = (colors: Colors) =>
       shadowRadius: space['100'],
       elevation: space['050'],
     },
-    brandText: { color: colors.content.onBase.brand, fontFamily: fonts.sans.medium, flexShrink: 1 },
+    brandText: {
+      color: colors.content.onBase.primary,
+      fontFamily: fonts.sans.medium,
+      flexShrink: 1,
+    },
     themeMenu: { flexShrink: 1 },
     themeValue: {
       flexDirection: 'row',
@@ -234,9 +237,9 @@ const createStyles = (colors: Colors) =>
       flexShrink: 1,
     },
     privacyButton: {
-      minHeight: profileLayout.privacyHeight,
+      minHeight: 148,
       backgroundColor: colors.surface.base.quaternary,
-      borderRadius: profileLayout.cardRadius * 2,
+      borderRadius: 60,
       alignItems: 'center',
       justifyContent: 'center',
       padding: space['600'],
@@ -248,6 +251,6 @@ const createStyles = (colors: Colors) =>
     },
     centerText: { textAlign: 'center' },
     actions: { gap: space['250'] },
-    pressed: { opacity: profileLayout.pressedOpacity },
+    pressed: { opacity: 0.7 },
     privacyNotice: { paddingBottom: space['600'] },
   });

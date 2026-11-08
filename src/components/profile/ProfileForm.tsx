@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Image } from 'expo-image';
 import { Input } from '@/components/Input';
 import { Text } from '@/components/Text';
 import { academicFields, socialFields, ProfileCard } from './ProfileDetails';
@@ -11,10 +10,10 @@ import {
   useThemedStyles,
   type Colors,
   iconSize,
-  profileLayout,
   radius,
   space,
   textStyles,
+  borderWidth,
 } from '@/theme';
 import type { ProfileChanges } from '@/types/profiles';
 
@@ -71,19 +70,23 @@ export function ProfileForm({ draft, onChange, disabled }: ProfileFormProps) {
           <Pressable
             accessibilityLabel={field.label}
             accessibilityRole="button"
-            accessibilityValue={{ text: draft[field.key] || 'Not set' }}
+            accessibilityValue={{ text: draft[field.key] }}
             disabled={disabled}
             hitSlop={space['150']}
             onPress={() => setSelection(field.key as 'major' | 'minor' | 'grad_time')}
             style={styles.select}
           >
             <Text variant="body" style={styles.selectText}>
-              {draft[field.key] || 'Not set'}
+              {draft[field.key]}
             </Text>
-            <Ionicons name="chevron-down" size={iconSize.sm} color={colors.content.onBase.brand} />
+            <Ionicons
+              name="chevron-down"
+              size={iconSize.sm}
+              color={colors.content.onBase.primary}
+            />
           </Pressable>
         ) : (
-          <View style={styles.inputContainer}>
+          <View style={styles.inputWrapper}>
             <Input
               accessibilityLabel={field.label}
               value={draft[field.key]}
@@ -93,16 +96,26 @@ export function ProfileForm({ draft, onChange, disabled }: ProfileFormProps) {
               autoCapitalize={field.key === 'full_name' ? 'words' : 'none'}
               autoCorrect={field.key === 'full_name'}
               keyboardType={field.key === 'linkedin_url' ? 'url' : 'default'}
-              placeholder={field.key === 'full_name' ? 'Your name' : 'Not set'}
-              style={styles.input}
-            />
-            <Image
-              source={require('@/assets/icons/profile/pencil-small.svg')}
-              style={styles.pencil}
-              contentFit="contain"
-              tintColor={colors.content.onBase.primary}
-              accessible={false}
-              pointerEvents="none"
+              placeholder={field.key === 'full_name' ? 'Full name' : undefined}
+              containerStyle={styles.inputContainer}
+              inputStyle={styles.input}
+              rightIcon={
+                !disabled && Boolean(draft[field.key]?.length) ? (
+                  <Pressable
+                    onPress={() => onChange(field.key, '')}
+                    hitSlop={space['200']}
+                    accessibilityLabel={`Clear ${field.label.toLowerCase()}`}
+                    accessibilityRole="button"
+                    style={styles.clearButton}
+                  >
+                    <Ionicons
+                      name="close-outline"
+                      size={iconSize.md}
+                      color={colors.content.onBase.secondary}
+                    />
+                  </Pressable>
+                ) : null
+              }
             />
           </View>
         )}
@@ -123,7 +136,8 @@ export function ProfileForm({ draft, onChange, disabled }: ProfileFormProps) {
           maxLength={500}
           editable={!disabled}
           textAlignVertical="top"
-          style={styles.bio}
+          containerStyle={styles.bioContainer}
+          inputStyle={styles.bio}
         />
       </ProfileCard>
       {selection && (
@@ -149,47 +163,43 @@ const createStyles = (colors: Colors) =>
     row: {
       flexDirection: 'row',
       alignItems: 'center',
-      minHeight: profileLayout.academicRowHeight,
+      minHeight: 42,
       gap: space['100'],
     },
-    socialRow: { minHeight: profileLayout.socialRowHeight },
-    label: { width: '26%', color: colors.content.onBase.brand, lineHeight: space['500'] },
-    inputContainer: {
+    socialRow: { minHeight: 38 },
+    label: { width: '26%', color: colors.content.onBase.primary, lineHeight: space['500'] },
+    inputWrapper: {
       flex: 1,
-      flexDirection: 'row',
+    },
+    clearButton: {
+      height: space['500'],
+      width: space['500'],
+      justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: colors.surface.base.tertiary,
-      borderRadius: radius.full,
-      paddingRight: space['200'],
     },
-    input: {
-      ...textStyles.body,
-      color: colors.content.onBase.brand,
-      flex: 1,
-      minWidth: 0,
-      minHeight: profileLayout.fieldHeight,
-      paddingHorizontal: space['200'],
-      paddingVertical: space['100'],
-      lineHeight: space['500'],
+    inputContainer: {
+      borderColor: colors.border.base.subtle,
+      borderWidth: borderWidth.lg,
     },
-    pencil: { width: iconSize.sm, height: iconSize.sm },
+    input: {},
     select: {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: colors.surface.base.tertiary,
       borderRadius: radius.full,
-      minHeight: profileLayout.fieldHeight,
+      minHeight: 32,
       paddingHorizontal: space['200'],
       paddingVertical: space['100'],
       gap: space['100'],
     },
-    selectText: { color: colors.content.onBase.brand, flex: 1, lineHeight: space['500'] },
+    selectText: { color: colors.content.onBase.primary, flex: 1, lineHeight: space['500'] },
+    bioContainer: {},
     bio: {
       ...textStyles.body,
-      color: colors.content.onBase.brand,
+      color: colors.content.onBase.primary,
       lineHeight: space['500'],
-      minHeight: profileLayout.bioHeight - space['500'],
+      minHeight: 100,
       padding: 0,
       paddingTop: space['100'],
     },

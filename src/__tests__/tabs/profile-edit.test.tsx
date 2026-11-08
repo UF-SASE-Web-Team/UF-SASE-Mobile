@@ -44,8 +44,8 @@ describe('Edit profile', () => {
   it('saves edited fields and returns after success', async () => {
     const user = userEvent.setup();
     await renderEditor();
-    await user.clear(screen.getByLabelText('Name'));
-    await user.type(screen.getByLabelText('Name'), '  Alice Updated  ');
+    await user.clear(screen.getByLabelText('Full Name'));
+    await user.type(screen.getByLabelText('Full Name'), '  Alice Updated  ');
     await user.clear(screen.getByLabelText('Bio'));
     await user.type(screen.getByLabelText('Bio'), 'A new introduction.');
     await user.press(screen.getByRole('button', { name: 'Save Changes' }));
@@ -53,6 +53,14 @@ describe('Edit profile', () => {
       expect.objectContaining({ full_name: 'Alice Updated', bio: 'A new introduction.' }),
     );
     await waitFor(() => expect(back).toHaveBeenCalled());
+  });
+
+  it('clears an input field when the clear icon is pressed', async () => {
+    const user = userEvent.setup();
+    await renderEditor();
+    expect(screen.getByLabelText('Full Name')).toHaveDisplayValue(profileFixture.full_name);
+    await user.press(screen.getByLabelText('Clear full name'));
+    expect(screen.getByLabelText('Full Name')).toHaveDisplayValue('');
   });
 
   it('selects a mascot and a new academic value before saving', async () => {
@@ -71,10 +79,10 @@ describe('Edit profile', () => {
   it('rejects blank names and invalid LinkedIn URLs', async () => {
     const user = userEvent.setup();
     await renderEditor();
-    await user.clear(screen.getByLabelText('Name'));
+    await user.clear(screen.getByLabelText('Full Name'));
     await user.press(screen.getByRole('button', { name: 'Save Changes' }));
     expect(screen.getByRole('alert')).toHaveTextContent('Please enter your name.');
-    await user.type(screen.getByLabelText('Name'), 'Alice');
+    await user.type(screen.getByLabelText('Full Name'), 'Alice');
     await user.clear(screen.getByLabelText('LinkedIn'));
     await user.type(screen.getByLabelText('LinkedIn'), 'https://linkedin.com.example.com/alice');
     await user.press(screen.getByRole('button', { name: 'Save Changes' }));
@@ -86,17 +94,17 @@ describe('Edit profile', () => {
     save.mockRejectedValueOnce(new Error('Connection lost'));
     const user = userEvent.setup();
     await renderEditor();
-    await user.type(screen.getByLabelText('Name'), ' Jr');
+    await user.type(screen.getByLabelText('Full Name'), ' Jr');
     await user.press(screen.getByRole('button', { name: 'Save Changes' }));
     expect(screen.getByRole('alert')).toHaveTextContent('Connection lost');
-    expect(screen.getByLabelText('Name')).toHaveDisplayValue('Alice Gator Jr');
+    expect(screen.getByLabelText('Full Name')).toHaveDisplayValue('Alice Gator Jr');
     expect(back).not.toHaveBeenCalled();
   });
 
   it('protects unsaved edits when navigating back', async () => {
     const user = userEvent.setup();
     await renderEditor();
-    await user.type(screen.getByLabelText('Name'), ' Jr');
+    await user.type(screen.getByLabelText('Full Name'), ' Jr');
     const guardCalls = (usePreventRemove as jest.Mock).mock.calls;
     const [prevented, handler] = guardCalls[guardCalls.length - 1];
     expect(prevented).toBe(true);
