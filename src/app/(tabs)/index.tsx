@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
+import { Ionicons } from '@expo/vector-icons';
 import { EventCheckInModal } from '@/components/EventCheckInModal';
 import { HappeningNowCard } from '@/components/HappeningNowCard';
 import { SaseFlask, SaseLogo } from '@/components/icons';
@@ -11,6 +12,7 @@ import { useEvents } from '@/context/EventsContext';
 import { useProfile } from '@/context/ProfileContext';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { getProfileAvatarSource, profileAvatars } from '@/lib/profileAvatars';
+import { getPointsLog } from '@/services/points';
 import { borderWidth, radius, space, type Colors } from '@/theme';
 import { EventRow, EventWithRsvp } from '@/types/events';
 
@@ -24,6 +26,18 @@ export default function HomePage() {
 
   const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
   const [selectedCheckInEvent, setSelectedCheckInEvent] = useState<EventRow | null>(null);
+
+  const [totalPoints, setTotalPoints] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setTotalPoints(null);
+      return;
+    }
+    getPointsLog(user.id)
+      .then((entries) => setTotalPoints(entries.reduce((sum, e) => sum + e.pointsValue, 0)))
+      .catch(() => setTotalPoints(null));
+  }, [user, activeEvents]);
 
   const imageFailed = failedAvatarUrl === (profile?.avatar_url ?? '__fallback__');
 
@@ -75,24 +89,37 @@ export default function HomePage() {
           />
         </View>
 
-        <Pressable
-          accessibilityLabel="Profile"
-          accessibilityRole="button"
-          testID="home-profile-button"
-          onPress={() => router.push('/profile')}
-          style={({ pressed }) => [styles.profileButton, pressed && styles.profileButtonPressed]}
-        >
-          <Image
-            source={avatarSource}
-            style={styles.profileAvatar}
-            contentFit="cover"
-            accessibilityLabel={
-              profile?.full_name ? `${profile.full_name}'s profile picture` : 'Profile picture'
-            }
-            testID="home-profile-image"
-            onError={() => setFailedAvatarUrl(profile?.avatar_url ?? '__fallback__')}
-          />
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable
+            accessibilityLabel={`${totalPoints ?? 0} points. View points log`}
+            accessibilityRole="button"
+            testID="home-points-badge"
+            onPress={() => router.push('/points')}
+            style={({ pressed }) => [styles.pointsBadge, pressed && styles.profileButtonPressed]}
+          >
+            <Ionicons name="star" size={16} color={colors.surface.saseBlue.secondary} />
+            <Text style={styles.pointsBadgeText}>{totalPoints ?? 0}</Text>
+          </Pressable>
+
+          <Pressable
+            accessibilityLabel="Profile"
+            accessibilityRole="button"
+            testID="home-profile-button"
+            onPress={() => router.push('/profile')}
+            style={({ pressed }) => [styles.profileButton, pressed && styles.profileButtonPressed]}
+          >
+            <Image
+              source={avatarSource}
+              style={styles.profileAvatar}
+              contentFit="cover"
+              accessibilityLabel={
+                profile?.full_name ? `${profile.full_name}'s profile picture` : 'Profile picture'
+              }
+              testID="home-profile-image"
+              onError={() => setFailedAvatarUrl(profile?.avatar_url ?? '__fallback__')}
+            />
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView
@@ -159,6 +186,30 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: space['200'],
+    },
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space['300'],
+    },
+    pointsBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space['100'],
+      height: 32,
+      paddingHorizontal: space['300'],
+      borderRadius: 30,
+      backgroundColor: colors.surface.base.secondary,
+      shadowColor: '#000000',
+      shadowOpacity: 0.08,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 2,
+    },
+    pointsBadgeText: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.surface.saseBlue.secondary,
     },
     profileButton: {
       width: 40,
