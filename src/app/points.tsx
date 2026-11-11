@@ -57,9 +57,30 @@ export default function PointsLogPage() {
   }, [user]);
 
   useEffect(() => {
-    loadEntries().finally(() => setLoading(false));
-  }, [loadEntries]);
+    if (!user) return;
+    let isMounted = true;
 
+    getPointsLog(user.id)
+      .then((data) => {
+        if (!isMounted) return;
+        setEntries(data);
+        setError(null);
+      })
+      .catch((err: any) => {
+        if (!isMounted) return;
+        console.error('Error fetching points log:', err.message);
+        setError(err.message || 'Failed to load points.');
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
+  
   const handleRefresh = async () => {
     setRefreshing(true);
     await loadEntries();

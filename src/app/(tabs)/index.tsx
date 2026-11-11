@@ -30,13 +30,22 @@ export default function HomePage() {
   const [totalPoints, setTotalPoints] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!user) {
-      setTotalPoints(null);
-      return;
-    }
+    if (!user) return;
+    let isMounted = true;
+
     getPointsLog(user.id)
-      .then((entries) => setTotalPoints(entries.reduce((sum, e) => sum + e.pointsValue, 0)))
-      .catch(() => setTotalPoints(null));
+      .then((entries) => {
+        if (!isMounted) return;
+        setTotalPoints(entries.reduce((sum, e) => sum + e.pointsValue, 0));
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setTotalPoints(null);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [user, activeEvents]);
 
   const imageFailed = failedAvatarUrl === (profile?.avatar_url ?? '__fallback__');
