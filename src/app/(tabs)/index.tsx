@@ -1,5 +1,14 @@
 import { useMemo, useState } from 'react';
-import { Alert, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Alert,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
@@ -26,7 +35,7 @@ export default function HomePage() {
   const upcomingEvents = useMemo(() => {
     const now = new Date();
     return events
-      .filter((e) => new Date(e.ends_at) > now)
+      .filter((e) => new Date(e.starts_at) > now)
       .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
   }, [events]);
 

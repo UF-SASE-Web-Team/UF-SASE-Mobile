@@ -26,7 +26,7 @@ export function HomeEventCard({ event, onPress }: HomeEventCardProps) {
         style={styles.image}
         contentFit="cover"
       />
-      
+
       <View style={styles.bottom}>
         <Text style={styles.title} numberOfLines={2}>
           {event.title}
