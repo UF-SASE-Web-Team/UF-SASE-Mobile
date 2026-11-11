@@ -80,7 +80,7 @@ export default function PointsLogPage() {
       isMounted = false;
     };
   }, [user]);
-  
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await loadEntries();
