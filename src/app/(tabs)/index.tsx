@@ -30,8 +30,8 @@ export default function HomePage() {
   const { colors, isDark } = useTheme();
   const styles = useThemedStyles(createStyles);
   const { profile } = useProfile();
-  const { events, activeEvents, refreshing, refreshEvents, markEventAttended } = useEvents();
-
+  const { events, activeEvents, loading, error, refreshing, refreshEvents, markEventAttended } =
+    useEvents();
   const upcomingEvents = useMemo(() => {
     const now = new Date();
     return events
@@ -220,8 +220,13 @@ const createStyles = (colors: Colors) =>
     sectionTitle: {
       fontSize: 18,
       fontWeight: '600',
-      color: colors.surface.saseBlue.secondary,
+      color: colors.content.onBase.primary,
       marginBottom: space['200'],
+    },
+    eventsMessage: {
+      fontSize: 14,
+      color: colors.content.onBase.primary,
+      marginBottom: space['400'],
     },
     eventsListOuter: {
       marginHorizontal: -space['400'],
