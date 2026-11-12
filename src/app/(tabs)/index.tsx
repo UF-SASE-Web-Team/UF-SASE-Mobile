@@ -100,14 +100,18 @@ export default function HomePage() {
 
         <View style={styles.headerActions}>
           <Pressable
-            accessibilityLabel={`${totalPoints ?? 0} points. View points log`}
+            accessibilityLabel={
+              totalPoints === null
+                ? 'Points unavailable. View points log'
+                : `${totalPoints} points. View points log`
+            }
             accessibilityRole="button"
             testID="home-points-badge"
             onPress={() => router.push('/points')}
             style={({ pressed }) => [styles.pointsBadge, pressed && styles.profileButtonPressed]}
           >
-            <Ionicons name="star" size={16} color={colors.surface.saseBlue.secondary} />
-            <Text style={styles.pointsBadgeText}>{totalPoints ?? 0}</Text>
+            <Ionicons name="star" size={16} color={colors.content.onBase.primary} />
+            <Text style={styles.pointsBadgeText}>{totalPoints ?? '–'}</Text>
           </Pressable>
 
           <Pressable
@@ -218,7 +222,7 @@ const createStyles = (colors: Colors) =>
     pointsBadgeText: {
       fontSize: 18,
       fontWeight: '700',
-      color: colors.surface.saseBlue.secondary,
+      color: colors.content.onBase.primary,
     },
     profileButton: {
       width: 40,

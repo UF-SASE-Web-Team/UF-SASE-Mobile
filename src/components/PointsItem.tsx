@@ -74,12 +74,12 @@ const createStyles = (colors: Colors) =>
     },
     month: {
       fontSize: 14,
-      color: colors.surface.saseBlue.secondary,
+      color: colors.content.onBase.primary,
     },
     day: {
       fontSize: 20,
       fontWeight: '700',
-      color: colors.surface.saseBlue.secondary,
+      color: colors.content.onBase.primary,
     },
     info: {
       flex: 1,
@@ -88,7 +88,7 @@ const createStyles = (colors: Colors) =>
     title: {
       fontSize: 15,
       fontWeight: '600',
-      color: colors.surface.saseBlue.secondary,
+      color: colors.content.onBase.primary,
     },
     row: {
       flexDirection: 'row',
@@ -107,7 +107,7 @@ const createStyles = (colors: Colors) =>
     },
     status: {
       fontSize: 13,
-      color: colors.surface.saseBlue.secondary,
+      color: colors.content.onBase.primary,
     },
     check: {
       width: 48,

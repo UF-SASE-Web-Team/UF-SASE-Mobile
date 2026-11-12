@@ -137,6 +137,12 @@ export default function PointsLogPage() {
             >
               <Text style={styles.infoButtonText}>What Are Points?</Text>
             </Pressable>
+            {/* Show refresh errors even when older points are still on screen */}
+            {error && entries.length > 0 && (
+              <Text style={styles.errorText} accessibilityRole="alert">
+                Could not refresh points. Pull down to try again.
+              </Text>
+            )}
           </View>
         }
         ListEmptyComponent={
@@ -207,7 +213,7 @@ const createStyles = (colors: Colors) =>
     headerTitle: {
       fontSize: 30,
       fontWeight: '700',
-      color: colors.surface.saseBlue.secondary,
+      color: colors.content.onBase.primary,
     },
     listContent: {
       paddingHorizontal: 20,
@@ -248,11 +254,11 @@ const createStyles = (colors: Colors) =>
     totalTitle: {
       fontSize: 26,
       fontWeight: '700',
-      color: colors.surface.saseBlue.secondary,
+      color: colors.content.onBase.primary,
     },
     totalSubtitle: {
       fontSize: 14,
-      color: colors.surface.saseBlue.secondary,
+      color: colors.content.onBase.primary,
     },
     infoButton: {
       borderRadius: 30,
@@ -271,7 +277,12 @@ const createStyles = (colors: Colors) =>
     emptyText: {
       textAlign: 'center',
       fontSize: 14,
-      color: colors.surface.saseBlue.secondary,
+      color: colors.content.onBase.primary,
+    },
+    errorText: {
+      textAlign: 'center',
+      fontSize: 14,
+      color: colors.content.onBase.primary,
     },
     modalBackdrop: {
       flex: 1,
@@ -290,7 +301,7 @@ const createStyles = (colors: Colors) =>
     modalText: {
       fontSize: 13,
       lineHeight: 18,
-      color: colors.surface.saseBlue.secondary,
+      color: colors.content.onBase.primary,
     },
     modalBold: {
       fontWeight: '700',
