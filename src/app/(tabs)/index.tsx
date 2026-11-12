@@ -1,11 +1,21 @@
-import { useEffect, useState } from 'react';
-import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useEffect, useState } from 'react';
+import {
+  Alert,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { EventCheckInModal } from '@/components/EventCheckInModal';
 import { HappeningNowCard } from '@/components/HappeningNowCard';
+import { HomeEventCard } from '@/components/HomeEventCard';
 import { SaseFlask, SaseLogo } from '@/components/icons';
 import { useAuth } from '@/context/AuthContext';
 import { useEvents } from '@/context/EventsContext';
@@ -22,7 +32,14 @@ export default function HomePage() {
   const { colors, isDark } = useTheme();
   const styles = useThemedStyles(createStyles);
   const { profile } = useProfile();
-  const { activeEvents, refreshing, refreshEvents, markEventAttended } = useEvents();
+  const { events, activeEvents, loading, error, refreshing, refreshEvents, markEventAttended } =
+    useEvents();
+  const upcomingEvents = useMemo(() => {
+    const now = new Date();
+    return events
+      .filter((e) => new Date(e.starts_at) > now)
+      .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
+  }, [events]);
 
   const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
   const [selectedCheckInEvent, setSelectedCheckInEvent] = useState<EventRow | null>(null);
@@ -160,6 +177,18 @@ export default function HomePage() {
             ))}
           </View>
         )}
+
+        {/* Events */}
+        <Text style={styles.sectionTitle}>Events</Text>
+        <FlatList
+          data={upcomingEvents}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id}
+          style={styles.eventsListOuter}
+          contentContainerStyle={styles.eventsList}
+          renderItem={({ item }) => <HomeEventCard event={item} onPress={handleCardPress} />}
+        />
       </ScrollView>
 
       {selectedCheckInEvent && (
@@ -251,5 +280,24 @@ const createStyles = (colors: Colors) =>
     happeningNowContainer: {
       gap: space['400'],
       marginBottom: space['400'],
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.content.onBase.primary,
+      marginBottom: space['200'],
+    },
+    eventsMessage: {
+      fontSize: 14,
+      color: colors.content.onBase.primary,
+      marginBottom: space['400'],
+    },
+    eventsListOuter: {
+      marginHorizontal: -space['400'],
+    },
+    eventsList: {
+      paddingHorizontal: space['400'],
+      paddingVertical: space['200'],
+      gap: space['300'],
     },
   });
