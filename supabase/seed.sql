@@ -442,3 +442,8 @@ insert into public.profile_reports (reporter_id, reported_id, reason, details)
 select reporter.id, reported.id, 'spam', 'Bio is only promotional links.'
 from public.profiles reporter, public.profiles reported
 where reporter.username = 'bob' and reported.username = 'alice';
+
+insert into public.app_settings (key, value)
+values ('checkin_qr_url', 'https://forms.gle/CBEEdo8zP8hjqHdc6')
+on conflict (key) do update set value = excluded.value;
+

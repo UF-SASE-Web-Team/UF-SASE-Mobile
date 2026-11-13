@@ -247,7 +247,7 @@ content_path = "./supabase/templates/recovery.html"
 
 # Use a production-ready SMTP server
 [auth.email.smtp]
-enabled = false
+enabled = true
 host = "smtp.resend.com"
 port = 587
 user = "resend"

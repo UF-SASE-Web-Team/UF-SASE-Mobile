@@ -1,21 +1,28 @@
 /// <reference types="node" />
 
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { createClient } from '@supabase/supabase-js';
 
 // Types
-type EventType = 'gbm' | 'career' | 'social' | 'team' | 'other';
+export type EventType = 'gbm' | 'career' | 'social' | 'team' | 'other';
 
-interface StandardLocation {
+export interface StandardLocation {
   location_name: string;
   address: string | null;
   lat: number | null;
   lng: number | null;
 }
 
-interface ParsedEvent {
+export interface ParsedEventLink {
+  title: string;
+  url: string;
+}
+
+export interface ParsedEvent {
+  id?: string;
   title: string;
   description: string | null;
   starts_at: string;
@@ -27,6 +34,7 @@ interface ParsedEvent {
   type: EventType;
   checkin_code?: string;
   points_value: number;
+  links: ParsedEventLink[];
 }
 
 // Patterns identifying application deadlines, form closures, etc. (to ignore)
@@ -281,15 +289,169 @@ function unescapeIcs(str: string): string {
     .replace(/\\\\/g, '\\');
 }
 
-function cleanDescription(html: string | undefined): string | null {
-  if (!html) return null;
-  let text = unescapeIcs(html);
-  // Convert <br> variants to newlines
+const KNOWN_ACRONYMS = new Set([
+  'SASE',
+  'UF',
+  'ICBR',
+  'SC',
+  'FAQ',
+  'GBM',
+  'STEM',
+  'TA',
+  'EST',
+  'EDT',
+  'AI',
+  'Q&A',
+]);
+
+export function toTitleCase(str: string): string {
+  const words = str.split(/\s+/).filter(Boolean);
+  const isAllCaps = str === str.toUpperCase() && /[A-Z]/.test(str);
+
+  return words
+    .map((word, i) => {
+      const clean = word.replace(/[^a-zA-Z0-9&]/g, '');
+      if (KNOWN_ACRONYMS.has(clean.toUpperCase())) {
+        return word.replace(clean, clean.toUpperCase());
+      }
+      if (isAllCaps || word === word.toUpperCase()) {
+        const lower = clean.toLowerCase();
+        if (
+          i > 0 &&
+          [
+            'a',
+            'an',
+            'the',
+            'and',
+            'but',
+            'or',
+            'for',
+            'nor',
+            'on',
+            'at',
+            'to',
+            'by',
+            'with',
+            'in',
+            'of',
+          ].includes(lower)
+        ) {
+          return word.replace(clean, lower);
+        }
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      }
+      return word;
+    })
+    .join(' ')
+    .trim();
+}
+
+export function cleanText(raw: string): string {
+  return raw
+    .replace(/^[\s\p{Emoji}\u200d\uFE0F•\-–—:;*#~().!?]+/gu, '')
+    .replace(/[\s\p{Emoji}\u200d\uFE0F•\-–—:;*#~().!?]+$/gu, '')
+    .trim();
+}
+
+export function parseLinkTitle(anchorText: string, beforeText: string, url: string): string {
+  const cleanAnchor = cleanText(anchorText);
+  const cleanBefore = cleanText(beforeText);
+  const combined = `${cleanBefore} ${cleanAnchor}`.toLowerCase();
+
+  // 1. High priority semantic categories
+  if (combined.includes('carpool')) return 'Carpool Form';
+  if (combined.includes('mentor')) return 'Mentor Signup';
+  if (combined.includes('potluck')) return 'Potluck Form';
+  if (combined.includes('roommate')) return 'Roommate Preferences Form';
+  if (combined.includes('food sign-up') || combined.includes('food signup'))
+    return 'Food Sign-Up Form';
+  if (combined.includes('itinerary')) return 'Full Itinerary';
+
+  // 2. Platform checks
+  if (url.includes('discord.gg') || cleanAnchor.toLowerCase().includes('discord')) {
+    if (cleanAnchor.toLowerCase().includes('discord') && cleanAnchor.length > 7) {
+      return toTitleCase(cleanAnchor);
+    }
+    return 'Discord';
+  }
+  if (url.includes('zoom.us')) return 'Zoom Link';
+
+  const isGenericWord = (s: string) =>
+    /^(?:here|link|apply|this form|form|click here|url|now)$/i.test(cleanText(s));
+  const isGenericRsvp = (s: string) =>
+    /^(?:rsvp|sign\s*up|signup|sign-up|register|registration)(?:\s*(?:here|form|link|now|sheet|today))?$/i.test(
+      cleanText(s),
+    );
+
+  // 3. Anchor text is specific (not just "HERE", "link", etc.)
+  if (cleanAnchor && !isGenericWord(cleanAnchor)) {
+    if (isGenericRsvp(cleanAnchor)) return 'RSVP Form';
+    let candidate = cleanAnchor.replace(/\s+HERE!?$/i, '').trim();
+    // If it is just a generic RSVP phrase (e.g. "RSVP form can be found here")
+    if (
+      /rsvp|can be found/i.test(candidate) &&
+      !/lab|tour|workshop|guide|faq|interest|preferences|potluck/i.test(candidate)
+    ) {
+      return 'RSVP Form';
+    }
+    candidate = candidate.replace(/^(?:sign\s*up|rsvp|register)\s*:\s*/i, '');
+    return toTitleCase(candidate);
+  }
+
+  // 4. Anchor is generic, inspect beforeText / combined
+  if (
+    combined.includes('rsvp') ||
+    isGenericRsvp(cleanBefore) ||
+    /sign\s*up|signup|register/i.test(combined)
+  ) {
+    return 'RSVP Form';
+  }
+
+  if (cleanBefore) {
+    let candidate = cleanBefore
+      .replace(
+        /^(?:please\s+review|view\s+the|complete\s+the|feel\s+free\s+to\s+review|join\s+the|check\s+out\s+our|review\s+the|reference\s+our)\s+/i,
+        '',
+      )
+      .replace(/^(?:link|form|signup|sign-up|rsvp)\s*:\s*/i, '');
+
+    // Strip trailing parenthetical instructions like "(ask him questions"
+    if (/\s*\(/.test(candidate)) {
+      candidate = candidate.replace(/\s*\(.*$/, '');
+    }
+
+    candidate = candidate.replace(/\s+(?:with|at|for|in|the|a|an|this|form|to)$/i, '').trim();
+    if (candidate.includes('.')) candidate = candidate.split('.').pop()!.trim();
+    if (candidate.includes('!')) candidate = candidate.split('!').pop()!.trim();
+    if (candidate.includes('?')) candidate = candidate.split('?').pop()!.trim();
+    candidate = cleanText(candidate);
+    if (candidate.length > 0 && !isGenericWord(candidate)) {
+      return toTitleCase(candidate);
+    }
+  }
+
+  // 5. URL pattern fallbacks
+  if (url.includes('forms.gle') || url.includes('docs.google.com/forms')) return 'RSVP Form';
+  return 'Event Link';
+}
+
+export function processDescription(rawHtml: string | undefined): {
+  description: string | null;
+  links: ParsedEventLink[];
+} {
+  if (!rawHtml) return { description: null, links: [] };
+  let text = unescapeIcs(rawHtml);
+
+  // Normalize HTML block tags into newlines
+  text = text.replace(/<\/(p|div|li|h[1-6])>/gi, '\n');
   text = text.replace(/<br\s*[\/]?>/gi, '\n');
-  // Convert <a href="url">text</a> to text (url)
-  text = text.replace(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gi, '$2 ($1)');
-  // Strip remaining HTML tags
-  text = text.replace(/<[^>]+>/g, '');
+
+  // Insert newlines before inline date/time/location/questions markers
+  text = text.replace(/([^\n])((?:📆|📅|🗓️)\s*Dates?:)/giu, '$1\n$2');
+  text = text.replace(/([^\n])((?:🕚|⏰|⌚|🕢)\s*(?:[a-z0-9_\-\s]+)?Times?:)/giu, '$1\n$2');
+  text = text.replace(/([^\n])((?:📍|📌|💻)\s*(?:[a-z0-9_\-\s]+)?Locations?:)/giu, '$1\n$2');
+  text = text.replace(/([^\n])(If you have any questions)/giu, '$1\n\n$2');
+
   // Decode HTML entities
   text = text
     .replace(/&nbsp;/g, ' ')
@@ -298,9 +460,105 @@ function cleanDescription(html: string | undefined): string | null {
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'");
-  // Clean up excess vertical whitespace
-  text = text.replace(/\n{3,}/g, '\n\n').trim();
-  return text || null;
+
+  const rawLines = text.split('\n');
+  const filteredLines: string[] = [];
+  const rawLinks: ParsedEventLink[] = [];
+
+  for (const rawLine of rawLines) {
+    const lineWithoutTags = rawLine.replace(/<[^>]+>/g, '').trim();
+    if (!lineWithoutTags) continue;
+
+    // Check if Date, Time, Location line
+    if (/^(?:[^\w\s]*\s*)*(?:dates?|date\s*\/\s*time)\s*:/iu.test(lineWithoutTags)) continue;
+    if (/^(?:[^\w\s]*\s*)*(?:[a-z0-9_\-\s]+)?times?\s*:/iu.test(lineWithoutTags)) continue;
+    if (/^(?:[^\w\s]*\s*)*(?:[a-z0-9_\-\s]+)?locations?\s*:/iu.test(lineWithoutTags)) continue;
+
+    // Detect links on this line
+    let lineHasLinks = false;
+
+    // Case A: <a> tags
+    if (/<a\s+[^>]*href=/i.test(rawLine)) {
+      const anchorRegex = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gi;
+      let match: RegExpExecArray | null;
+      let lastIndex = 0;
+
+      while ((match = anchorRegex.exec(rawLine)) !== null) {
+        lineHasLinks = true;
+        const url = match[1].trim();
+        const anchor = match[2].replace(/<[^>]+>/g, '').trim();
+        const beforeText = rawLine
+          .slice(lastIndex, match.index)
+          .replace(/<[^>]+>/g, '')
+          .trim();
+        lastIndex = match.index + match[0].length;
+
+        const title = parseLinkTitle(anchor, beforeText, url);
+        rawLinks.push({ title, url });
+      }
+    } else {
+      // Case B: parenthesized or plain URLs
+      const parenRegex =
+        /(?:([^\n()]+?)\s*)?\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s<>"{}|\\^`]+)/gi;
+      let match: RegExpExecArray | null;
+      let lastIndex = 0;
+
+      while ((match = parenRegex.exec(lineWithoutTags)) !== null) {
+        lineHasLinks = true;
+        if (match[2]) {
+          const url = match[2].trim();
+          const anchor = (match[1] || '').trim();
+          const before = lineWithoutTags.slice(lastIndex, match.index).trim();
+          lastIndex = match.index + match[0].length;
+          const title = parseLinkTitle(anchor, before, url);
+          rawLinks.push({ title, url });
+        } else if (match[3]) {
+          const url = match[3].replace(/[).,]+$/, '');
+          const before = lineWithoutTags.slice(lastIndex, match.index).trim();
+          lastIndex = match.index + match[0].length;
+          const title = parseLinkTitle('', before, url);
+          rawLinks.push({ title, url });
+        }
+      }
+    }
+
+    // If the line contained any links, omit it from the final description
+    if (lineHasLinks) {
+      continue;
+    }
+
+    // Clean up empty section dividers and headers
+    if (/^[-–—_*~=]{3,}$/.test(lineWithoutTags)) continue;
+    if (
+      /^(?:[-–—_*~=]+\s*)*(?:event\s+details|forms\s*&?\s*sign-?ups?|how\s+to\s+register)\s*[:!]*$/iu.test(
+        lineWithoutTags,
+      )
+    ) {
+      continue;
+    }
+
+    filteredLines.push(lineWithoutTags);
+  }
+
+  // Deduplicate links by URL (keeping first occurrence)
+  const uniqueLinks: ParsedEventLink[] = [];
+  const seenUrls = new Set<string>();
+  for (const l of rawLinks) {
+    if (!seenUrls.has(l.url)) {
+      seenUrls.add(l.url);
+      uniqueLinks.push(l);
+    }
+  }
+
+  const cleanDesc = filteredLines
+    .join('\n\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+  return { description: cleanDesc || null, links: uniqueLinks };
+}
+
+export function cleanDescription(html: string | undefined): string | null {
+  return processDescription(html).description;
 }
 
 function parseIcsDate(dateStr: string | undefined, defaultOffsetHours = 0): string | null {
@@ -490,6 +748,12 @@ function classifyEventType(title: string, desc: string | null = ''): EventType {
   return 'other';
 }
 
+export function generateEventId(uid?: string, title?: string, startsAt?: string): string {
+  const seed = (uid && uid.trim()) || `${(title || '').trim().toLowerCase()}_${startsAt || ''}`;
+  const hash = crypto.createHash('sha256').update(seed).digest('hex');
+  return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-a${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
+}
+
 function parseIcsContent(icsData: string): ParsedEvent[] {
   // 1. Unfold lines according to RFC 5545
   const rawLines = icsData.split(/\r?\n/);
@@ -541,7 +805,7 @@ function parseIcsContent(icsData: string): ParsedEvent[] {
     }
 
     const rawDesc = raw.DESCRIPTION;
-    const description = cleanDescription(rawDesc);
+    const { description, links } = processDescription(rawDesc);
 
     const startsAt = parseIcsDate(raw.DTSTART);
     if (!startsAt) continue;
@@ -551,11 +815,14 @@ function parseIcsContent(icsData: string): ParsedEvent[] {
       endsAt = new Date(new Date(startsAt).getTime() + 60 * 60 * 1000).toISOString();
     }
 
+    const eventId = generateEventId(raw.UID, title, startsAt);
+
     // Standardize location: short code for location_name, full address for address
     const standardLoc = resolveStandardLocation(raw.LOCATION, rawDesc);
     const type = classifyEventType(title, description);
 
     parsedEvents.push({
+      id: eventId,
       title,
       description,
       starts_at: startsAt,
@@ -566,6 +833,7 @@ function parseIcsContent(icsData: string): ParsedEvent[] {
       lng: standardLoc.lng,
       type,
       points_value: 1,
+      links,
     });
   }
 
@@ -635,10 +903,17 @@ function escapeSqlString(val: string | null): string {
   return `'${val.replace(/'/g, "''")}'`;
 }
 
-function generateSql(events: ParsedEvent[]): string {
+export function generateSql(events: ParsedEvent[]): string {
+  if (events.length === 0) {
+    return '-- No events to seed.\n';
+  }
+
+  const sqlParts: string[] = ['BEGIN;'];
+
   const lines: string[] = [
     '-- Generated SASE Events Seed',
     'INSERT INTO public.events (',
+    '  id,',
     '  title,',
     '  description,',
     '  type,',
@@ -656,6 +931,7 @@ function generateSql(events: ParsedEvent[]): string {
     const isLast = i === events.length - 1;
     return (
       `  (` +
+      `'${e.id}', ` +
       `${escapeSqlString(e.title)}, ` +
       `${escapeSqlString(e.description)}, ` +
       `'${e.type}', ` +
@@ -666,11 +942,91 @@ function generateSql(events: ParsedEvent[]): string {
       `${e.lat !== null ? e.lat : 'NULL'}, ` +
       `${e.lng !== null ? e.lng : 'NULL'}, ` +
       `${e.points_value}` +
-      `)${isLast ? ';' : ','}`
+      `)${isLast ? '' : ','}`
     );
   });
 
-  return `${lines.join('\n')}\n${values.join('\n')}\n`;
+  const onConflict = [
+    'ON CONFLICT (id) DO UPDATE SET',
+    '  title = EXCLUDED.title,',
+    '  description = EXCLUDED.description,',
+    '  type = EXCLUDED.type,',
+    '  starts_at = EXCLUDED.starts_at,',
+    '  ends_at = EXCLUDED.ends_at,',
+    '  location_name = EXCLUDED.location_name,',
+    '  address = EXCLUDED.address,',
+    '  lat = EXCLUDED.lat,',
+    '  lng = EXCLUDED.lng,',
+    '  points_value = EXCLUDED.points_value;',
+  ].join('\n');
+
+  sqlParts.push(`${lines.join('\n')}\n${values.join('\n')}\n${onConflict}`);
+
+  // Collect links
+  const allLinks: { eventId: string; title: string; url: string; displayOrder: number }[] = [];
+  const eventIdsWithLinks = new Set<string>();
+
+  for (const e of events) {
+    if (e.id && e.links && e.links.length > 0) {
+      eventIdsWithLinks.add(e.id);
+      e.links.forEach((l, idx) => {
+        allLinks.push({
+          eventId: e.id!,
+          title: l.title,
+          url: l.url,
+          displayOrder: idx,
+        });
+      });
+    }
+  }
+
+  if (allLinks.length > 0) {
+    const deleteIds = Array.from(eventIdsWithLinks)
+      .map((id) => `'${id}'`)
+      .join(', ');
+
+    sqlParts.push(
+      `-- Clean existing links for the seeded events to avoid duplicate links\nDELETE FROM public.event_links\nWHERE event_id IN (${deleteIds});`,
+    );
+
+    const linkLines: string[] = [
+      '-- Generated SASE Event Links Seed',
+      'INSERT INTO public.event_links (',
+      '  event_id,',
+      '  title,',
+      '  url,',
+      '  display_order',
+      ') VALUES',
+    ];
+    const linkValues = allLinks.map((l, i) => {
+      const isLast = i === allLinks.length - 1;
+      return (
+        `  (` +
+        `'${l.eventId}', ` +
+        `${escapeSqlString(l.title)}, ` +
+        `${escapeSqlString(l.url)}, ` +
+        `${l.displayOrder}` +
+        `)${isLast ? ';' : ','}`
+      );
+    });
+    sqlParts.push(`${linkLines.join('\n')}\n${linkValues.join('\n')}`);
+
+    sqlParts.push(
+      [
+        '-- Link event.rsvp to active RSVP form links',
+        'UPDATE public.events e',
+        'SET rsvp = el.id',
+        'FROM public.event_links el',
+        'WHERE el.event_id = e.id',
+        "  AND (el.title ILIKE '%rsvp%' OR el.title ILIKE '%sign%up%')",
+        '  AND e.rsvp IS DISTINCT FROM el.id;',
+      ].join('\n'),
+    );
+  }
+
+  sqlParts.push('COMMIT;\n');
+
+  return `${sqlParts.join('\n\n')}\n`;
 }
 
 async function syncToDatabase(events: ParsedEvent[], dryRun: boolean) {
@@ -704,6 +1060,11 @@ async function syncToDatabase(events: ParsedEvent[], dryRun: boolean) {
       console.log(
         `  - [${e.type.toUpperCase()}] ${e.title} (${e.starts_at.slice(0, 10)} @ ${e.location_name}${geoInfo}${addrInfo})`,
       );
+      if (e.links && e.links.length > 0) {
+        for (const l of e.links) {
+          console.log(`    🔗 [${l.title}]: ${l.url}`);
+        }
+      }
     }
     if (events.length > 15) {
       console.log(`  ... and ${events.length - 15} more events.`);
@@ -733,6 +1094,8 @@ async function syncToDatabase(events: ParsedEvent[], dryRun: boolean) {
     const key = `${event.title.trim().toLowerCase()}_${new Date(event.starts_at).toISOString()}`;
     const existingId = existingMap.get(key);
 
+    let eventId = existingId;
+
     if (existingId) {
       // Update existing record
       const { error: updateErr } = await supabase
@@ -755,23 +1118,49 @@ async function syncToDatabase(events: ParsedEvent[], dryRun: boolean) {
       }
     } else {
       // Insert new record (omit checkin_code so Postgres generates it with default lpad(...))
-      const { error: insertErr } = await supabase.from('events').insert({
-        title: event.title,
-        description: event.description,
-        starts_at: event.starts_at,
-        ends_at: event.ends_at,
-        location_name: event.location_name,
-        address: event.address,
-        lat: event.lat,
-        lng: event.lng,
-        type: event.type,
-        points_value: event.points_value,
-      });
+      const { data: insertedData, error: insertErr } = await supabase
+        .from('events')
+        .insert({
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          starts_at: event.starts_at,
+          ends_at: event.ends_at,
+          location_name: event.location_name,
+          address: event.address,
+          lat: event.lat,
+          lng: event.lng,
+          type: event.type,
+          points_value: event.points_value,
+        })
+        .select('id')
+        .single();
 
       if (insertErr) {
         console.error(`Error inserting event "${event.title}":`, insertErr.message);
       } else {
         inserted++;
+        eventId = insertedData?.id || event.id;
+      }
+    }
+
+    if (eventId) {
+      const { error: delErr } = await supabase.from('event_links').delete().eq('event_id', eventId);
+
+      if (delErr) {
+        console.error(`Error clearing links for event "${event.title}":`, delErr.message);
+      } else if (event.links && event.links.length > 0) {
+        const { error: linkErr } = await supabase.from('event_links').insert(
+          event.links.map((link, idx) => ({
+            event_id: eventId,
+            title: link.title,
+            url: link.url,
+            display_order: idx,
+          })),
+        );
+        if (linkErr) {
+          console.error(`Error inserting links for event "${event.title}":`, linkErr.message);
+        }
       }
     }
   }
@@ -781,8 +1170,8 @@ async function syncToDatabase(events: ParsedEvent[], dryRun: boolean) {
   );
 }
 
-async function main() {
-  const args = process.argv.slice(2);
+export async function main(overrideArgs?: string[]) {
+  const args = overrideArgs || process.argv.slice(2);
   const isSql = args.includes('--sql');
   const isSeed = args.includes('--seed');
   const isDryRun = args.includes('--dry-run');
@@ -806,13 +1195,17 @@ async function main() {
   const locatedCount = events.filter((e) => e.location_name !== 'TBD').length;
   console.log(`Resolved locations for ${locatedCount} of ${events.length} events.`);
 
+  const totalLinks = events.reduce((acc, e) => acc + (e.links ? e.links.length : 0), 0);
+  console.log(`Extracted ${totalLinks} links across ${events.length} events.`);
+
   if (isSql) {
     const sql = generateSql(events);
     console.log('\n--- SQL Output ---\n');
     console.log(sql);
   } else if (isSeed) {
     const sql = generateSql(events);
-    const seedPath = path.resolve('supabase/events_seed.sql');
+    const seedPath = path.resolve('supabase/seeds/events.sql');
+    fs.mkdirSync(path.dirname(seedPath), { recursive: true });
     fs.writeFileSync(seedPath, sql, 'utf-8');
     console.log(`Wrote SQL seed file to: ${seedPath}`);
   } else {
@@ -820,7 +1213,13 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error('Fatal error:', err);
-  process.exit(1);
-});
+const isMain =
+  (typeof require !== 'undefined' && require.main === module) ||
+  Boolean(process.argv[1] && process.argv[1].includes('sync-events'));
+
+if (isMain) {
+  main().catch((err) => {
+    console.error('Fatal error:', err);
+    process.exit(1);
+  });
+}

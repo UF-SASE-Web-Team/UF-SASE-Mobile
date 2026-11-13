@@ -119,4 +119,45 @@ describe('Profile data shared across the profile flow', () => {
     expect(screen.queryByText('Alice Gator')).toBeNull();
     expect(screen.getByText('No profile')).toBeTruthy();
   });
+
+  it('signs out automatically when the user profile is missing (database reset / PGRST116)', async () => {
+    const mockSignOut = jest.fn();
+    (useAuth as jest.Mock).mockReturnValue({
+      user: { id: profileFixture.id },
+      signOut: mockSignOut,
+    });
+    (getProfile as jest.Mock).mockRejectedValueOnce({
+      code: 'PGRST116',
+      message: 'JSON object requested, multiple (or no) rows returned',
+    });
+
+    await render(
+      <ProfileProvider>
+        <ProfileConsumer />
+      </ProfileProvider>,
+    );
+
+    expect(mockSignOut).toHaveBeenCalled();
+  });
+
+  it('signs out automatically when the session token is rejected (PGRST301 or 401)', async () => {
+    const mockSignOut = jest.fn();
+    (useAuth as jest.Mock).mockReturnValue({
+      user: { id: profileFixture.id },
+      signOut: mockSignOut,
+    });
+    (getProfile as jest.Mock).mockRejectedValueOnce({
+      code: 'PGRST301',
+      status: 401,
+      message: 'JWT expired',
+    });
+
+    await render(
+      <ProfileProvider>
+        <ProfileConsumer />
+      </ProfileProvider>,
+    );
+
+    expect(mockSignOut).toHaveBeenCalled();
+  });
 });
