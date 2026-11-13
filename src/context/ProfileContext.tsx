@@ -31,7 +31,7 @@ interface ProfileContextValue {
 const ProfileContext = createContext<ProfileContextValue | undefined>(undefined);
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const userId = user?.id;
   const [revision, setRevision] = useState(0);
   const [result, setResult] = useState<{
@@ -64,8 +64,21 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         setResult({ userId, revision, profile, ufid: ufid ?? null, error: null });
         setOnboarded({ userId, complete: Boolean(ufid) });
       })
-      .catch((cause: unknown) => {
+      .catch(async (cause: unknown) => {
         if (!active) return;
+
+        // If the profile query failed because the user does not exist in the database (PGRST116)
+        // or the session token was rejected (401 / PGRST301), the session is invalid.
+        // Sign out to clear storage and return the client to the initial unauthenticated screen.
+        if (isSessionInvalidError(cause)) {
+          try {
+            await signOut();
+          } catch {
+            // best-effort sign out
+          }
+          return;
+        }
+
         setResult({
           userId,
           revision,
@@ -82,7 +95,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, [userId, revision]);
+  }, [userId, revision, signOut]);
 
   const reload = useCallback(() => setRevision((value) => value + 1), []);
   const save = useCallback(
@@ -136,4 +149,39 @@ export function getProfileError(cause: unknown, fallback: string): string {
     return cause.message;
   }
   return fallback;
+}
+
+export function isSessionInvalidError(cause: unknown): boolean {
+  if (!cause || typeof cause !== 'object') return false;
+
+  // PostgREST errors:
+  // PGRST116: JSON object requested, multiple (or no) rows returned (user missing / DB reset)
+  // PGRST301: JWT expired or invalid
+  if ('code' in cause && typeof cause.code === 'string') {
+    if (cause.code === 'PGRST116' || cause.code === 'PGRST301') {
+      return true;
+    }
+  }
+
+  // HTTP status codes indicating unauthenticated or forbidden requests
+  if ('status' in cause && typeof cause.status === 'number') {
+    if (cause.status === 401 || cause.status === 403) {
+      return true;
+    }
+  }
+
+  // Textual markers from auth or JWT errors
+  if ('message' in cause && typeof cause.message === 'string') {
+    const msg = cause.message.toLowerCase();
+    if (
+      msg.includes('invalid jwt') ||
+      msg.includes('jwt expired') ||
+      msg.includes('token is expired') ||
+      msg.includes('user not found')
+    ) {
+      return true;
+    }
+  }
+
+  return false;
 }

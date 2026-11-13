@@ -3,8 +3,10 @@ import { RedHatText_500Medium } from '@expo-google-fonts/red-hat-text/500Medium'
 import { RedHatText_600SemiBold } from '@expo-google-fonts/red-hat-text/600SemiBold';
 import { RedHatText_700Bold } from '@expo-google-fonts/red-hat-text/700Bold';
 import { Oswald_700Bold } from '@expo-google-fonts/oswald/700Bold';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 export const fontAssets = {
+  ...Ionicons.font,
   RedHatText_400Regular,
   RedHatText_500Medium,
   RedHatText_600SemiBold,

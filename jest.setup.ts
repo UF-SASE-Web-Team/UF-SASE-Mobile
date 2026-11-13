@@ -105,6 +105,7 @@ jest.mock('@/lib/supabase', () => ({
       resend: jest.fn(),
       updateUser: jest.fn(),
       signOut: jest.fn().mockResolvedValue({ error: null }),
+      getUser: jest.fn().mockResolvedValue({ data: { user: null }, error: null }),
       onAuthStateChange: jest.fn(() => ({
         data: { subscription: { unsubscribe: jest.fn() } },
       })),
