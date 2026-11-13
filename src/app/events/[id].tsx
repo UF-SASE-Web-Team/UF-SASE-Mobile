@@ -2,11 +2,14 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
+  NativeScrollEvent,
   NativeSyntheticEvent,
   Pressable,
-  ScrollView,
   StyleSheet,
   TextLayoutEventData,
+  useAnimatedValue,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -17,15 +20,29 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { BackButton } from '@/components/BackButton';
 import { EventCheckInModal } from '@/components/EventCheckInModal';
 import { EventContactsSection } from '@/components/EventContactsSection';
+import { EventFlyerViewer } from '@/components/EventFlyerViewer';
 import { EventLinksSection } from '@/components/EventLinksSection';
 import { EventTag } from '@/components/EventTag';
+import { SaseFlask, SaseLogo } from '@/components/icons';
 import { Text } from '@/components/Text';
 import { useAuth } from '@/context/AuthContext';
 import { useOptionalEvents } from '@/context/EventsContext';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import { openExternalLink } from '@/lib/links';
 import { getEvent, toggleEventRsvp } from '@/services/events';
 import { type Colors, borderWidth, radius, space, iconSize } from '@/theme';
 import { EventWithDetails } from '@/types/events';
+
+// Backdrop logo proportions, from the SaseFlask (626x858) and SaseLogo (2251x511) artwork.
+const FLASK_ASPECT_RATIO = 858 / 626;
+const LOGO_ASPECT_RATIO = 2251 / 511;
+const LOGO_WIDTH_RATIO = 3.5;
+// Flyers are designed as 4:5 portrait posters (e.g. 1080x1350).
+const FLYER_ASPECT_RATIO = 5 / 4;
+// The details sheet never starts lower than this fraction of the screen.
+const MAX_SHEET_TOP_RATIO = 0.45;
+// How far the flyer must be pulled down before releasing opens it full-screen.
+const PULL_TO_EXPAND_DISTANCE = 64;
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -35,6 +52,8 @@ export default function EventDetailScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const scrollY = useAnimatedValue(0);
 
   const [event, setEvent] = useState<EventWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,6 +63,8 @@ export default function EventDetailScreen() {
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
 
   const [isCheckInModalVisible, setIsCheckInModalVisible] = useState(false);
+  // Non-null while the full-screen flyer is open; holds the pull stretch it opened from.
+  const [flyerViewerOrigin, setFlyerViewerOrigin] = useState<{ scale: number } | null>(null);
   const [isAboutExpanded, setIsAboutExpanded] = useState(false);
   const [isTextLong, setIsTextLong] = useState(false);
 
@@ -112,11 +133,20 @@ export default function EventDetailScreen() {
     try {
       const serverStatus = await toggleEventRsvp(event.id);
       setIsRsvped(serverStatus);
+      // Send the user to the RSVP form when they RSVP, not when they cancel.
+      if (serverStatus && event.rsvp_link?.url) {
+        await openExternalLink(event.rsvp_link.url);
+      }
     } catch (err: any) {
       setIsRsvped(previousStatus);
       Alert.alert('RSVP Error', err.message || 'Could not update RSVP status.');
     }
   };
+
+  // The backdrop (flyer or gradient) is sized like a full-width flyer, and the sheet starts
+  // at the same spot on every event, with or without a flyer.
+  const heroHeight = windowWidth * FLYER_ASPECT_RATIO;
+  const sheetTop = Math.min(heroHeight - radius.xl, windowHeight * MAX_SHEET_TOP_RATIO);
 
   if (loading) {
     return (
@@ -127,7 +157,7 @@ export default function EventDetailScreen() {
           colors={[colors.surface.saseBlue.secondary, colors.surface.saseBlue.primary]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.backdropGradient}
+          style={[styles.backdropGradient, { height: heroHeight }]}
         />
 
         {/* Floating Back Button */}
@@ -137,13 +167,7 @@ export default function EventDetailScreen() {
           style={[styles.floatingBackButton, { top: insets.top + space['200'] }]}
         />
 
-        <View
-          style={[
-            styles.cardContainer,
-            styles.loadingCardContainer,
-            { marginTop: insets.top + 160 },
-          ]}
-        >
+        <View style={[styles.cardContainer, styles.loadingCardContainer, { marginTop: sheetTop }]}>
           <ActivityIndicator
             size="large"
             color={colors.surface.saseBlue.primary}
@@ -212,27 +236,80 @@ export default function EventDetailScreen() {
     : '';
   const formattedTimeWithDoors = doorsOpenTime ? `Doors ${doorsOpenTime}, ${timeRange}` : timeRange;
 
+  const flyerUrl = event.flyer_url;
+
+  // Pulling down stretches the flyer from its top edge; scrolling up parallaxes it away.
+  const heroScale = scrollY.interpolate({
+    inputRange: [-heroHeight, 0],
+    outputRange: [2, 1],
+    extrapolateRight: 'clamp',
+  });
+  const heroTranslateY = scrollY.interpolate({
+    inputRange: [-heroHeight, 0, heroHeight],
+    outputRange: [heroHeight / 2, 0, -heroHeight / 2],
+  });
+
+  const handleScrollEndDrag = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const pullDistance = -e.nativeEvent.contentOffset.y;
+    if (flyerUrl && pullDistance >= PULL_TO_EXPAND_DISTANCE) {
+      setFlyerViewerOrigin({ scale: 1 + pullDistance / heroHeight });
+    }
+  };
+
   return (
     <View style={styles.container}>
-      {/* Backdrop: Blurred flyer if flyer_url exists, otherwise Linear Gradient */}
-      {event.flyer_url ? (
-        <Image
-          testID="event-backdrop-image"
-          source={{ uri: event.flyer_url }}
-          blurRadius={12}
-          contentFit="cover"
-          style={styles.backdropImage}
-          accessibilityRole="image"
-          accessibilityLabel="Event flyer"
-        />
+      {/* Backdrop: Flyer poster if flyer_url exists, otherwise Linear Gradient */}
+      {flyerUrl ? (
+        <Animated.View
+          style={[
+            styles.flyerHero,
+            {
+              height: heroHeight,
+              // Hidden while the full-screen viewer animates the flyer out of this spot.
+              opacity: flyerViewerOrigin ? 0 : 1,
+              transform: [{ translateY: heroTranslateY }, { scale: heroScale }],
+            },
+          ]}
+        >
+          <Image
+            testID="event-backdrop-image"
+            source={{ uri: flyerUrl }}
+            contentFit="cover"
+            style={styles.flyerHeroImage}
+            accessibilityRole="image"
+            accessibilityLabel="Event flyer"
+          />
+        </Animated.View>
       ) : (
         <LinearGradient
           testID="event-backdrop-gradient"
           colors={[colors.surface.saseBlue.secondary, colors.surface.saseBlue.primary]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.backdropGradient}
-        />
+          style={[styles.backdropGradient, { height: heroHeight }]}
+        >
+          {/* No flyer: fill the space above the sheet with the SASE logo */}
+          <View
+            style={[styles.backdropLogo, { height: sheetTop, paddingTop: insets.top }]}
+            accessible
+            accessibilityRole="image"
+            accessibilityLabel="UF SASE Logo"
+            testID="event-backdrop-logo"
+          >
+            <SaseFlask
+              width={space['1200']}
+              height={space['1200'] * FLASK_ASPECT_RATIO}
+              fill={colors.content.onSaseBlue.secondary}
+              color={colors.content.onSaseBlue.secondary}
+            />
+            <SaseLogo
+              width={space['1200'] * LOGO_WIDTH_RATIO}
+              height={(space['1200'] * LOGO_WIDTH_RATIO) / LOGO_ASPECT_RATIO}
+              fill={colors.content.onSaseBlue.secondary}
+              color={colors.content.onSaseBlue.secondary}
+            />
+          </View>
+        </LinearGradient>
       )}
 
       {/* Floating Back Button */}
@@ -243,16 +320,29 @@ export default function EventDetailScreen() {
       />
 
       {/* Content ScrollView */}
-      <ScrollView
+      <Animated.ScrollView
+        testID="event-scroll-view"
         style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            paddingTop: insets.top + 160,
-          },
-        ]}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+          useNativeDriver: true,
+        })}
+        onScrollEndDrag={handleScrollEndDrag}
       >
+        {/* Transparent window onto the backdrop; tap (or pull down) to expand the flyer */}
+        {flyerUrl ? (
+          <Pressable
+            style={{ height: sheetTop }}
+            onPress={() => setFlyerViewerOrigin({ scale: 1 })}
+            accessibilityRole="imagebutton"
+            accessibilityLabel="View event flyer"
+          />
+        ) : (
+          <View style={{ height: sheetTop }} />
+        )}
+
         <View
           style={[
             styles.cardContainer,
@@ -278,10 +368,11 @@ export default function EventDetailScreen() {
                   Checked in
                 </Text>
               </View>
-            ) : isCheckinStarted ? null : (
+            ) : isCheckinStarted || !event.rsvp ? null : (
               <Pressable
                 style={({ pressed }) => [
                   styles.rsvpButton,
+                  !isRsvped && styles.rsvpButtonIdle,
                   isRsvped && styles.rsvpButtonActive,
                   pressed && styles.rsvpButtonPressed,
                 ]}
@@ -289,7 +380,15 @@ export default function EventDetailScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={isRsvped ? 'Cancel RSVP' : 'RSVP to event'}
               >
-                <Text variant="bodyStrong" color={colors.content.onBase.primary} numberOfLines={1}>
+                <Text
+                  variant="bodyStrong"
+                  color={
+                    isRsvped
+                      ? colors.content.onBase.primary
+                      : colors.content.onSaseBlueSubtle.primary
+                  }
+                  numberOfLines={1}
+                >
                   {isRsvped ? 'Going' : 'RSVP'}
                 </Text>
               </Pressable>
@@ -383,7 +482,7 @@ export default function EventDetailScreen() {
               >
                 <Text
                   variant="bodySmStrong"
-                  color={colors.surface.saseBlue.primary}
+                  color={colors.content.onBase.brand}
                   style={styles.expandButtonText}
                 >
                   {isAboutExpanded ? 'Show less' : 'Show more'}
@@ -391,19 +490,19 @@ export default function EventDetailScreen() {
                 <Ionicons
                   name={isAboutExpanded ? 'chevron-up' : 'chevron-down'}
                   size={iconSize.sm}
-                  color={colors.surface.saseBlue.primary}
+                  color={colors.content.onBase.brand}
                 />
               </Pressable>
             )}
           </View>
 
           {/* Links Section */}
-          <EventLinksSection links={event.links} />
+          <EventLinksSection links={event.links} style={styles.linksSection} />
 
           {/* Contacts Section */}
           <EventContactsSection program={event.program} />
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       {/* Floating Bottom Check-in Button */}
       {isBottomButtonVisible && (
@@ -442,6 +541,16 @@ export default function EventDetailScreen() {
             </Text>
           </Pressable>
         </View>
+      )}
+
+      {/* Full-screen Flyer Viewer */}
+      {flyerUrl && flyerViewerOrigin && (
+        <EventFlyerViewer
+          flyerUrl={flyerUrl}
+          originHeight={heroHeight}
+          originScale={flyerViewerOrigin.scale}
+          onClose={() => setFlyerViewerOrigin(null)}
+        />
       )}
 
       {/* Check-in Modal */}
@@ -484,18 +593,27 @@ const createStyles = (colors: Colors) =>
     },
     backdropGradient: {
       position: 'absolute',
-      top: -200,
+      top: 0,
       left: 0,
       right: 0,
-      height: 600,
     },
-    backdropImage: {
+    backdropLogo: {
+      // Muted watermark so it doesn't compete with the event details.
+      opacity: 0.5,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: space['300'],
+    },
+    flyerHero: {
       position: 'absolute',
-      top: -200,
+      top: 0,
       left: 0,
       right: 0,
-      height: 600,
       backgroundColor: colors.surface.saseBlue.primary,
+    },
+    flyerHeroImage: {
+      flex: 1,
     },
     floatingBackButton: {
       position: 'absolute',
@@ -542,6 +660,10 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'center',
       minWidth: 72,
     },
+    rsvpButtonIdle: {
+      backgroundColor: colors.surface.saseBlueSubtle.primary,
+      borderColor: colors.surface.saseBlueSubtle.primary,
+    },
     rsvpButtonActive: {
       backgroundColor: colors.surface.success.primary,
       borderColor: colors.surface.success.primary,
@@ -575,6 +697,9 @@ const createStyles = (colors: Colors) =>
       marginTop: space['300'],
       gap: space['150'],
     },
+    linksSection: {
+      marginBottom: space['400'],
+    },
     sectionTitle: {
       marginBottom: space['050'],
     },
@@ -600,7 +725,7 @@ const createStyles = (colors: Colors) =>
       opacity: 0.6,
     },
     expandButtonText: {
-      color: colors.surface.saseBlue.primary,
+      color: colors.content.onBase.brand,
     },
     bottomContainer: {
       position: 'absolute',

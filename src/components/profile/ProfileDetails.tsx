@@ -32,8 +32,8 @@ export function ProfileCard({
 
 export const academicFields = [
   { key: 'full_name', label: 'Full Name', icon: 'person-outline' },
-  { key: 'major', label: 'Major', icon: 'school-outline' },
-  { key: 'minor', label: 'Minor', icon: 'book-outline' },
+  { key: 'majors', label: 'Major', icon: 'school-outline' },
+  { key: 'minors', label: 'Minor', icon: 'book-outline' },
   { key: 'grad_time', label: 'Grad Year', icon: 'calendar-outline' },
 ] as const;
 
@@ -68,7 +68,7 @@ export function ProfileDetails({ profile }: { profile: Profile }) {
       </Text>
       <View style={[styles.valuePill, field.key === 'linkedin_url' && styles.linkedinPill]}>
         <Text variant="body" style={styles.value} selectable>
-          {profile[field.key] || 'Not set'}
+          {[profile[field.key]].flat().join(', ') || 'Not set'}
         </Text>
       </View>
     </View>

@@ -190,6 +190,7 @@ export type Database = {
           location_name: string;
           points_value: number;
           program_id: string | null;
+          rsvp: string | null;
           starts_at: string;
           title: string;
           type: Database['public']['Enums']['event_type'];
@@ -210,6 +211,7 @@ export type Database = {
           location_name: string;
           points_value?: number;
           program_id?: string | null;
+          rsvp?: string | null;
           starts_at: string;
           title: string;
           type?: Database['public']['Enums']['event_type'];
@@ -229,6 +231,7 @@ export type Database = {
           location_name?: string;
           points_value?: number;
           program_id?: string | null;
+          rsvp?: string | null;
           starts_at?: string;
           title?: string;
           type?: Database['public']['Enums']['event_type'];
@@ -239,6 +242,13 @@ export type Database = {
             columns: ['program_id'];
             isOneToOne: false;
             referencedRelation: 'programs';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'events_rsvp_fkey';
+            columns: ['rsvp'];
+            isOneToOne: false;
+            referencedRelation: 'event_links';
             referencedColumns: ['id'];
           },
         ];
@@ -364,8 +374,8 @@ export type Database = {
           id: string;
           instagram_handle: string | null;
           linkedin_url: string | null;
-          major: string | null;
-          minor: string | null;
+          majors: string[];
+          minors: string[];
           role: Database['public']['Enums']['user_role'];
           updated_at: string;
           username: string;
@@ -381,8 +391,8 @@ export type Database = {
           id: string;
           instagram_handle?: string | null;
           linkedin_url?: string | null;
-          major?: string | null;
-          minor?: string | null;
+          majors?: string[];
+          minors?: string[];
           role?: Database['public']['Enums']['user_role'];
           updated_at?: string;
           username: string;
@@ -397,8 +407,8 @@ export type Database = {
           id?: string;
           instagram_handle?: string | null;
           linkedin_url?: string | null;
-          major?: string | null;
-          minor?: string | null;
+          majors?: string[];
+          minors?: string[];
           role?: Database['public']['Enums']['user_role'];
           updated_at?: string;
           username?: string;
@@ -588,7 +598,7 @@ export type Database = {
     };
     Enums: {
       checkin_method: 'code' | 'qr' | 'manual';
-      event_type: 'gbm' | 'career' | 'social' | 'team' | 'other';
+      event_type: 'gbm' | 'career' | 'social' | 'team' | 'other' | 'service' | 'sports';
       program_category: 'events_and_committees' | 'technical_and_research' | 'community';
       report_reason: 'harassment' | 'inappropriate' | 'impersonation' | 'spam' | 'other';
       resource_category: 'general' | 'sase' | 'academic' | 'professional';
@@ -708,7 +718,7 @@ export const Constants = {
   public: {
     Enums: {
       checkin_method: ['code', 'qr', 'manual'],
-      event_type: ['gbm', 'career', 'social', 'team', 'other'],
+      event_type: ['gbm', 'career', 'social', 'team', 'other', 'service', 'sports'],
       program_category: ['events_and_committees', 'technical_and_research', 'community'],
       report_reason: ['harassment', 'inappropriate', 'impersonation', 'spam', 'other'],
       resource_category: ['general', 'sase', 'academic', 'professional'],

@@ -43,10 +43,16 @@ export function HomeEventCard({ event, onPress }: HomeEventCardProps) {
         />
       ) : (
         <View style={styles.imagePlaceholder} testID={`home-event-card-placeholder-${event.id}`}>
+          <LinearGradient
+            colors={[colors.surface.saseBlue.secondary, colors.surface.saseBlue.primary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
           <Ionicons
             name="calendar-outline"
             size={iconSize.lg}
-            color={colors.content.onBase.secondary}
+            color={colors.content.onMedia.primary}
           />
         </View>
       )}
@@ -58,7 +64,7 @@ export function HomeEventCard({ event, onPress }: HomeEventCardProps) {
         pointerEvents="none"
       />
 
-      <EventTag type={event.type} style={styles.tag} />
+      <EventTag type={event.type} variant="onMedia" style={styles.tag} />
 
       <View style={styles.titleWrapper}>
         <Text variant="bodyStrong" color={colors.content.onMedia.primary} numberOfLines={2}>

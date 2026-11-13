@@ -86,6 +86,7 @@ export function ApplicationProgramCard({ program, onPress }: ProgramCardProps) {
   const isOpen = !isUpcoming && (closesAt === null || closesAt > now);
   const isJoin = isJoinLink(program.application_url);
   const actionLabel = isJoin ? 'Join' : 'Apply';
+  const hasStatusLine = isUpcoming || closesAt !== null;
 
   const formatShortDate = (date: Date) =>
     date.toLocaleDateString('en-US', {
@@ -95,19 +96,16 @@ export function ApplicationProgramCard({ program, onPress }: ProgramCardProps) {
     });
 
   const handleApplyPress = async () => {
-    if (isOpen && program.application_url) {
-      const supported = await Linking.canOpenURL(program.application_url);
-      if (supported) {
-        await Linking.openURL(program.application_url);
-      }
-    } else if (onPress) {
-      onPress(program);
+    if (!program.application_url) return;
+    const supported = await Linking.canOpenURL(program.application_url);
+    if (supported) {
+      await Linking.openURL(program.application_url);
     }
   };
 
   return (
     <Pressable
-      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      style={({ pressed }) => [styles.card, styles.appCard, pressed && styles.cardPressed]}
       onPress={() => onPress?.(program)}
       accessibilityRole="button"
       accessibilityLabel={program.name}
@@ -127,79 +125,64 @@ export function ApplicationProgramCard({ program, onPress }: ProgramCardProps) {
           </View>
         )}
 
-        <LinearGradient
-          colors={[`${colors.surface.base.secondary}00`, colors.surface.base.secondary]}
-          style={styles.imageFadeGradient}
-          pointerEvents="none"
-        />
-
         {isUpcoming && (
           <View style={styles.statusBadge}>
             <Text variant="bodySmStrong">Waiting</Text>
             <View style={styles.statusDot} />
           </View>
         )}
-      </View>
 
-      <View style={styles.appCardFooter}>
-        <Text variant="bodySmStrong" numberOfLines={1}>
-          {program.name}
-        </Text>
-
-        <Text variant="bodySm" color={colors.content.onBase.secondary} numberOfLines={1}>
-          {isUpcoming ? (
-            <>
-              Applications open{' '}
-              <Text variant="bodySmStrong" color={colors.content.onBase.primary}>
-                soon!
-              </Text>
-            </>
-          ) : closesAt ? (
-            <>
-              {actionLabel} by{' '}
-              <Text variant="bodySmStrong" color={colors.content.onBase.primary}>
-                {formatShortDate(closesAt)}!
-              </Text>
-            </>
-          ) : isJoin ? (
-            <>
-              Open to{' '}
-              <Text variant="bodySmStrong" color={colors.content.onBase.primary}>
-                join!
-              </Text>
-            </>
-          ) : (
-            <>
-              Applications{' '}
-              <Text variant="bodySmStrong" color={colors.content.onBase.primary}>
-                open!
-              </Text>
-            </>
-          )}
-        </Text>
-
-        <Pressable
-          style={[styles.applyButton, !isOpen && styles.applyButtonDisabled]}
-          disabled={!isOpen || !program.application_url}
-          onPress={handleApplyPress}
-          accessibilityRole="button"
-          accessibilityLabel={`${actionLabel} ${isJoin ? '' : 'to '}${program.name}`}
-        >
-          <Text
-            variant="bodySmStrong"
-            color={isOpen ? colors.content.onSaseBlue.secondary : colors.content.onBase.secondary}
+        {isOpen && program.application_url && (
+          <Pressable
+            style={({ pressed }) => [styles.applyButton, pressed && styles.cardPressed]}
+            onPress={handleApplyPress}
+            hitSlop={space['200']}
+            accessibilityRole="button"
+            accessibilityLabel={`${actionLabel} ${isJoin ? '' : 'to '}${program.name}`}
           >
-            {actionLabel}
-          </Text>
-          {isOpen && (
+            <Text variant="bodySmStrong" style={styles.applyButtonText}>
+              {actionLabel}
+            </Text>
             <Ionicons
               name="open-outline"
               size={iconSize.sm}
               color={colors.content.onSaseBlue.secondary}
-              style={styles.buttonIcon}
             />
-          )}
-        </Pressable>
+          </Pressable>
+        )}
+      </View>
+
+      <View style={styles.appCardFooter}>
+        {/* The name wraps to two lines unless a date line needs the room */}
+        <Text
+          variant="bodyStrong"
+          style={styles.appCardTitle}
+          numberOfLines={hasStatusLine ? 1 : 2}
+        >
+          {program.name}
+        </Text>
+
+        {hasStatusLine && (
+          <Text variant="bodySm" color={colors.content.onBase.secondary} numberOfLines={1}>
+            {isUpcoming ? (
+              <>
+                Applications open{' '}
+                <Text variant="bodySmStrong" color={colors.content.onBase.primary}>
+                  soon!
+                </Text>
+              </>
+            ) : (
+              closesAt && (
+                <>
+                  {actionLabel} by{' '}
+                  <Text variant="bodySmStrong" color={colors.content.onBase.primary}>
+                    {formatShortDate(closesAt)}!
+                  </Text>
+                </>
+              )
+            )}
+          </Text>
+        )}
       </View>
     </Pressable>
   );
@@ -246,13 +229,6 @@ const createStyles = (colors: Colors) =>
       right: 0,
       height: 120,
     },
-    imageFadeGradient: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: 48,
-    },
     contentContainer: {
       flexDirection: 'row',
       alignItems: 'flex-end',
@@ -279,8 +255,12 @@ const createStyles = (colors: Colors) =>
       marginLeft: 1,
     },
     // Application Program Card Styles
+    appCard: {
+      width: 248,
+      height: 232,
+    },
     appImageContainer: {
-      height: 96,
+      flex: 1,
       width: '100%',
       backgroundColor: colors.surface.base.tertiary,
       position: 'relative',
@@ -302,28 +282,29 @@ const createStyles = (colors: Colors) =>
       width: space['200'],
       height: space['200'],
       borderRadius: radius.sm,
-      backgroundColor: colors.content.onBase.secondary,
+      backgroundColor: colors.content.onBase.primary,
     },
     appCardFooter: {
-      flex: 1,
       paddingHorizontal: space['250'],
-      paddingVertical: space['200'],
-      justifyContent: 'space-between',
-      gap: space['100'],
+      paddingVertical: space['250'],
+      gap: space['050'],
+    },
+    appCardTitle: {
+      lineHeight: space['500'],
     },
     applyButton: {
+      position: 'absolute',
+      top: space['200'],
+      right: space['200'],
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.surface.saseBlue.primary,
-      paddingVertical: space['150'],
-      borderRadius: radius.lg,
-      gap: space['150'],
+      backgroundColor: colors.surface.saseBlue.secondary,
+      paddingHorizontal: space['400'],
+      paddingVertical: space['200'],
+      borderRadius: radius.md,
+      gap: space['100'],
     },
-    applyButtonDisabled: {
-      backgroundColor: colors.surface.base.tertiary,
-    },
-    buttonIcon: {
-      marginLeft: space['050'],
+    applyButtonText: {
+      color: colors.content.onSaseBlue.secondary,
     },
   });

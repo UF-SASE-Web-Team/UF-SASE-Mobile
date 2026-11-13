@@ -9,6 +9,26 @@ export const profileAvatars = [
     label: 'SASE Cat',
     source: require('@/assets/images/profile/sase-cat.png'),
   },
+  {
+    id: 'saseski',
+    label: 'SASEski',
+    source: require('@/assets/images/profile/saseski.png'),
+  },
+  {
+    id: 'sase-gator',
+    label: 'SASE Gator',
+    source: require('@/assets/images/profile/sase-gator.png'),
+  },
+  {
+    id: 'sase-mantis',
+    label: 'SASE Mantis',
+    source: require('@/assets/images/profile/sase-mantis.png'),
+  },
+  {
+    id: 'sase-sweeter',
+    label: 'SASE Sweeter',
+    source: require('@/assets/images/profile/sase-sweeter.png'),
+  },
 ] as const;
 
 export function getProfileAvatarSource(avatarUrl?: string | null) {

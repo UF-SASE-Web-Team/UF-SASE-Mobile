@@ -69,6 +69,9 @@ export default function SignupScreen() {
   const [isRequestInFlight, setIsRequestInFlight] = useState(false);
   const [isSuggesting, setIsSuggesting] = useState(false);
 
+  // The email the server last rejected as already registered
+  const [takenEmail, setTakenEmail] = useState<string | null>(null);
+
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -170,11 +173,13 @@ export default function SignupScreen() {
     }
   };
 
+  const isEmailTakenError = (error: any) => {
+    const msg = error?.message?.toLowerCase() ?? '';
+    return msg.includes('already registered') || msg.includes('already exists');
+  };
+
   const getReadableErrorMessage = (error: any) => {
     const msg = error?.message?.toLowerCase() ?? '';
-    if (msg.includes('user already registered') || msg.includes('already exists')) {
-      return 'An account with this email already exists. Try logging in.';
-    }
     if (msg.includes('network') || msg.includes('fetch')) {
       return 'Unable to reach the server. Please check your internet connection.';
     }
@@ -222,6 +227,16 @@ export default function SignupScreen() {
     });
     setLoading(false);
 
+    // With email confirmation on, Supabase hides existing accounts behind a
+    // fake success: a user with no identities and no error.
+    const isEmailTaken = error ? isEmailTakenError(error) : data.user?.identities?.length === 0;
+
+    if (isEmailTaken) {
+      setTakenEmail(cleanEmail);
+      emailInputRef.current?.focus();
+      return;
+    }
+
     if (error) {
       Alert.alert('Sign-up failed', getReadableErrorMessage(error));
       return;
@@ -237,9 +252,11 @@ export default function SignupScreen() {
 
   // --- Field Errors ---
   const emailError =
-    (touched.email || hasSubmitted) && !isEmailValid
-      ? 'Please enter a valid email address.'
-      : undefined;
+    takenEmail !== null && cleanEmail === takenEmail
+      ? 'That email is already being used. Try logging in instead.'
+      : (touched.email || hasSubmitted) && !isEmailValid
+        ? 'Please enter a valid email address.'
+        : undefined;
 
   const passwordError =
     (touched.password || hasSubmitted) && !isPasswordValid

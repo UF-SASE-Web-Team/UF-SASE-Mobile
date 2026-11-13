@@ -62,7 +62,7 @@ describe('Profile', () => {
 
   it('handles missing optional details without showing draft placeholder data', async () => {
     (useProfile as jest.Mock).mockReturnValue({
-      profile: { ...profileFixture, bio: null, major: null, programNames: [] },
+      profile: { ...profileFixture, bio: null, majors: [], programNames: [] },
     });
     await renderProfile();
     expect(screen.getByText('Not set')).toBeTruthy();

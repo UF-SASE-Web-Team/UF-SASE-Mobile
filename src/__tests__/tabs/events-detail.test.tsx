@@ -60,6 +60,13 @@ describe('EventDetailScreen', () => {
     checkin_closes_at: null,
     created_at: new Date().toISOString(),
     program_id: null,
+    rsvp: 'link-1',
+    rsvp_link: {
+      id: 'link-1',
+      event_id: 'event-1',
+      title: 'RSVP form',
+      url: 'https://forms.gle/rsvp',
+    },
     is_rsvped: false,
     has_attended: false,
   };
@@ -99,18 +106,45 @@ describe('EventDetailScreen', () => {
       expect(screen.queryByText('Check-in')).toBeNull();
     });
 
-    it('toggles RSVP status when RSVP button is clicked', async () => {
+    it('hides the RSVP button when the event has no RSVP link', async () => {
+      (eventsService.getEvent as jest.Mock).mockResolvedValue({ ...baseEvent, rsvp: null });
+
+      await renderScreen();
+
+      await screen.findByText('GBM 2: SASE Story');
+      expect(screen.queryByRole('button', { name: 'RSVP to event' })).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Cancel RSVP' })).toBeNull();
+    });
+
+    it('marks the user as going and opens the RSVP link when RSVP is pressed', async () => {
+      const openURLSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue(true as any);
+      jest.spyOn(Linking, 'canOpenURL').mockResolvedValue(true);
       (eventsService.getEvent as jest.Mock).mockResolvedValue(baseEvent);
       (eventsService.toggleEventRsvp as jest.Mock).mockResolvedValue(true);
       const user = userEvent.setup();
 
       await renderScreen();
 
-      const rsvpButton = await screen.findByText('RSVP');
-      await user.press(rsvpButton);
+      await user.press(await screen.findByRole('button', { name: 'RSVP to event' }));
 
       expect(eventsService.toggleEventRsvp).toHaveBeenCalledWith('event-1');
-      expect(await screen.findByText('Going')).toBeTruthy();
+      expect(await screen.findByRole('button', { name: 'Cancel RSVP' })).toBeTruthy();
+      await waitFor(() => expect(openURLSpy).toHaveBeenCalledWith('https://forms.gle/rsvp'));
+    });
+
+    it('does not open the RSVP link when the RSVP is cancelled', async () => {
+      const openURLSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue(true as any);
+      jest.spyOn(Linking, 'canOpenURL').mockResolvedValue(true);
+      (eventsService.getEvent as jest.Mock).mockResolvedValue({ ...baseEvent, is_rsvped: true });
+      (eventsService.toggleEventRsvp as jest.Mock).mockResolvedValue(false);
+      const user = userEvent.setup();
+
+      await renderScreen();
+
+      await user.press(await screen.findByRole('button', { name: 'Cancel RSVP' }));
+
+      expect(await screen.findByRole('button', { name: 'RSVP to event' })).toBeTruthy();
+      expect(openURLSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -411,7 +445,7 @@ describe('EventDetailScreen', () => {
   });
 
   describe('Backdrop display', () => {
-    it('renders blurred flyer image when flyer_url is present', async () => {
+    it('renders flyer image when flyer_url is present', async () => {
       const flyerUrl = 'https://example.com/flyer.jpg';
       (eventsService.getEvent as jest.Mock).mockResolvedValue({
         ...baseEvent,
@@ -425,6 +459,57 @@ describe('EventDetailScreen', () => {
       expect(backdropImage).toBeTruthy();
       expect(backdropImage.props.source).toEqual([{ uri: flyerUrl }]);
       expect(screen.queryByTestId('event-backdrop-gradient')).toBeNull();
+    });
+
+    it('opens the full-screen flyer when the flyer is pressed and closes it again', async () => {
+      const user = userEvent.setup();
+      (eventsService.getEvent as jest.Mock).mockResolvedValue({
+        ...baseEvent,
+        flyer_url: 'https://example.com/flyer.jpg',
+      });
+
+      await renderScreen();
+      await screen.findByText('GBM 2: SASE Story');
+      expect(screen.queryByLabelText('Close flyer')).toBeNull();
+
+      await user.press(screen.getByLabelText('View event flyer'));
+      const closeButton = await screen.findByLabelText('Close flyer');
+
+      await user.press(closeButton);
+      await waitFor(() => expect(screen.queryByLabelText('Close flyer')).toBeNull());
+    });
+
+    it('opens the full-screen flyer when the flyer is pulled down past the threshold', async () => {
+      (eventsService.getEvent as jest.Mock).mockResolvedValue({
+        ...baseEvent,
+        flyer_url: 'https://example.com/flyer.jpg',
+      });
+
+      await renderScreen();
+      await screen.findByText('GBM 2: SASE Story');
+      const scrollView = screen.getByTestId('event-scroll-view');
+
+      await fireEvent(scrollView, 'scrollEndDrag', {
+        nativeEvent: { contentOffset: { y: -10 } },
+      });
+      expect(screen.queryByLabelText('Close flyer')).toBeNull();
+
+      await fireEvent(scrollView, 'scrollEndDrag', {
+        nativeEvent: { contentOffset: { y: -120 } },
+      });
+      const closeButton = await screen.findByLabelText('Close flyer');
+
+      await userEvent.setup().press(closeButton);
+      await waitFor(() => expect(screen.queryByLabelText('Close flyer')).toBeNull());
+    });
+
+    it('does not offer a flyer viewer when flyer_url is not present', async () => {
+      (eventsService.getEvent as jest.Mock).mockResolvedValue({ ...baseEvent, flyer_url: null });
+
+      await renderScreen();
+      await screen.findByText('GBM 2: SASE Story');
+
+      expect(screen.queryByLabelText('View event flyer')).toBeNull();
     });
 
     it('renders linear gradient background when flyer_url is not present', async () => {

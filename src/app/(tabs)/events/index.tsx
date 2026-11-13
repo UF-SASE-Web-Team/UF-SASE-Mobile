@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { EmptyState } from '@/components/EmptyState';
 import { EventCard } from '@/components/EventCard';
 import { EventCheckInModal } from '@/components/EventCheckInModal';
 import { EventFilters, TimeFilter, TypeFilter } from '@/components/EventFilters';
@@ -18,6 +19,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useEvents } from '@/context/EventsContext';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { type Colors, space } from '@/theme';
+import { openExternalLink } from '@/lib/links';
 import { EventRow, EventWithRsvp } from '@/types/events';
 
 interface EventSection {
@@ -46,6 +48,7 @@ export default function EventsPage() {
   const [selectedCheckInEvent, setSelectedCheckInEvent] = useState<EventRow | null>(null);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('upcoming');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
+  const isFiltered = timeFilter !== 'upcoming' || typeFilter !== 'all';
 
   const handleCardPress = (event: EventRow) => {
     router.push(`/events/${event.id}` as any);
@@ -70,7 +73,12 @@ export default function EventsPage() {
     }
 
     try {
-      await toggleRsvp(event.id);
+      const isGoing = await toggleRsvp(event.id);
+      const rsvpUrl = (event as EventWithRsvp).rsvp_link?.url;
+      // Send the user to the RSVP form when they RSVP, not when they cancel.
+      if (isGoing && rsvpUrl) {
+        await openExternalLink(rsvpUrl);
+      }
     } catch (err: any) {
       Alert.alert('RSVP Error', err.message || 'Could not update RSVP status.');
     }
@@ -209,11 +217,19 @@ export default function EventsPage() {
           </View>
         }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text variant="body" color={colors.content.onBase.secondary}>
-              No events found.
-            </Text>
-          </View>
+          <EmptyState
+            icon="calendar-outline"
+            message="No events found."
+            actionLabel={isFiltered ? 'Clear filters' : undefined}
+            onAction={
+              isFiltered
+                ? () => {
+                    setTimeFilter('upcoming');
+                    setTypeFilter('all');
+                  }
+                : undefined
+            }
+          />
         }
         contentContainerStyle={styles.scrollContent}
         refreshControl={
@@ -280,10 +296,5 @@ const createStyles = (colors: Colors) =>
     },
     sectionFooter: {
       height: space['400'],
-    },
-    emptyContainer: {
-      paddingVertical: space['800'],
-      alignItems: 'center',
-      justifyContent: 'center',
     },
   });

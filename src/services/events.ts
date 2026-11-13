@@ -4,7 +4,9 @@ import { EventWithDetails, EventWithRsvp } from '@/types/events';
 export async function getEvents(): Promise<EventWithRsvp[]> {
   const { data, error: fetchError } = await supabase
     .from('events')
-    .select('*, event_rsvps(event_id, user_id), check_ins(event_id, user_id)')
+    .select(
+      '*, event_rsvps(event_id, user_id), check_ins(event_id, user_id), rsvp_link:event_links!events_rsvp_fkey(id, event_id, title, url)',
+    )
     .order('starts_at', { ascending: true });
 
   if (fetchError) throw fetchError;
@@ -24,7 +26,8 @@ export async function getEvent(eventId: string): Promise<EventWithDetails | null
       *,
       event_rsvps(event_id, user_id),
       check_ins(event_id, user_id),
-      links:event_links(id, event_id, title, url, display_order),
+      links:event_links!event_links_event_id_fkey(id, event_id, title, url, display_order),
+      rsvp_link:event_links!events_rsvp_fkey(id, event_id, title, url),
       program:programs(
         id,
         name,

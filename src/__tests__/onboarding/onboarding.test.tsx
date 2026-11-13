@@ -3,7 +3,7 @@ import OnboardingPage from '@/app/onboarding';
 import { useAuth } from '@/context/AuthContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { useProfile } from '@/context/ProfileContext';
-import { saveUfid } from '@/services/profiles';
+import { saveUfid, updateProfile } from '@/services/profiles';
 import { profileFixture } from '@/test-utils/profile';
 
 jest.mock(
@@ -36,6 +36,7 @@ describe('Onboarding', () => {
     save.mockResolvedValue(undefined);
     signOut.mockResolvedValue(undefined);
     (saveUfid as jest.Mock).mockResolvedValue('12345678');
+    (updateProfile as jest.Mock).mockResolvedValue(profileFixture);
     (useAuth as jest.Mock).mockReturnValue({ user: { id: profileFixture.id }, signOut });
     (useProfile as jest.Mock).mockReturnValue({ profile: profileFixture, ufid: null, save });
   });
@@ -75,6 +76,18 @@ describe('Onboarding', () => {
     await user.press(screen.getByRole('button', { name: 'Continue' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('UFID in use');
     expect(screen.queryByRole('button', { name: 'Finish' })).toBeNull();
+    expect(updateProfile).not.toHaveBeenCalled();
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it('saves the required details on continue, before finish or skip', async () => {
+    const user = userEvent.setup();
+    await renderOnboarding();
+    await completeRequiredStep(user);
+    expect(saveUfid).toHaveBeenCalledWith(profileFixture.id, '12345678');
+    expect(updateProfile).toHaveBeenCalledWith(profileFixture.id, {
+      full_name: profileFixture.full_name,
+    });
     expect(save).not.toHaveBeenCalled();
   });
 
@@ -104,6 +117,18 @@ describe('Onboarding', () => {
     await user.clear(screen.getByLabelText('Bio'));
     await user.type(screen.getByLabelText('Bio'), 'Discarded');
     await user.press(screen.getByRole('button', { name: 'Skip for now' }));
+    await waitFor(() =>
+      expect(save).toHaveBeenCalledWith({ full_name: profileFixture.full_name, ufid: '12345678' }),
+    );
+  });
+
+  it('enters the app without the optional details when personalization is closed', async () => {
+    const user = userEvent.setup();
+    await renderOnboarding();
+    await completeRequiredStep(user);
+    await user.clear(screen.getByLabelText('Bio'));
+    await user.type(screen.getByLabelText('Bio'), 'Discarded');
+    await user.press(screen.getByRole('button', { name: 'Close' }));
     await waitFor(() =>
       expect(save).toHaveBeenCalledWith({ full_name: profileFixture.full_name, ufid: '12345678' }),
     );

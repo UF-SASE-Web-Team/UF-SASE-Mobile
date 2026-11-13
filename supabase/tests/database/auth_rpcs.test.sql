@@ -154,6 +154,13 @@ select is(
   'Profile full_name should be populated from user metadata'
 );
 
+select ok(
+  (select avatar_url from public.profiles where username = 'charlie') = any (array[
+    'sase-shark', 'sase-cat', 'saseski', 'sase-gator', 'sase-mantis', 'sase-sweeter'
+  ]),
+  'New profiles should start with one of the bundled mascots'
+);
+
 select is(
   (select role from public.profiles where username = 'charlie'),
   'member'::public.user_role,

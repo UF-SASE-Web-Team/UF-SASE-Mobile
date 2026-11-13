@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { EmptyState } from '@/components/EmptyState';
 import { EventCard } from '@/components/EventCard';
 import { EventCheckInModal } from '@/components/EventCheckInModal';
 import { HappeningNowCard } from '@/components/HappeningNowCard';
@@ -21,7 +22,6 @@ import { HomeEventCard } from '@/components/HomeEventCard';
 import { SaseFlask, SaseLogo } from '@/components/icons';
 import { ApplicationProgramCard } from '@/components/ProgramCards';
 import { SectionHeader } from '@/components/SectionHeader';
-import { Text as ThemedText } from '@/components/Text';
 import { useAuth } from '@/context/AuthContext';
 import { useEvents } from '@/context/EventsContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -30,7 +30,7 @@ import { getProfileAvatarSource, profileAvatars } from '@/lib/profileAvatars';
 import { getOpenApplicationPrograms } from '@/lib/programs';
 import { getPointsLog } from '@/services/points';
 import { getPrograms } from '@/services/programs';
-import { borderWidth, radius, space, type Colors } from '@/theme';
+import { borderWidth, iconSize, radius, space, type Colors } from '@/theme';
 import { EventRow, EventWithRsvp } from '@/types/events';
 import { ProgramWithPoCs } from '@/types/programs';
 
@@ -194,7 +194,11 @@ export default function HomePage() {
             onPress={() => router.push('/points')}
             style={({ pressed }) => [styles.pointsBadge, pressed && styles.profileButtonPressed]}
           >
-            <Ionicons name="star" size={16} color={colors.content.onBase.primary} />
+            <Ionicons
+              name="star"
+              size={iconSize.sm}
+              color={colors.content.onSaseBlueSubtle.primary}
+            />
             <Text style={styles.pointsBadgeText}>{totalPoints ?? '–'}</Text>
           </Pressable>
 
@@ -275,25 +279,24 @@ export default function HomePage() {
               contentContainerStyle={styles.eventsList}
               renderItem={({ item }) => <HomeEventCard event={item} onPress={handleCardPress} />}
             />
-          ) : (
+          ) : loading ? (
             <View style={styles.emptyState}>
-              {loading ? (
-                <ActivityIndicator
-                  color={colors.surface.saseBlue.primary}
-                  accessibilityLabel="Loading events"
-                />
-              ) : (
-                <ThemedText
-                  variant="body"
-                  color={colors.content.onBase.secondary}
-                  style={styles.emptyText}
-                >
-                  {error
-                    ? "Couldn't load events. Pull down to refresh."
-                    : 'No upcoming events right now. Check back soon!'}
-                </ThemedText>
-              )}
+              <ActivityIndicator
+                color={colors.surface.saseBlue.primary}
+                accessibilityLabel="Loading events"
+              />
             </View>
+          ) : (
+            <EmptyState
+              icon={error ? 'cloud-offline-outline' : 'calendar-outline'}
+              tone={error ? 'orange' : 'blue'}
+              message={
+                error
+                  ? "Couldn't load events. Pull down to refresh."
+                  : 'No upcoming events right now. Check back soon!'
+              }
+              style={styles.emptyState}
+            />
           )}
         </View>
 
@@ -369,18 +372,13 @@ const createStyles = (colors: Colors) =>
       gap: space['100'],
       height: 32,
       paddingHorizontal: space['300'],
-      borderRadius: 30,
-      backgroundColor: colors.surface.base.secondary,
-      shadowColor: '#000000',
-      shadowOpacity: 0.08,
-      shadowRadius: 4,
-      shadowOffset: { width: 0, height: 2 },
-      elevation: 2,
+      borderRadius: radius.full,
+      backgroundColor: colors.surface.saseBlueSubtle.primary,
     },
     pointsBadgeText: {
       fontSize: 18,
       fontWeight: '700',
-      color: colors.content.onBase.primary,
+      color: colors.content.onSaseBlueSubtle.primary,
     },
     profileButton: {
       width: 40,
@@ -430,9 +428,6 @@ const createStyles = (colors: Colors) =>
       borderWidth: borderWidth.sm,
       borderColor: colors.border.base.subtle,
       backgroundColor: colors.surface.base.secondary,
-    },
-    emptyText: {
-      textAlign: 'center',
     },
     eventsList: {
       paddingHorizontal: space['400'],

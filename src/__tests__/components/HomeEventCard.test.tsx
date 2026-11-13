@@ -37,6 +37,7 @@ describe('HomeEventCard', () => {
     checkin_closes_at: null,
     created_at: new Date().toISOString(),
     program_id: null,
+    rsvp: null,
   };
 
   it('shows the event title', async () => {

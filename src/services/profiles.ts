@@ -26,8 +26,8 @@ export async function updateProfile(userId: string, changes: ProfileChanges): Pr
     .from('profiles')
     .update({
       full_name: changes.full_name,
-      major: changes.major,
-      minor: changes.minor,
+      majors: changes.majors,
+      minors: changes.minors,
       grad_time: changes.grad_time,
       discord_handle: changes.discord_handle,
       instagram_handle: changes.instagram_handle,

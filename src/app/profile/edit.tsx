@@ -16,8 +16,8 @@ import { useThemedStyles, type Colors, space } from '@/theme';
 function createDraft(profile: ProfileWithPrograms, ufid: string | null): ProfileDraft {
   return {
     full_name: profile.full_name,
-    major: profile.major ?? '',
-    minor: profile.minor ?? '',
+    majors: profile.majors,
+    minors: profile.minors,
     grad_time: profile.grad_time ?? '',
     discord_handle: profile.discord_handle ?? '',
     instagram_handle: profile.instagram_handle ?? '',
@@ -63,7 +63,7 @@ function ProfileEditor({ profile, ufid }: { profile: ProfileWithPrograms; ufid: 
     }
   }, [saved, router]);
 
-  const change = (key: keyof ProfileDraft, value: string) => {
+  const change = <K extends keyof ProfileDraft>(key: K, value: ProfileDraft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
     setError(null);
   };
@@ -94,7 +94,10 @@ function ProfileEditor({ profile, ufid }: { profile: ProfileWithPrograms; ufid: 
     setError(null);
     const { ufid: draftUfid, ...fields } = draft;
     const changes: ProfileEdits = Object.fromEntries(
-      Object.entries(fields).map(([key, value]) => [key, value.trim() || null]),
+      Object.entries(fields).map(([key, value]) => [
+        key,
+        typeof value === 'string' ? value.trim() || null : value,
+      ]),
     );
     changes.full_name = draft.full_name.trim();
     if (draftUfid !== initialDraft.ufid) changes.ufid = draftUfid;

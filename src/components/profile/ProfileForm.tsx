@@ -18,7 +18,15 @@ import {
 import { UFID_LENGTH, sanitizeUfid } from '@/lib/ufid';
 import type { ProfileChanges } from '@/types/profiles';
 
-export type ProfileDraft = { [K in keyof Required<ProfileChanges>]: string } & { ufid: string };
+type ListKey = 'majors' | 'minors';
+type SelectKey = ListKey | 'grad_time';
+
+export type ProfileDraft = {
+  [K in Exclude<keyof Required<ProfileChanges>, ListKey>]: string;
+} & Record<ListKey, string[]> & { ufid: string };
+
+/** Mirrors the `profiles_majors_limit` and `profiles_minors_limit` constraints. */
+const MAX_SUBJECTS = 3;
 
 // Private fields are editable here but deliberately absent from `ProfileDetails`,
 // so they never appear on a profile.
@@ -50,26 +58,24 @@ const graduationYears = Array.from({ length: 17 }, (_, index) =>
 
 interface ProfileFormProps {
   draft: ProfileDraft;
-  onChange: (key: keyof ProfileDraft, value: string) => void;
+  onChange: <K extends keyof ProfileDraft>(key: K, value: ProfileDraft[K]) => void;
   disabled: boolean;
   /** `optional` leaves out the required fields (full name and UFID). */
   variant?: 'full' | 'optional';
 }
 
 export function ProfileForm({ draft, onChange, disabled, variant = 'full' }: ProfileFormProps) {
-  const [selection, setSelection] = useState<'major' | 'minor' | 'grad_time' | null>(null);
+  const [selection, setSelection] = useState<SelectKey | null>(null);
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
   const renderRow = (field: ProfileField) => {
-    const isSelect = field.key === 'major' || field.key === 'minor' || field.key === 'grad_time';
+    const { key } = field;
     return (
       <View
-        key={field.key}
+        key={key}
         style={[
           styles.row,
-          (field.key === 'discord_handle' ||
-            field.key === 'instagram_handle' ||
-            field.key === 'linkedin_url') &&
+          (key === 'discord_handle' || key === 'instagram_handle' || key === 'linkedin_url') &&
             styles.socialRow,
         ]}
       >
@@ -82,18 +88,18 @@ export function ProfileForm({ draft, onChange, disabled, variant = 'full' }: Pro
         <Text variant="body" style={styles.label}>
           {field.label}:
         </Text>
-        {isSelect ? (
+        {key === 'majors' || key === 'minors' || key === 'grad_time' ? (
           <Pressable
             accessibilityLabel={field.label}
             accessibilityRole="button"
-            accessibilityValue={{ text: draft[field.key] }}
+            accessibilityValue={{ text: [draft[key]].flat().join(', ') }}
             disabled={disabled}
             hitSlop={space['150']}
-            onPress={() => setSelection(field.key as 'major' | 'minor' | 'grad_time')}
+            onPress={() => setSelection(key)}
             style={styles.select}
           >
             <Text variant="body" style={styles.selectText}>
-              {draft[field.key]}
+              {[draft[key]].flat().join(', ')}
             </Text>
             <Ionicons
               name="chevron-down"
@@ -105,30 +111,22 @@ export function ProfileForm({ draft, onChange, disabled, variant = 'full' }: Pro
           <View style={styles.inputWrapper}>
             <Input
               accessibilityLabel={field.label}
-              value={draft[field.key]}
-              onChangeText={(text) =>
-                onChange(field.key, field.key === 'ufid' ? sanitizeUfid(text) : text)
-              }
+              value={draft[key]}
+              onChangeText={(text) => onChange(key, key === 'ufid' ? sanitizeUfid(text) : text)}
               editable={!disabled}
-              maxLength={
-                field.key === 'ufid' ? UFID_LENGTH : field.key === 'linkedin_url' ? 300 : 100
-              }
-              autoCapitalize={field.key === 'full_name' ? 'words' : 'none'}
-              autoCorrect={field.key === 'full_name'}
+              maxLength={key === 'ufid' ? UFID_LENGTH : key === 'linkedin_url' ? 300 : 100}
+              autoCapitalize={key === 'full_name' ? 'words' : 'none'}
+              autoCorrect={key === 'full_name'}
               keyboardType={
-                field.key === 'ufid'
-                  ? 'number-pad'
-                  : field.key === 'linkedin_url'
-                    ? 'url'
-                    : 'default'
+                key === 'ufid' ? 'number-pad' : key === 'linkedin_url' ? 'url' : 'default'
               }
-              placeholder={field.key === 'full_name' ? 'Full name' : undefined}
+              placeholder={key === 'full_name' ? 'Full name' : undefined}
               containerStyle={styles.inputContainer}
               inputStyle={styles.input}
               rightIcon={
-                !disabled && Boolean(draft[field.key]?.length) ? (
+                !disabled && Boolean(draft[key]?.length) ? (
                   <Pressable
-                    onPress={() => onChange(field.key, '')}
+                    onPress={() => onChange(key, '')}
                     hitSlop={space['200']}
                     accessibilityLabel={`Clear ${field.label.toLowerCase()}`}
                     accessibilityRole="button"
@@ -183,12 +181,17 @@ export function ProfileForm({ draft, onChange, disabled, variant = 'full' }: Pro
           key={selection}
           visible
           label={
-            selection === 'grad_time' ? 'Grad Year' : selection === 'major' ? 'Major' : 'Minor'
+            selection === 'grad_time' ? 'Grad Year' : selection === 'majors' ? 'Major' : 'Minor'
           }
-          value={draft[selection]}
+          values={[draft[selection]].flat().filter(Boolean)}
           options={selection === 'grad_time' ? graduationYears : subjects}
+          max={selection === 'grad_time' ? 1 : MAX_SUBJECTS}
           onClose={() => setSelection(null)}
-          onSelect={(value) => onChange(selection, value)}
+          onChange={(values) =>
+            selection === 'grad_time'
+              ? onChange('grad_time', values[0] ?? '')
+              : onChange(selection, values)
+          }
         />
       )}
     </View>

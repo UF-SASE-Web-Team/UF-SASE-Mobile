@@ -10,8 +10,10 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { BackButton } from '@/components/BackButton';
+import { EmptyState } from '@/components/EmptyState';
+import { AccentIcon } from '@/components/AccentIcon';
 import { PointsItem } from '@/components/PointsItem';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
@@ -24,13 +26,16 @@ const FREE_SHIRT_POINTS = 4;
 
 const EVENT_TYPE_LABELS: Record<EventType, string> = {
   gbm: 'GBM',
-  career: 'Career',
+  career: 'Pro Dev',
   social: 'Social',
+  service: 'Service',
+  sports: 'Sports',
   team: 'Team',
   other: 'Other',
 };
 
 export default function PointsLogPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -118,9 +123,7 @@ export default function PointsLogPage() {
         ListHeaderComponent={
           <View style={styles.listHeader}>
             <View style={styles.totalCard}>
-              <View style={styles.giftIcon}>
-                <Ionicons name="gift-outline" size={40} color={colors.surface.saseBlue.secondary} />
-              </View>
+              <AccentIcon icon="gift-outline" tone="yellow" size="lg" />
               <View style={styles.totalInfo}>
                 <Text style={styles.totalTitle}>Total Points: {totalPoints}</Text>
                 {totalPoints >= FREE_SHIRT_POINTS && (
@@ -149,9 +152,13 @@ export default function PointsLogPage() {
           loading ? (
             <ActivityIndicator color={colors.surface.saseBlue.primary} />
           ) : (
-            <Text style={styles.emptyText}>
-              {error ?? 'No check-ins yet. Check in at an event to earn points!'}
-            </Text>
+            <EmptyState
+              icon={error ? 'cloud-offline-outline' : 'star-outline'}
+              tone={error ? 'orange' : 'yellow'}
+              message={error ?? 'No check-ins yet. Check in at an event to earn points!'}
+              actionLabel={error ? undefined : 'Browse events'}
+              onAction={error ? undefined : () => router.push('/events')}
+            />
           )
         }
         renderItem={({ item }) => (
@@ -239,14 +246,6 @@ const createStyles = (colors: Colors) =>
       shadowOffset: { width: 0, height: 4 },
       elevation: 4,
     },
-    giftIcon: {
-      width: 64,
-      height: 64,
-      borderRadius: 16,
-      backgroundColor: '#78A6F5',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
     totalInfo: {
       flex: 1,
       gap: space['100'],
@@ -273,11 +272,6 @@ const createStyles = (colors: Colors) =>
     },
     pressed: {
       opacity: 0.8,
-    },
-    emptyText: {
-      textAlign: 'center',
-      fontSize: 14,
-      color: colors.content.onBase.primary,
     },
     errorText: {
       textAlign: 'center',

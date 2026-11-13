@@ -35,6 +35,7 @@ describe('EventCard', () => {
     checkin_closes_at: null,
     created_at: new Date().toISOString(),
     program_id: null,
+    rsvp: null,
   };
 
   describe('Past events', () => {
@@ -81,7 +82,15 @@ describe('EventCard', () => {
       ...baseEvent,
       starts_at: new Date(Date.now() + 3600 * 1000 * 24).toISOString(), // tomorrow
       ends_at: new Date(Date.now() + 3600 * 1000 * 26).toISOString(),
+      rsvp: 'link-1',
     };
+
+    it('hides the RSVP button when the event has no RSVP link', async () => {
+      await renderEventCard({ event: { ...upcomingEvent, rsvp: null }, isRsvped: false });
+
+      expect(screen.queryByRole('button', { name: 'RSVP to event' })).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Cancel RSVP' })).toBeNull();
+    });
 
     it('shows RSVP button when not rsvped', async () => {
       await renderEventCard({ event: upcomingEvent, isRsvped: false });

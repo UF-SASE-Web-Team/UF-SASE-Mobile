@@ -104,10 +104,11 @@ export function EventCard({
             </Text>
           </View>
         ) : null
-      ) : isStarted ? null : (
+      ) : isStarted || !event.rsvp ? null : (
         <Pressable
           style={({ pressed }) => [
             styles.rsvpButton,
+            !isRsvped && styles.rsvpButtonIdle,
             isRsvped && styles.rsvpButtonActive,
             pressed && styles.rsvpButtonPressed,
           ]}
@@ -115,7 +116,13 @@ export function EventCard({
           accessibilityRole="button"
           accessibilityLabel={isRsvped ? 'Cancel RSVP' : 'RSVP to event'}
         >
-          <Text variant="bodyStrong" color={colors.content.onBase.primary} numberOfLines={1}>
+          <Text
+            variant="bodyStrong"
+            color={
+              isRsvped ? colors.content.onBase.primary : colors.content.onSaseBlueSubtle.primary
+            }
+            numberOfLines={1}
+          >
             {isRsvped ? 'Going' : 'RSVP'}
           </Text>
         </Pressable>
@@ -169,6 +176,10 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       justifyContent: 'center',
       minWidth: 65,
+    },
+    rsvpButtonIdle: {
+      backgroundColor: colors.surface.saseBlueSubtle.primary,
+      borderColor: colors.surface.saseBlueSubtle.primary,
     },
     rsvpButtonActive: {
       backgroundColor: colors.surface.success.primary,

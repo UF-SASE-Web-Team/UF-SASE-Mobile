@@ -2,12 +2,14 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { MenuView, NativeActionEvent } from '@expo/ui/community/menu';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { TAG_LABELS } from '@/components/EventTag';
 import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { type Colors, borderWidth, iconSize, radius, space } from '@/theme';
+import { EventType } from '@/types/events';
 
-export type TimeFilter = 'upcoming' | 'past';
-export type TypeFilter = 'all' | 'gbm' | 'social' | 'career' | 'team';
+export type TimeFilter = 'upcoming' | 'past' | 'all';
+export type TypeFilter = 'all' | Exclude<EventType, 'other'>;
 
 export interface EventFiltersProps {
   timeFilter: TimeFilter;
@@ -19,14 +21,17 @@ export interface EventFiltersProps {
 const TIME_OPTIONS: { label: string; value: TimeFilter }[] = [
   { label: 'Upcoming', value: 'upcoming' },
   { label: 'Past', value: 'past' },
+  { label: 'All', value: 'all' },
 ];
 
 const TYPE_OPTIONS: { label: string; value: TypeFilter }[] = [
   { label: 'All types', value: 'all' },
-  { label: 'GBM', value: 'gbm' },
-  { label: 'Social', value: 'social' },
-  { label: 'Career', value: 'career' },
-  { label: 'Team', value: 'team' },
+  { label: TAG_LABELS.social, value: 'social' },
+  { label: TAG_LABELS.career, value: 'career' },
+  { label: TAG_LABELS.service, value: 'service' },
+  { label: TAG_LABELS.sports, value: 'sports' },
+  { label: TAG_LABELS.gbm, value: 'gbm' },
+  { label: TAG_LABELS.team, value: 'team' },
 ];
 
 export function EventFilters({
@@ -47,6 +52,9 @@ export function EventFilters({
     state: (timeFilter === opt.value ? 'on' : 'off') as 'on' | 'off',
   }));
 
+  const isTimeFiltered = timeFilter !== 'upcoming';
+  const isTypeFiltered = typeFilter !== 'all';
+
   const typeActions = TYPE_OPTIONS.map((opt) => ({
     id: opt.value,
     title: opt.label,
@@ -62,11 +70,21 @@ export function EventFilters({
         }}
         actions={timeActions}
       >
-        <View style={styles.chip}>
-          <Text variant="bodySmStrong" numberOfLines={1}>
+        <View style={[styles.chip, isTimeFiltered && styles.chipActive]}>
+          <Text
+            variant="bodySmStrong"
+            color={isTimeFiltered ? colors.content.onSaseBlueSubtle.primary : undefined}
+            numberOfLines={1}
+          >
             {selectedTimeLabel}
           </Text>
-          <Ionicons name="chevron-down" size={iconSize.sm} color={colors.content.onBase.primary} />
+          <Ionicons
+            name="chevron-down"
+            size={iconSize.sm}
+            color={
+              isTimeFiltered ? colors.content.onSaseBlueSubtle.primary : colors.content.onBase.brand
+            }
+          />
         </View>
       </MenuView>
 
@@ -77,11 +95,21 @@ export function EventFilters({
         }}
         actions={typeActions}
       >
-        <View style={styles.chip}>
-          <Text variant="bodySmStrong" numberOfLines={1}>
+        <View style={[styles.chip, isTypeFiltered && styles.chipActive]}>
+          <Text
+            variant="bodySmStrong"
+            color={isTypeFiltered ? colors.content.onSaseBlueSubtle.primary : undefined}
+            numberOfLines={1}
+          >
             {selectedTypeLabel}
           </Text>
-          <Ionicons name="chevron-down" size={iconSize.sm} color={colors.content.onBase.primary} />
+          <Ionicons
+            name="chevron-down"
+            size={iconSize.sm}
+            color={
+              isTypeFiltered ? colors.content.onSaseBlueSubtle.primary : colors.content.onBase.brand
+            }
+          />
         </View>
       </MenuView>
     </View>
@@ -107,5 +135,9 @@ const createStyles = (colors: Colors) =>
       paddingVertical: space['150'],
       gap: space['100'],
       minWidth: 120,
+    },
+    chipActive: {
+      backgroundColor: colors.surface.saseBlueSubtle.primary,
+      borderColor: colors.surface.saseBlueSubtle.primary,
     },
   });

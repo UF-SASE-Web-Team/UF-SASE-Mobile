@@ -17,31 +17,58 @@ import {
 
 interface ProfileSelectProps {
   label: string;
-  value: string;
+  values: string[];
   options: readonly string[];
+  /** Above 1, options toggle on and off and the sheet stays open until dismissed. */
+  max?: number;
   visible: boolean;
   onClose: () => void;
-  onSelect: (value: string) => void;
+  onChange: (values: string[]) => void;
 }
 
 export function ProfileSelect({
   label,
-  value,
+  values,
   options,
+  max = 1,
   visible,
   onClose,
-  onSelect,
+  onChange,
 }: ProfileSelectProps) {
   const [search, setSearch] = useState('');
+  // `null` while the "Other" entry is collapsed.
+  const [other, setOther] = useState<string | null>(null);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
-  const matches = [...new Set([value, ...options])].filter(
-    (option) => option && option.toLowerCase().includes(search.trim().toLowerCase()),
+  const multiple = max > 1;
+  const full = multiple && values.length >= max;
+  const name = label.toLowerCase();
+  // Selected values lead the list so entries typed under "Other" stay visible.
+  const matches = [...new Set([...values, ...options])].filter((option) =>
+    option.toLowerCase().includes(search.trim().toLowerCase()),
   );
-  const select = (next: string) => {
-    onSelect(next);
-    onClose();
+
+  const choose = (option: string) => {
+    if (!multiple) {
+      onChange(option ? [option] : []);
+      onClose();
+    } else if (values.includes(option)) {
+      onChange(values.filter((value) => value !== option));
+    } else if (!full) {
+      onChange([...values, option]);
+    }
   };
+  const addOther = () => {
+    const entry = other?.trim();
+    if (!entry) return;
+    // Reuse the listed spelling so "computer science" does not duplicate an option.
+    const existing = [...values, ...options].find(
+      (option) => option.toLowerCase() === entry.toLowerCase(),
+    );
+    setOther(null);
+    if (!existing || !values.includes(existing)) choose(existing ?? entry);
+  };
+
   return (
     <ProfileSheet title={label} visible={visible} onClose={onClose}>
       <FlatList
@@ -51,48 +78,97 @@ export function ProfileSelect({
         ListHeaderComponent={
           <View style={styles.search}>
             <Input
-              accessibilityLabel={`Search or enter ${label.toLowerCase()}`}
-              placeholder={`Search or enter ${label.toLowerCase()}`}
+              accessibilityLabel={`Search ${name}`}
+              placeholder={`Search ${name}`}
               value={search}
               onChangeText={setSearch}
               maxLength={100}
               style={styles.input}
             />
-            {search.trim() ? (
-              <ProfileButton
-                title={`Use ${search.trim()}`}
-                onPress={() => select(search.trim())}
-                variant="secondary"
-              />
-            ) : null}
-            {label !== 'Major' && (
+            {multiple ? (
+              <Text variant="bodySm" style={styles.hint}>
+                Choose up to {max}.
+              </Text>
+            ) : (
               <Pressable
                 accessibilityRole="button"
-                onPress={() => select('')}
+                onPress={() => choose('')}
                 style={styles.option}
               >
-                <Text variant="body">{label === 'Minor' ? 'No minor' : 'Not set'}</Text>
+                <Text variant="body">Not set</Text>
               </Pressable>
             )}
           </View>
         }
-        renderItem={({ item }) => (
-          <Pressable
-            accessibilityRole="radio"
-            accessibilityLabel={item}
-            accessibilityState={{ checked: item === value }}
-            onPress={() => select(item)}
-            style={styles.option}
-          >
-            <Text variant="body" style={styles.optionLabel}>
-              {item}
-            </Text>
-            {item === value && (
-              <Ionicons name="checkmark" size={iconSize.md} color={colors.content.onBase.primary} />
-            )}
-          </Pressable>
-        )}
+        renderItem={({ item }) => {
+          const checked = values.includes(item);
+          const disabled = full && !checked;
+          return (
+            <Pressable
+              accessibilityRole={multiple ? 'checkbox' : 'radio'}
+              accessibilityLabel={item}
+              accessibilityState={{ checked, disabled }}
+              disabled={disabled}
+              onPress={() => choose(item)}
+              style={[styles.option, disabled && styles.disabled]}
+            >
+              <Text variant="body" style={styles.optionLabel}>
+                {item}
+              </Text>
+              {checked && (
+                <Ionicons
+                  name="checkmark"
+                  size={iconSize.md}
+                  color={colors.content.onBase.primary}
+                />
+              )}
+            </Pressable>
+          );
+        }}
+        ListFooterComponent={
+          other === null ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Other"
+              accessibilityState={{ disabled: full }}
+              disabled={full}
+              onPress={() => setOther('')}
+              style={[styles.option, full && styles.disabled]}
+            >
+              <Text variant="body" style={styles.optionLabel}>
+                Other
+              </Text>
+              <Ionicons name="add" size={iconSize.md} color={colors.content.onBase.primary} />
+            </Pressable>
+          ) : (
+            <View style={styles.other}>
+              <Input
+                accessibilityLabel={`Enter your ${name}`}
+                placeholder={`Enter your ${name}`}
+                value={other}
+                onChangeText={setOther}
+                onSubmitEditing={addOther}
+                returnKeyType="done"
+                autoCapitalize="words"
+                autoFocus
+                maxLength={100}
+                style={styles.input}
+              />
+              <ProfileButton
+                title="Add"
+                onPress={addOther}
+                variant="secondary"
+                disabled={!other.trim()}
+              />
+            </View>
+          )
+        }
       />
+      {multiple && (
+        <View style={styles.done}>
+          <ProfileButton title="Done" onPress={onClose} />
+        </View>
+      )}
     </ProfileSheet>
   );
 }
@@ -100,6 +176,7 @@ export function ProfileSelect({
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     search: { gap: space['200'] },
+    hint: { color: colors.content.onBase.secondary, paddingHorizontal: space['300'] },
     input: {
       ...textStyles.body,
       backgroundColor: colors.surface.base.secondary,
@@ -115,4 +192,7 @@ const createStyles = (colors: Colors) =>
       gap: space['200'],
     },
     optionLabel: { flex: 1 },
+    disabled: { opacity: 0.5 },
+    other: { gap: space['200'], paddingTop: space['200'] },
+    done: { paddingTop: space['300'] },
   });

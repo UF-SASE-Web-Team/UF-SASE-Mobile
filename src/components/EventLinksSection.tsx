@@ -1,8 +1,9 @@
 import React from 'react';
-import { Alert, Linking, Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import { normalizeUrl, openExternalLink } from '@/lib/links';
 import { type Colors, borderWidth, iconSize, radius, space } from '@/theme';
 import { EventLink } from '@/types/events';
 
@@ -13,17 +14,7 @@ export interface EventLinksSectionProps {
   testID?: string;
 }
 
-/**
- * Normalizes URL strings ensuring valid protocol schemes for Linking.
- */
-export function normalizeUrl(url: string): string {
-  const trimmed = url.trim();
-  if (!trimmed) return '';
-  if (/^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(trimmed) || trimmed.startsWith('mailto:')) {
-    return trimmed;
-  }
-  return `https://${trimmed}`;
-}
+export { normalizeUrl };
 
 /**
  * Chooses an appropriate Ionicons icon based on URL keywords and title.
@@ -88,25 +79,6 @@ export function EventLinksSection({
     return null;
   }
 
-  const handlePress = async (rawUrl: string) => {
-    const url = normalizeUrl(rawUrl);
-    if (!url) {
-      Alert.alert('Invalid link', 'No URL provided.');
-      return;
-    }
-
-    try {
-      const supported = await Linking.canOpenURL(url);
-      if (supported) {
-        await Linking.openURL(url);
-      } else {
-        Alert.alert('Unable to open link', 'Could not open this URL.');
-      }
-    } catch (err: any) {
-      Alert.alert('Link error', err.message || 'Failed to open link.');
-    }
-  };
-
   return (
     <View style={[styles.section, style]} testID={testID}>
       <Text variant="bodyStrong" style={styles.sectionTitle}>
@@ -120,7 +92,7 @@ export function EventLinksSection({
             <Pressable
               key={link.id}
               style={({ pressed }) => [styles.linkCard, pressed && styles.linkCardPressed]}
-              onPress={() => handlePress(link.url)}
+              onPress={() => openExternalLink(link.url)}
               accessibilityRole="link"
               accessibilityLabel={link.title}
             >

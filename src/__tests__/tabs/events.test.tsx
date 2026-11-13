@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert } from 'react-native';
+import { Alert, Linking } from 'react-native';
 import { render, screen, waitFor, fireEvent, userEvent } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -10,6 +10,10 @@ import { useAuth } from '@/context/AuthContext';
 import * as eventsService from '@/services/events';
 
 jest.mock('@/services/events');
+
+// Which option the mocked time filter menu selects when pressed.
+let mockTimeSelection = 'past';
+
 jest.mock('@expo/ui/community/menu', () => {
   const { TouchableOpacity } = jest.requireActual<typeof import('react-native')>('react-native');
   return {
@@ -20,7 +24,7 @@ jest.mock('@expo/ui/community/menu', () => {
           testID={isTimeMenu ? 'time-filter-menu' : 'type-filter-menu'}
           onPress={() => {
             if (isTimeMenu) {
-              onPressAction({ nativeEvent: { event: 'past' } });
+              onPressAction({ nativeEvent: { event: mockTimeSelection } });
             }
           }}
         >
@@ -54,6 +58,7 @@ describe('EventsPage', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTimeSelection = 'past';
     (useAuth as jest.Mock).mockReturnValue({ user: mockUser });
     (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
   });
@@ -104,6 +109,33 @@ describe('EventsPage', () => {
     expect(screen.queryByText('Recent Past Event')).toBeNull();
   });
 
+  it('marks the user as going and opens the RSVP link when RSVP is pressed on a card', async () => {
+    const openURLSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue(true as any);
+    jest.spyOn(Linking, 'canOpenURL').mockResolvedValue(true);
+    (eventsService.getEvents as jest.Mock).mockResolvedValue([
+      {
+        ...upcomingEvent,
+        rsvp: 'link-1',
+        rsvp_link: {
+          id: 'link-1',
+          event_id: 'upcoming-1',
+          title: 'RSVP form',
+          url: 'https://forms.gle/rsvp',
+        },
+      },
+    ]);
+    (eventsService.toggleEventRsvp as jest.Mock).mockResolvedValue(true);
+    const user = userEvent.setup();
+
+    await renderScreen();
+
+    await user.press(await screen.findByRole('button', { name: 'RSVP to event' }));
+
+    expect(eventsService.toggleEventRsvp).toHaveBeenCalledWith('upcoming-1');
+    expect(await screen.findByRole('button', { name: 'Cancel RSVP' })).toBeTruthy();
+    await waitFor(() => expect(openURLSpy).toHaveBeenCalledWith('https://forms.gle/rsvp'));
+  });
+
   it('reverses the order of events when time filter is "past"', async () => {
     // getEvents returns events in ascending order by starts_at
     (eventsService.getEvents as jest.Mock).mockResolvedValue([
@@ -131,6 +163,30 @@ describe('EventsPage', () => {
     // Verify order: Recent Past Event should come BEFORE Older Past Event
     const titles = screen.getAllByText(/Past Event/).map((node) => node.props.children);
     expect(titles).toEqual(['Recent Past Event', 'Older Past Event']);
+  });
+
+  it('shows past and upcoming events in chronological order when time filter is "all"', async () => {
+    mockTimeSelection = 'all';
+    (eventsService.getEvents as jest.Mock).mockResolvedValue([
+      pastEvent1,
+      pastEvent2,
+      upcomingEvent,
+    ]);
+
+    renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByText('Future Event')).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId('time-filter-menu'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Older Past Event')).toBeTruthy();
+    });
+
+    const titles = screen.getAllByText(/Event$/).map((node) => node.props.children);
+    expect(titles).toEqual(['Older Past Event', 'Recent Past Event', 'Future Event']);
   });
 
   it('opens check-in modal when Check-in button on HappeningNowCard is pressed and completes check-in', async () => {

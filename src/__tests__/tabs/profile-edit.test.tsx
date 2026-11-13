@@ -69,11 +69,40 @@ describe('Edit profile', () => {
     await user.press(screen.getByRole('button', { name: 'Change profile picture' }));
     await user.press(screen.getByRole('radio', { name: 'SASE Cat' }));
     await user.press(screen.getByRole('button', { name: 'Major' }));
-    await user.press(screen.getByRole('radio', { name: 'Mechanical Engineering' }));
+    await user.press(screen.getByRole('checkbox', { name: 'Mechanical Engineering' }));
+    await user.press(screen.getByRole('button', { name: 'Done' }));
     await user.press(screen.getByRole('button', { name: 'Save Changes' }));
     expect(save).toHaveBeenCalledWith(
-      expect.objectContaining({ avatar_url: 'sase-cat', major: 'Mechanical Engineering' }),
+      expect.objectContaining({
+        avatar_url: 'sase-cat',
+        majors: ['Computer Science', 'Mechanical Engineering'],
+      }),
     );
+  });
+
+  it('removes a selected minor and adds a custom one through Other', async () => {
+    const user = userEvent.setup();
+    await renderEditor();
+    await user.press(screen.getByRole('button', { name: 'Minor' }));
+    await user.press(screen.getByRole('checkbox', { name: 'Digital Arts and Sciences' }));
+    await user.press(screen.getByRole('button', { name: 'Other' }));
+    await user.type(screen.getByLabelText('Enter your minor'), ' Linguistics ');
+    await user.press(screen.getByRole('button', { name: 'Add' }));
+    expect(screen.getByRole('checkbox', { name: 'Linguistics' })).toBeChecked();
+    await user.press(screen.getByRole('button', { name: 'Done' }));
+    await user.press(screen.getByRole('button', { name: 'Save Changes' }));
+    expect(save).toHaveBeenCalledWith(expect.objectContaining({ minors: ['Linguistics'] }));
+  });
+
+  it('stops accepting majors once the limit is reached', async () => {
+    const user = userEvent.setup();
+    await renderEditor();
+    await user.press(screen.getByRole('button', { name: 'Major' }));
+    await user.press(screen.getByRole('checkbox', { name: 'Mechanical Engineering' }));
+    await user.press(screen.getByRole('checkbox', { name: 'Electrical Engineering' }));
+    expect(screen.getByRole('checkbox', { name: 'Computer Engineering' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Other' })).toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: 'Electrical Engineering' })).toBeEnabled();
   });
 
   it('rejects blank names and invalid LinkedIn URLs', async () => {

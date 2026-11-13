@@ -246,15 +246,21 @@ describe('SignupScreen', () => {
     });
   });
 
-  it('displays user-friendly error when account already exists', async () => {
+  it.each([
+    [
+      'signUp returns a user with no identities',
+      { data: { user: { id: 'user-1', identities: [] }, session: null }, error: null },
+    ],
+    [
+      'signUp returns an already-registered error',
+      { data: { user: null, session: null }, error: { message: 'User already registered' } },
+    ],
+  ])('marks the email invalid and stays on the form when %s', async (_name, signUpResult) => {
     (supabase.rpc as jest.Mock).mockResolvedValueOnce({
       data: true,
       error: null,
     });
-    (supabase.auth.signUp as jest.Mock).mockResolvedValueOnce({
-      data: null,
-      error: { message: 'User already registered' },
-    });
+    (supabase.auth.signUp as jest.Mock).mockResolvedValueOnce(signUpResult);
 
     const user = userEvent.setup();
     await render(<SignupScreen />);
@@ -274,11 +280,13 @@ describe('SignupScreen', () => {
     await user.press(screen.getByRole('button', { name: /create account/i }));
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith(
-        'Sign-up failed',
-        expect.stringMatching(/already exists/i),
-      );
+      expect(screen.getByPlaceholderText('Email')).toHaveProp('aria-invalid', true);
     });
+    expect(mockPush).not.toHaveBeenCalled();
+
+    // Editing the email clears the error
+    await user.type(screen.getByPlaceholderText('Email'), 'x');
+    expect(screen.getByPlaceholderText('Email')).toHaveProp('aria-invalid', false);
   });
 
   it('displays user-friendly error when sign up encounters rate limit or network error', async () => {

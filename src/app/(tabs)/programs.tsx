@@ -9,7 +9,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { EmptyState } from '@/components/EmptyState';
+import { type AccentTone } from '@/components/AccentIcon';
 import { ApplicationProgramCard, StandardProgramCard } from '@/components/ProgramCards';
+import { SectionHeader } from '@/components/SectionHeader';
 import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { getOpenApplicationPrograms } from '@/lib/programs';
@@ -17,10 +20,20 @@ import { getPrograms } from '@/services/programs';
 import { type Colors, space } from '@/theme';
 import { ProgramCategory, ProgramWithPoCs } from '@/types/programs';
 
-const CATEGORY_SECTIONS: { key: ProgramCategory; title: string }[] = [
-  { key: 'events_and_committees', title: 'Leadership' },
-  { key: 'technical_and_research', title: 'Professional Development' },
-  { key: 'community', title: 'Community' },
+const CATEGORY_SECTIONS: {
+  key: ProgramCategory;
+  title: string;
+  icon: React.ComponentProps<typeof SectionHeader>['icon'];
+  tone: AccentTone;
+}[] = [
+  { key: 'events_and_committees', title: 'Leadership', icon: 'ribbon-outline', tone: 'orange' },
+  {
+    key: 'technical_and_research',
+    title: 'Professional Development',
+    icon: 'briefcase-outline',
+    tone: 'green',
+  },
+  { key: 'community', title: 'Community', icon: 'heart-outline', tone: 'pink' },
 ];
 
 export default function ProgramsPage() {
@@ -121,7 +134,7 @@ export default function ProgramsPage() {
         {openApplicationPrograms.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text variant="title">Open Applications</Text>
+              <SectionHeader title="Open Applications" icon="create-outline" tone="blue" />
             </View>
             <FlatList
               horizontal
@@ -145,7 +158,7 @@ export default function ProgramsPage() {
           return (
             <View key={section.key} style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Text variant="title">{section.title}</Text>
+                <SectionHeader title={section.title} icon={section.icon} tone={section.tone} />
               </View>
 
               <FlatList
@@ -162,13 +175,7 @@ export default function ProgramsPage() {
           );
         })}
 
-        {programs.length === 0 && (
-          <View style={styles.emptyContainer}>
-            <Text variant="body" color={colors.content.onBase.secondary}>
-              No programs found.
-            </Text>
-          </View>
-        )}
+        {programs.length === 0 && <EmptyState icon="people-outline" message="No programs found." />}
       </ScrollView>
     </SafeAreaView>
   );
@@ -199,15 +206,10 @@ const createStyles = (colors: Colors) =>
     },
     sectionHeader: {
       paddingHorizontal: space['400'],
-      marginBottom: space['300'],
+      marginBottom: space['100'],
     },
     horizontalList: {
       paddingLeft: space['400'],
       paddingRight: space['100'],
-    },
-    emptyContainer: {
-      paddingVertical: space['800'],
-      alignItems: 'center',
-      justifyContent: 'center',
     },
   });

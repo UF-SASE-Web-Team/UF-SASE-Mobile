@@ -37,7 +37,7 @@ describe('events service', () => {
 
       expect(supabase.from).toHaveBeenCalledWith('events');
       expect(mockSelect).toHaveBeenCalledWith(
-        '*, event_rsvps(event_id, user_id), check_ins(event_id, user_id)',
+        '*, event_rsvps(event_id, user_id), check_ins(event_id, user_id), rsvp_link:event_links!events_rsvp_fkey(id, event_id, title, url)',
       );
       expect(result).toEqual([
         expect.objectContaining({

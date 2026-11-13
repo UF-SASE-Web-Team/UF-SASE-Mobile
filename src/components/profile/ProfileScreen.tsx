@@ -20,6 +20,8 @@ import { useThemedStyles, useTheme, type Colors, iconSize, space } from '@/theme
 interface ProfileScreenProps {
   children: ReactNode;
   onEdit?: () => void;
+  /** Shows a close (X) button at the top right. */
+  onClose?: () => void;
   onBack?: () => void;
   backLabel?: string;
   footer?: ReactNode;
@@ -28,6 +30,7 @@ interface ProfileScreenProps {
 export function ProfileScreen({
   children,
   onEdit,
+  onClose,
   onBack,
   backLabel = 'Back',
   footer,
@@ -67,6 +70,16 @@ export function ProfileScreen({
                     size={iconSize.md}
                     color={colors.content.onBase.primary}
                   />
+                </Pressable>
+              )}
+              {onClose && (
+                <Pressable
+                  accessibilityLabel="Close"
+                  accessibilityRole="button"
+                  onPress={onClose}
+                  style={({ pressed }) => [styles.editButton, pressed && styles.pressed]}
+                >
+                  <Ionicons name="close" size={iconSize.md} color={colors.content.onBase.primary} />
                 </Pressable>
               )}
             </View>

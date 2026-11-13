@@ -40,6 +40,7 @@ function makeUpcomingEvent(overrides: Record<string, unknown> = {}) {
     checkin_code: '123456',
     points_value: 1,
     flyer_url: null,
+    rsvp: 'link-1',
     is_rsvped: false,
     has_attended: false,
     ...overrides,

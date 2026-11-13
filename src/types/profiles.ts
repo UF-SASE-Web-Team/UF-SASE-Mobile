@@ -4,8 +4,8 @@ export type Profile = Database['public']['Tables']['profiles']['Row'];
 export type ProfileChanges = Pick<
   Database['public']['Tables']['profiles']['Update'],
   | 'full_name'
-  | 'major'
-  | 'minor'
+  | 'majors'
+  | 'minors'
   | 'grad_time'
   | 'discord_handle'
   | 'instagram_handle'

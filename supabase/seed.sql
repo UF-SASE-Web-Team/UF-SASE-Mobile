@@ -42,8 +42,8 @@ from (
       json_build_object(
         'username', 'alice',
         'full_name', 'Alice Gator',
-        'major', 'Computer Science',
-        'minor', 'Digital Arts and Sciences',
+        'majors', json_build_array('Computer Science', 'Mathematics'),
+        'minors', json_build_array('Digital Arts and Sciences'),
         'grad_time', '2029',
         'discord_handle', 'alice.gator',
         'instagram_handle', 'alice.gator',
@@ -57,7 +57,7 @@ from (
       json_build_object(
         'username', 'bob',
         'full_name', 'Bob Gator',
-        'major', 'Mechanical Engineering',
+        'majors', json_build_array('Mechanical Engineering'),
         'grad_time', '2028',
         'avatar_url', 'sase-cat'
       )
@@ -92,8 +92,8 @@ on conflict (provider_id, provider) do nothing;
 
 update public.profiles
 set full_name = 'Alice Gator',
-    major = 'Computer Science',
-    minor = 'Digital Arts and Sciences',
+    majors = array['Computer Science', 'Mathematics'],
+    minors = array['Digital Arts and Sciences'],
     grad_time = '2029',
     discord_handle = 'alice.gator',
     instagram_handle = 'alice.gator',
@@ -103,7 +103,7 @@ set full_name = 'Alice Gator',
 where username = 'alice';
 
 update public.profiles
-set major = 'Mechanical Engineering',
+set majors = array['Mechanical Engineering'],
     grad_time = '2028',
     instagram_handle = null,
     linkedin_url = null,
@@ -404,6 +404,34 @@ insert into public.events (title, type, starts_at, ends_at, location_name, check
 select 'General Body Meeting', 'gbm', now() + interval '1 day', now() + interval '1 day 2 hours', 'Little Hall', '123456', 1, 'https://flyer.com'
 where not exists (
   select 1 from public.events where title = 'General Body Meeting'
+);
+
+-- The GBM takes RSVPs: give it an RSVP link and point events.rsvp at it.
+insert into public.event_links (event_id, title, url, display_order)
+select id, 'RSVP form', 'https://forms.gle/example', 0
+from public.events
+where title = 'General Body Meeting'
+  and not exists (
+    select 1 from public.event_links el where el.event_id = events.id and el.title = 'RSVP form'
+  );
+
+update public.events e
+set rsvp = el.id
+from public.event_links el
+where el.event_id = e.id
+  and el.title = 'RSVP form'
+  and e.title = 'General Body Meeting'
+  and e.rsvp is null;
+
+-- One event for each of the newer categories so the type filter has matches.
+insert into public.events (title, type, starts_at, ends_at, location_name, points_value)
+select v.title, v.type::public.event_type, now() + v.starts_in, now() + v.starts_in + interval '2 hours', v.location_name, 1
+from (values
+  ('Beach Cleanup', 'service', interval '3 days', 'Crescent Beach'),
+  ('Intramural Volleyball', 'sports', interval '5 days', 'Southwest Recreation Center')
+) as v(title, type, starts_in, location_name)
+where not exists (
+  select 1 from public.events e where e.title = v.title
 );
 
 -- A sample open report so the officer review queue is not empty locally.

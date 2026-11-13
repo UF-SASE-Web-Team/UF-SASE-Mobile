@@ -19,7 +19,7 @@ import { ProfileScreen } from '@/components/profile/ProfileScreen';
 import { useAuth } from '@/context/AuthContext';
 import { getProfileError, useProfile } from '@/context/ProfileContext';
 import { UFID_LENGTH, isValidUfid, sanitizeUfid } from '@/lib/ufid';
-import { saveUfid } from '@/services/profiles';
+import { saveUfid, updateProfile } from '@/services/profiles';
 import type { ProfileEdits, ProfileWithPrograms } from '@/types/profiles';
 import { useTheme, useThemedStyles, type Colors, space } from '@/theme';
 
@@ -46,8 +46,8 @@ function Onboarding({ profile, ufid }: { profile: ProfileWithPrograms; ufid: str
   const [step, setStep] = useState<'required' | 'personalize'>('required');
   const [draft, setDraft] = useState<ProfileDraft>(() => ({
     full_name: profile.full_name,
-    major: profile.major ?? '',
-    minor: profile.minor ?? '',
+    majors: profile.majors,
+    minors: profile.minors,
     grad_time: profile.grad_time ?? '',
     discord_handle: profile.discord_handle ?? '',
     instagram_handle: profile.instagram_handle ?? '',
@@ -69,13 +69,15 @@ function Onboarding({ profile, ufid }: { profile: ProfileWithPrograms; ufid: str
   const ufidError =
     submitted && !isValidUfid(draft.ufid) ? `Your UFID is ${UFID_LENGTH} digits.` : undefined;
 
-  const change = (key: keyof ProfileDraft, value: string) => {
+  const change = <K extends keyof ProfileDraft>(key: K, value: ProfileDraft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
     setError(null);
   };
 
-  // Saving the UFID here surfaces "already in use" before the optional step,
-  // while onboarding itself only completes on Finish or Skip.
+  // Submitting the UFID is enough to be onboarded: the required details are
+  // persisted here, so quitting during the optional step loses nothing. Finish
+  // and Skip only decide what happens to the optional details. The UFID goes
+  // first because it is the write that can be rejected (already in use).
   const continueToPersonalize = async () => {
     setSubmitted(true);
     if (!fullName || !isValidUfid(draft.ufid) || !user) return;
@@ -83,9 +85,10 @@ function Onboarding({ profile, ufid }: { profile: ProfileWithPrograms; ufid: str
     setError(null);
     try {
       await saveUfid(user.id, draft.ufid);
+      await updateProfile(user.id, { full_name: fullName });
       setStep('personalize');
     } catch (cause) {
-      setError(getProfileError(cause, 'Could not save your UFID. Please try again.'));
+      setError(getProfileError(cause, 'Could not save your details. Please try again.'));
     } finally {
       setBusy(null);
     }
@@ -111,7 +114,10 @@ function Onboarding({ profile, ufid }: { profile: ProfileWithPrograms; ufid: str
     const changes: ProfileEdits = {
       ...(mode === 'finish'
         ? Object.fromEntries(
-            Object.entries(optional).map(([key, value]) => [key, value.trim() || null]),
+            Object.entries(optional).map(([key, value]) => [
+              key,
+              typeof value === 'string' ? value.trim() || null : value,
+            ]),
           )
         : {}),
       full_name: fullName,
@@ -140,6 +146,8 @@ function Onboarding({ profile, ufid }: { profile: ProfileWithPrograms; ufid: str
     return (
       <ProfileScreen
         onBack={busy ? () => {} : () => setStep('required')}
+        // Closing is the same as skipping: the required details are already saved.
+        onClose={busy ? () => {} : () => finish('skip')}
         footer={
           <View style={styles.footer}>
             {error && (
