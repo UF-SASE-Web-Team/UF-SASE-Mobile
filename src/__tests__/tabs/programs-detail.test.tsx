@@ -1,5 +1,6 @@
 import React from 'react';
 import { cleanup, render, screen, userEvent, waitFor } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import ProgramDetailScreen from '@/app/programs/[slug]';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -106,5 +107,52 @@ describe('ProgramDetailScreen', () => {
     await user.press(backButton);
 
     expect(mockBack).toHaveBeenCalled();
+  });
+
+  describe('join link', () => {
+    const mockProgram = (fields: object) =>
+      (programsService.getProgramBySlug as jest.Mock).mockResolvedValue({
+        id: 'prog-sports',
+        name: 'Sports',
+        slug: 'sports',
+        description: 'Play intramurals with SASE.',
+        pocs: [],
+        opens_at: null,
+        closes_at: null,
+        ...fields,
+      });
+
+    it('opens the invite from the Join button', async () => {
+      mockProgram({ application_url: 'https://discord.gg/sase' });
+      jest.spyOn(Linking, 'canOpenURL').mockResolvedValue(true);
+      const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true as any);
+      const user = userEvent.setup();
+      await renderScreen();
+
+      await user.press(await screen.findByRole('button', { name: 'Join Sports' }));
+      expect(openURL).toHaveBeenCalledWith('https://discord.gg/sase');
+    });
+
+    it('labels application forms as Apply', async () => {
+      mockProgram({ application_url: 'https://forms.gle/apply' });
+      await renderScreen();
+      expect(await screen.findByRole('button', { name: 'Apply to Sports' })).toBeTruthy();
+    });
+
+    it('hides the button without a link or outside the application window', async () => {
+      mockProgram({ application_url: null });
+      await renderScreen();
+      await screen.findByText('Play intramurals with SASE.');
+      expect(screen.queryByRole('button', { name: /Join|Apply/ })).toBeNull();
+      await cleanup();
+
+      mockProgram({
+        application_url: 'https://discord.gg/sase',
+        closes_at: '2000-01-01T00:00:00Z',
+      });
+      await renderScreen();
+      await screen.findByText('Play intramurals with SASE.');
+      expect(screen.queryByRole('button', { name: /Join|Apply/ })).toBeNull();
+    });
   });
 });

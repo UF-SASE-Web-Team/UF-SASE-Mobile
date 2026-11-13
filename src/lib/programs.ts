@@ -47,3 +47,23 @@ export function isJoinLink(url: string | null | undefined): boolean {
     return false;
   }
 }
+
+/**
+ * The Join/Apply link for a program that can be joined right now, or `null` when
+ * there is no link or its application window is not open.
+ */
+export function getProgramAction(
+  program: Pick<ProgramWithPoCs, 'name' | 'application_url' | 'opens_at' | 'closes_at'>,
+  now: Date = new Date(),
+) {
+  const url = program.application_url;
+  if (!url) return null;
+  if (program.opens_at && new Date(program.opens_at) > now) return null;
+  if (program.closes_at && new Date(program.closes_at) <= now) return null;
+  const isJoin = isJoinLink(url);
+  return {
+    url,
+    label: isJoin ? 'Join' : 'Apply',
+    accessibilityLabel: isJoin ? `Join ${program.name}` : `Apply to ${program.name}`,
+  };
+}

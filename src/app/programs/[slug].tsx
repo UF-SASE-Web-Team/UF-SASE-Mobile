@@ -1,13 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Linking, ScrollView, StyleSheet, View } from 'react-native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BackButton } from '@/components/BackButton';
+import { Button } from '@/components/Button';
 import { ContactItem, ContactList } from '@/components/ContactList';
 import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import { getProgramAction } from '@/lib/programs';
 import { getProgramBySlug } from '@/services/programs';
 import { type Colors, radius, space } from '@/theme';
 import { ProgramWithPoCs } from '@/types/programs';
@@ -68,6 +70,11 @@ export default function ProgramDetailScreen({ onContactPress }: ProgramDetailScr
 
   const programName = paramName || program?.name || formatSlugToName(slug);
   const description = program?.description || program?.short_description;
+  const action = program ? getProgramAction(program) : null;
+
+  const openAction = async () => {
+    if (action && (await Linking.canOpenURL(action.url))) await Linking.openURL(action.url);
+  };
 
   const pocContacts = useMemo<ContactItem[]>(() => {
     if (!program?.pocs) return [];
@@ -159,6 +166,15 @@ export default function ProgramDetailScreen({ onContactPress }: ProgramDetailScr
           </View>
         )}
 
+        {/* Join / Apply link, shown while the program is accepting members */}
+        {action && (
+          <View style={styles.actionSection}>
+            <Button onPress={openAction} accessibilityLabel={action.accessibilityLabel}>
+              {action.label}
+            </Button>
+          </View>
+        )}
+
         {/* Program Contacts Section */}
         {pocContacts.length > 0 && (
           <View style={styles.contactsSection}>
@@ -244,6 +260,11 @@ const createStyles = (colors: Colors) =>
     },
     descriptionText: {
       lineHeight: 24,
+    },
+    actionSection: {
+      paddingHorizontal: space['400'],
+      paddingTop: space['200'],
+      paddingBottom: space['400'],
     },
     contactsSection: {
       paddingHorizontal: space['400'],

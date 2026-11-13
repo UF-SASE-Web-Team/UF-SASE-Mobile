@@ -1,3 +1,4 @@
+import { resolveAssetUrl } from '@/lib/assets';
 import { supabase } from '@/lib/supabase';
 import { ResourceRow, ResourceSection, isTopResource } from '@/types/resources';
 
@@ -5,7 +6,10 @@ export async function getResources(): Promise<ResourceRow[]> {
   const { data, error: fetchError } = await supabase.from('resources').select('*');
 
   if (fetchError) throw fetchError;
-  return data || [];
+  return (data || []).map((resource) => ({
+    ...resource,
+    image_url: resolveAssetUrl(resource.image_url),
+  }));
 }
 
 export function organizeResourceSections(resources: ResourceRow[]): ResourceSection[] {
