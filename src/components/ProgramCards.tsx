@@ -211,7 +211,7 @@ const createStyles = (colors: Colors) =>
   StyleSheet.create({
     card: {
       width: 168,
-      height: 218,
+      height: 204,
       backgroundColor: colors.surface.base.secondary,
       borderRadius: radius.lg,
       borderWidth: borderWidth.sm,
@@ -280,7 +280,7 @@ const createStyles = (colors: Colors) =>
     },
     // Application Program Card Styles
     appImageContainer: {
-      height: 105,
+      height: 96,
       width: '100%',
       backgroundColor: colors.surface.base.tertiary,
       position: 'relative',

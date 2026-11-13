@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { EventTag } from '@/components/EventTag';
+import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { radius, space, type Colors } from '@/theme';
+import { borderWidth, iconSize, radius, space, type Colors } from '@/theme';
 import { EventRow } from '@/types/events';
 
 type HomeEventCardProps = {
@@ -12,6 +14,10 @@ type HomeEventCardProps = {
   onPress: (event: EventRow) => void;
 };
 
+/**
+ * Image-first event card for the home screen row. Mirrors StandardProgramCard:
+ * full-bleed flyer, bottom scrim, and the title overlaid on the image.
+ */
 export function HomeEventCard({ event, onPress }: HomeEventCardProps) {
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
@@ -28,31 +34,36 @@ export function HomeEventCard({ event, onPress }: HomeEventCardProps) {
       testID={`home-event-card-${event.id}`}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
-      {/* Inner view clips the image to the rounded corners so the outer shadow isn't cut off */}
-      <View style={styles.cardInner}>
-        {showFlyer ? (
-          <Image
-            source={{ uri: event.flyer_url ?? '' }}
-            style={styles.image}
-            contentFit="cover"
-            onError={() => setImageFailed(true)}
+      {showFlyer ? (
+        <Image
+          source={{ uri: event.flyer_url ?? '' }}
+          style={styles.image}
+          contentFit="cover"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <View style={styles.imagePlaceholder} testID={`home-event-card-placeholder-${event.id}`}>
+          <Ionicons
+            name="calendar-outline"
+            size={iconSize.lg}
+            color={colors.content.onBase.secondary}
           />
-        ) : (
-          <View style={styles.imagePlaceholder} testID={`home-event-card-placeholder-${event.id}`}>
-            <Ionicons name="calendar-outline" size={32} color={colors.content.onBase.primary} />
-          </View>
-        )}
-        <View style={styles.bottom}>
-          <View style={styles.info}>
-            <EventTag type={event.type} />
-            <Text style={styles.title} numberOfLines={2}>
-              {event.title}
-            </Text>
-          </View>
-          <View style={styles.arrow}>
-            <Ionicons name="chevron-forward" size={14} color="#fff" />
-          </View>
         </View>
+      )}
+
+      {/* Bottom fade keeps the title readable over any flyer */}
+      <LinearGradient
+        colors={['transparent', colors.surface.media.scrim]}
+        style={styles.bottomFade}
+        pointerEvents="none"
+      />
+
+      <EventTag type={event.type} style={styles.tag} />
+
+      <View style={styles.titleWrapper}>
+        <Text variant="bodyStrong" color={colors.content.onMedia.primary} numberOfLines={2}>
+          {event.title}
+        </Text>
       </View>
     </Pressable>
   );
@@ -61,54 +72,41 @@ export function HomeEventCard({ event, onPress }: HomeEventCardProps) {
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     card: {
-      width: 140,
-      borderRadius: 20,
+      width: 168,
+      height: 218,
+      borderRadius: radius.lg,
+      borderWidth: borderWidth.sm,
+      borderColor: colors.border.base.subtle,
       backgroundColor: colors.surface.base.secondary,
-      shadowColor: '#000',
-      shadowOpacity: 0.15,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 4,
-    },
-    cardInner: {
-      borderRadius: 20,
       overflow: 'hidden',
+      justifyContent: 'flex-end',
     },
     pressed: {
-      opacity: 0.8,
+      opacity: 0.85,
     },
     image: {
-      width: '100%',
-      height: 120,
+      ...StyleSheet.absoluteFill,
     },
     imagePlaceholder: {
-      width: '100%',
+      ...StyleSheet.absoluteFill,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surface.base.tertiary,
+    },
+    bottomFade: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
       height: 120,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.surface.base.primary,
     },
-    bottom: {
-      flexDirection: 'row',
-      alignItems: 'flex-end',
-      padding: space['200'],
-      gap: space['100'],
+    tag: {
+      position: 'absolute',
+      top: space['300'],
+      left: space['300'],
     },
-    info: {
-      flex: 1,
-      gap: space['100'],
-    },
-    title: {
-      fontSize: 17,
-      fontWeight: '600',
-      color: colors.content.onBase.primary,
-    },
-    arrow: {
-      width: 24,
-      height: 24,
-      borderRadius: radius.full,
-      backgroundColor: colors.surface.saseBlue.secondary,
-      alignItems: 'center',
-      justifyContent: 'center',
+    titleWrapper: {
+      paddingHorizontal: space['300'],
+      paddingBottom: space['300'],
     },
   });
