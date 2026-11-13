@@ -2,15 +2,17 @@ import { cleanup, render, screen, userEvent } from '@testing-library/react-nativ
 import { Button, Text, View } from 'react-native';
 import { ProfileProvider, useProfile } from '@/context/ProfileContext';
 import { useAuth } from '@/context/AuthContext';
-import { getProfile, updateProfile } from '@/services/profiles';
+import { getProfile, getUfid, saveUfid, updateProfile } from '@/services/profiles';
 import { profileFixture } from '@/test-utils/profile';
 
 jest.mock('@/services/profiles');
 
 function ProfileConsumer() {
-  const { profile, error, isLoading, reload, save } = useProfile();
+  const { profile, error, isLoading, reload, save, onboarding } = useProfile();
   return (
     <View>
+      <Text testID="onboarding">{onboarding}</Text>
+      <Button title="Set UFID" onPress={() => save({ ufid: '12345678' })} />
       <Text>{isLoading ? 'Loading profile' : (profile?.full_name ?? error ?? 'No profile')}</Text>
       <Text>{profile?.programNames.join(' | ')}</Text>
       <Button title="Retry" onPress={reload} />
@@ -24,6 +26,8 @@ describe('Profile data shared across the profile flow', () => {
     jest.clearAllMocks();
     (useAuth as jest.Mock).mockReturnValue({ user: { id: profileFixture.id } });
     (getProfile as jest.Mock).mockResolvedValue(profileFixture);
+    (getUfid as jest.Mock).mockResolvedValue('12345678');
+    (saveUfid as jest.Mock).mockImplementation(async (_userId: string, ufid: string) => ufid);
   });
   afterEach(async () => {
     await cleanup();
@@ -45,6 +49,46 @@ describe('Profile data shared across the profile flow', () => {
     expect(screen.getByText('SWEET | SASEHacks')).toBeTruthy();
     expect(updateProfile).toHaveBeenCalledWith(profileFixture.id, { full_name: 'Alice Updated' });
     expect(getProfile).toHaveBeenCalledTimes(1);
+  });
+
+  it('requires onboarding until the member saves a UFID', async () => {
+    (getUfid as jest.Mock).mockResolvedValue(null);
+    await render(
+      <ProfileProvider>
+        <ProfileConsumer />
+      </ProfileProvider>,
+    );
+    await screen.findByText('Alice Gator');
+    expect(screen.getByTestId('onboarding')).toHaveTextContent('required');
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Set UFID' }));
+    expect(saveUfid).toHaveBeenCalledWith(profileFixture.id, '12345678');
+    expect(updateProfile).not.toHaveBeenCalled();
+    expect(screen.getByTestId('onboarding')).toHaveTextContent('complete');
+  });
+
+  it('treats a member with a UFID as onboarded, even across reloads', async () => {
+    await render(
+      <ProfileProvider>
+        <ProfileConsumer />
+      </ProfileProvider>,
+    );
+    await screen.findByText('Alice Gator');
+    expect(screen.getByTestId('onboarding')).toHaveTextContent('complete');
+    (getProfile as jest.Mock).mockReturnValue(new Promise(() => {}));
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Retry' }));
+    expect(screen.getByText('Loading profile')).toBeTruthy();
+    expect(screen.getByTestId('onboarding')).toHaveTextContent('complete');
+  });
+
+  it('does not lock members out when the profile fails to load', async () => {
+    (getProfile as jest.Mock).mockRejectedValueOnce(new Error('Network unavailable'));
+    await render(
+      <ProfileProvider>
+        <ProfileConsumer />
+      </ProfileProvider>,
+    );
+    await screen.findByText('Network unavailable');
+    expect(screen.getByTestId('onboarding')).toHaveTextContent('complete');
   });
 
   it('can retry a failed request', async () => {

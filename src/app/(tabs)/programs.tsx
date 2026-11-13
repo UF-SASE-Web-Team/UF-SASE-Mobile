@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { ApplicationProgramCard, StandardProgramCard } from '@/components/ProgramCards';
 import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import { getOpenApplicationPrograms } from '@/lib/programs';
 import { getPrograms } from '@/services/programs';
 import { type Colors, space } from '@/theme';
 import { ProgramCategory, ProgramWithPoCs } from '@/types/programs';
@@ -72,30 +73,7 @@ export default function ProgramsPage() {
 
   // Duplicate programs that have application info filled out and are not closed,
   // ordered by closest deadline (closes_at) first.
-  const openApplicationPrograms = useMemo(() => {
-    const now = new Date();
-
-    return programs
-      .filter((p) => {
-        const hasAppInfo = Boolean(p.application_url || p.opens_at || p.closes_at);
-        if (!hasAppInfo) return false;
-
-        const isClosed = p.closes_at ? new Date(p.closes_at) <= now : false;
-        return !isClosed;
-      })
-      .sort((a, b) => {
-        const deadlineA = a.closes_at ? new Date(a.closes_at).getTime() : Infinity;
-        const deadlineB = b.closes_at ? new Date(b.closes_at).getTime() : Infinity;
-
-        if (deadlineA !== deadlineB) {
-          return deadlineA - deadlineB;
-        }
-
-        const opensA = a.opens_at ? new Date(a.opens_at).getTime() : Infinity;
-        const opensB = b.opens_at ? new Date(b.opens_at).getTime() : Infinity;
-        return opensA - opensB;
-      });
-  }, [programs]);
+  const openApplicationPrograms = useMemo(() => getOpenApplicationPrograms(programs), [programs]);
 
   const handleCardPress = (program: ProgramWithPoCs) => {
     router.push({

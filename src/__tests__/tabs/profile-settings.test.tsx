@@ -1,5 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, userEvent } from '@testing-library/react-native';
-import { Alert } from 'react-native';
+import { Alert, Linking } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import AccountSettingsPage from '@/app/profile/settings';
 import { useAuth } from '@/context/AuthContext';
@@ -83,12 +83,16 @@ describe('Account settings', () => {
     expect(screen.getByText('Dark')).toBeTruthy();
   });
 
-  it('shows the pending privacy policy setup', async () => {
+  it('opens the live Privacy Policy and Terms of Service pages', async () => {
+    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    const user = userEvent.setup();
     await renderSettings();
-    await userEvent
-      .setup()
-      .press(screen.getByRole('button', { name: 'Privacy Policy Information' }));
-    expect(screen.getByText(/privacy policy is pending setup/)).toBeTruthy();
+
+    await user.press(screen.getByRole('link', { name: 'Privacy Policy' }));
+    expect(openURL).toHaveBeenLastCalledWith('https://ufsase.com/privacy');
+
+    await user.press(screen.getByRole('link', { name: 'Terms of Service' }));
+    expect(openURL).toHaveBeenLastCalledWith('https://ufsase.com/terms');
   });
 
   it('sends the reset email and completes a verified password reset within the profile flow', async () => {

@@ -393,6 +393,10 @@ deno_version = 2
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 
+# Called before the member is signed in, so there is no user JWT to verify.
+[functions.login]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

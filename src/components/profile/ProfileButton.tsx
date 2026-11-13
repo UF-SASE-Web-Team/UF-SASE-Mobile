@@ -6,7 +6,8 @@ import { useTheme, useThemedStyles, type Colors, fonts, radius, space } from '@/
 interface ProfileButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'danger';
+  /** `ghost` is a low-emphasis text-only button for rarely used actions. */
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
   loading?: boolean;
   disabled?: boolean;
 }
@@ -20,15 +21,25 @@ export function ProfileButton({
 }: ProfileButtonProps) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const isGhost = variant === 'ghost';
+  const spinnerColor =
+    variant === 'primary'
+      ? colors.content.onMedia.primary
+      : variant === 'danger'
+        ? colors.content.onDanger.primary
+        : variant === 'secondary'
+          ? colors.content.onBase.primary
+          : colors.content.onBase.secondary;
   const content = (
     <>
-      {loading && <ActivityIndicator color={colors.content.onMedia.primary} />}
+      {loading && <ActivityIndicator size={isGhost ? 'small' : undefined} color={spinnerColor} />}
       <Text
-        variant="title"
+        variant={isGhost ? 'bodySm' : 'title'}
         style={[
           styles.label,
           variant === 'secondary' && styles.secondaryLabel,
           variant === 'danger' && styles.dangerLabel,
+          isGhost && styles.ghostLabel,
         ]}
       >
         {title}
@@ -43,7 +54,7 @@ export function ProfileButton({
       disabled={disabled || loading}
       onPress={onPress}
       style={({ pressed }) => [
-        styles.button,
+        isGhost ? styles.ghostButton : styles.button,
         pressed && styles.pressed,
         (disabled || loading) && styles.disabled,
       ]}
@@ -57,6 +68,8 @@ export function ProfileButton({
         >
           {content}
         </LinearGradient>
+      ) : isGhost ? (
+        <View style={styles.ghostContent}>{content}</View>
       ) : (
         <View style={[styles.content, variant === 'danger' ? styles.danger : styles.secondary]}>
           {content}
@@ -96,6 +109,16 @@ const createStyles = (colors: Colors) =>
     secondaryLabel: { color: colors.content.onBase.primary },
     danger: { backgroundColor: colors.surface.danger.primary },
     dangerLabel: { color: colors.content.onDanger.primary },
+    ghostButton: { alignSelf: 'center' },
+    ghostContent: {
+      paddingHorizontal: space['400'],
+      paddingVertical: space['200'],
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
+      gap: space['200'],
+    },
+    ghostLabel: { color: colors.content.onBase.secondary },
     pressed: { opacity: 0.7 },
     disabled: { opacity: 0.5 },
   });

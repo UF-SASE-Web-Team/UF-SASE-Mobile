@@ -30,14 +30,51 @@ export async function checkUsernameAvailable(username: string): Promise<boolean>
   return Boolean(data);
 }
 
-/**
- * Resolves a username to its associated email for authentication.
- */
-export async function getEmailFromUsername(username: string): Promise<string | null> {
-  const { data, error } = await supabase.rpc('get_email_from_username', {
-    p_username: username.trim().toLowerCase(),
-  });
+export type SignInResult =
+  | { status: 'ok' }
+  | { status: 'invalid' }
+  /** The password was right but the email still needs its verification code. */
+  | { status: 'unconfirmed'; email: string };
 
+/**
+ * Signs in with either an email or a username.
+ *
+ * Emails go straight to Supabase Auth. Usernames go through the `login` edge
+ * function, which resolves the email server-side so it is never exposed to a
+ * caller who does not know the password.
+ */
+export async function signInWithIdentifier(
+  identifier: string,
+  password: string,
+): Promise<SignInResult> {
+  const cleanIdentifier = identifier.trim().toLowerCase();
+
+  if (cleanIdentifier.includes('@')) {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: cleanIdentifier,
+      password,
+    });
+    if (!error) return { status: 'ok' };
+    if (error.message.toLowerCase().includes('email not confirmed')) {
+      return { status: 'unconfirmed', email: cleanIdentifier };
+    }
+    return { status: 'invalid' };
+  }
+
+  const { data, error } = await supabase.functions.invoke('login', {
+    body: { username: cleanIdentifier, password },
+  });
   if (error) throw error;
-  return data;
+
+  if (data?.status === 'unconfirmed' && typeof data.email === 'string') {
+    return { status: 'unconfirmed', email: data.email };
+  }
+  if (data?.status !== 'ok') return { status: 'invalid' };
+
+  const { error: sessionError } = await supabase.auth.setSession({
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+  });
+  if (sessionError) throw sessionError;
+  return { status: 'ok' };
 }

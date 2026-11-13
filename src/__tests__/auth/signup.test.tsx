@@ -8,7 +8,7 @@ import {
   fireEvent,
   act,
 } from '@testing-library/react-native';
-import { Alert } from 'react-native';
+import { Alert, Linking } from 'react-native';
 import SignupScreen from '@/app/(auth)/signup';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
@@ -353,5 +353,17 @@ describe('SignupScreen', () => {
         expect.stringMatching(/could not generate a suggested username/i),
       );
     });
+  });
+
+  it('links to the Terms of Service and Privacy Policy next to the create account button', async () => {
+    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    const user = userEvent.setup();
+    await render(<SignupScreen />);
+
+    await user.press(screen.getByRole('link', { name: 'Terms of Service' }));
+    expect(openURL).toHaveBeenLastCalledWith('https://ufsase.com/terms');
+
+    await user.press(screen.getByRole('link', { name: 'Privacy Policy' }));
+    expect(openURL).toHaveBeenLastCalledWith('https://ufsase.com/privacy');
   });
 });

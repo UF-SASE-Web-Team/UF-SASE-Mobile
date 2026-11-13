@@ -10,7 +10,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { EventsProvider } from '@/context/EventsContext';
-import { ProfileProvider } from '@/context/ProfileContext';
+import { ProfileProvider, useProfile } from '@/context/ProfileContext';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { fontAssets } from '@/theme';
 
@@ -26,14 +26,17 @@ function ThemedStatusBar() {
 }
 
 function SplashController({ fontsReady }: { fontsReady: boolean }) {
-  const { isLoading } = useAuth();
+  const { isLoading, session } = useAuth();
+  const { onboarding } = useProfile();
   const { isLoaded: isThemeLoaded } = useTheme();
+  // Keep the splash up until we know whether to land on the app or onboarding.
+  const isRouteKnown = !session || onboarding !== 'loading';
 
   useEffect(() => {
-    if (!isLoading && isThemeLoaded && fontsReady) {
+    if (!isLoading && isThemeLoaded && fontsReady && isRouteKnown) {
       SplashScreen.hideAsync();
     }
-  }, [isLoading, isThemeLoaded, fontsReady]);
+  }, [isLoading, isThemeLoaded, fontsReady, isRouteKnown]);
 
   return null;
 }
@@ -41,7 +44,9 @@ function SplashController({ fontsReady }: { fontsReady: boolean }) {
 function RootNavigator() {
   const { session, isRecovering } = useAuth();
   const { colors, isDark } = useTheme();
+  const { onboarding } = useProfile();
   const isAuthenticated = !!session && !isRecovering;
+  const isOnboarded = onboarding === 'complete';
 
   const navTheme = useMemo(
     () => ({
@@ -68,7 +73,10 @@ function RootNavigator() {
           contentStyle: { backgroundColor: colors.surface.base.primary },
         }}
       >
-        <Stack.Protected guard={isAuthenticated}>
+        <Stack.Protected guard={isAuthenticated && !isOnboarded}>
+          <Stack.Screen name="onboarding" />
+        </Stack.Protected>
+        <Stack.Protected guard={isAuthenticated && isOnboarded}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="events/[id]" />
           <Stack.Screen name="programs/[slug]" />

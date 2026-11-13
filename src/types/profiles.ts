@@ -14,4 +14,7 @@ export type ProfileChanges = Pick<
   | 'avatar_url'
 >;
 
+/** Profile edits plus the member's private UFID, which is stored separately. */
+export type ProfileEdits = ProfileChanges & { ufid?: string };
+
 export type ProfileWithPrograms = Profile & { programNames: string[] };

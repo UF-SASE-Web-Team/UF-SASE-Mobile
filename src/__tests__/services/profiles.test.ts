@@ -1,4 +1,10 @@
-import { getProfile, getProfilesByIds, updateProfile } from '@/services/profiles';
+import {
+  getProfile,
+  getProfilesByIds,
+  getUfid,
+  saveUfid,
+  updateProfile,
+} from '@/services/profiles';
 import { supabase } from '@/lib/supabase';
 import { profileFixture } from '@/test-utils/profile';
 
@@ -54,6 +60,41 @@ describe('Profile service', () => {
     await expect(updateProfile(profileFixture.id, { full_name: 'Alice' })).rejects.toThrow(
       'Update failed',
     );
+  });
+
+  it('reads the UFID from the owner-only table, not the public profile', async () => {
+    const maybeSingle = jest.fn().mockResolvedValue({ data: { ufid: '12345678' }, error: null });
+    const eq = jest.fn().mockReturnValue({ maybeSingle });
+    const select = jest.fn().mockReturnValue({ eq });
+    (supabase.from as jest.Mock) = jest.fn().mockReturnValue({ select });
+    await expect(getUfid(profileFixture.id)).resolves.toBe('12345678');
+    expect(supabase.from).toHaveBeenCalledWith('profile_private');
+    expect(eq).toHaveBeenCalledWith('user_id', profileFixture.id);
+  });
+
+  it('reports no UFID for a member who has not onboarded', async () => {
+    const maybeSingle = jest.fn().mockResolvedValue({ data: null, error: null });
+    const eq = jest.fn().mockReturnValue({ maybeSingle });
+    (supabase.from as jest.Mock) = jest.fn().mockReturnValue({ select: () => ({ eq }) });
+    await expect(getUfid(profileFixture.id)).resolves.toBeNull();
+  });
+
+  it('saves the UFID for the specified member', async () => {
+    const single = jest.fn().mockResolvedValue({ data: { ufid: '12345678' }, error: null });
+    const upsert = jest.fn().mockReturnValue({ select: () => ({ single }) });
+    (supabase.from as jest.Mock) = jest.fn().mockReturnValue({ upsert });
+    await expect(saveUfid(profileFixture.id, '12345678')).resolves.toBe('12345678');
+    expect(supabase.from).toHaveBeenCalledWith('profile_private');
+    expect(upsert).toHaveBeenCalledWith({ user_id: profileFixture.id, ufid: '12345678' });
+  });
+
+  it('rejects a UFID that another account already uses', async () => {
+    const single = jest
+      .fn()
+      .mockResolvedValue({ data: null, error: { code: '23505', message: 'duplicate key' } });
+    const upsert = jest.fn().mockReturnValue({ select: () => ({ single }) });
+    (supabase.from as jest.Mock) = jest.fn().mockReturnValue({ upsert });
+    await expect(saveUfid(profileFixture.id, '12345678')).rejects.toThrow(/already/);
   });
 
   it('fetches multiple profiles by userIds', async () => {

@@ -45,6 +45,18 @@ describe('HomeEventCard', () => {
     expect(screen.getByText('General Body Meeting 1')).toBeTruthy();
   });
 
+  it('shows the event type tag', async () => {
+    await renderHomeEventCard({ event: baseEvent, onPress: jest.fn() });
+
+    expect(screen.getByLabelText('Category: GBM')).toBeTruthy();
+  });
+
+  it('shows no type tag for events of type "other"', async () => {
+    await renderHomeEventCard({ event: { ...baseEvent, type: 'other' }, onPress: jest.fn() });
+
+    expect(screen.queryByLabelText(/^Category:/)).toBeNull();
+  });
+
   it('shows a placeholder when the event has no flyer', async () => {
     await renderHomeEventCard({ event: baseEvent, onPress: jest.fn() });
 

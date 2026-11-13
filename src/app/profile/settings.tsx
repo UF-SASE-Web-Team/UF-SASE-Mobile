@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MenuView } from '@expo/ui/community/menu';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -7,10 +7,10 @@ import { Text } from '@/components/Text';
 import { ProfileScreen, ProfileLoadingState } from '@/components/profile/ProfileScreen';
 import { ProfileHero } from '@/components/profile/ProfileHero';
 import { ProfileButton } from '@/components/profile/ProfileButton';
-import { ProfileSheet } from '@/components/profile/ProfileSheet';
 import { PasswordResetSheet } from '@/components/profile/PasswordResetSheet';
 import { useAuth } from '@/context/AuthContext';
 import { getProfileError, useProfile } from '@/context/ProfileContext';
+import { legalLinks } from '@/lib/links';
 import { deleteAccount, sendPasswordResetEmail } from '@/services/profiles';
 import {
   useTheme,
@@ -21,7 +21,15 @@ import {
   iconSize,
   radius,
   space,
+  borderWidth,
 } from '@/theme';
+
+type IconName = keyof typeof Ionicons.glyphMap;
+
+const legalRows: { label: string; url: string; icon: IconName }[] = [
+  { label: 'Privacy Policy', url: legalLinks.privacy, icon: 'shield-checkmark-outline' },
+  { label: 'Terms of Service', url: legalLinks.terms, icon: 'document-text-outline' },
+];
 
 const themes: { value: ThemeMode; label: string }[] = [
   { value: 'light', label: 'Light' },
@@ -36,7 +44,7 @@ export default function AccountSettingsPage() {
   const styles = useThemedStyles(createStyles);
   const router = useRouter();
   const [busy, setBusy] = useState<'reset' | 'logout' | 'delete' | null>(null);
-  const [sheet, setSheet] = useState<'privacy' | 'password' | null>(null);
+  const [sheet, setSheet] = useState<'password' | null>(null);
   const [accountDeleted, setAccountDeleted] = useState(false);
 
   const logOut = async () => {
@@ -92,6 +100,10 @@ export default function AccountSettingsPage() {
       setBusy(null);
     }
   };
+  const openLegalLink = (url: string) =>
+    Linking.openURL(url).catch(() =>
+      Alert.alert('Could not open link', `Please visit ${url} in your browser.`),
+    );
   const goBack = () => {
     if (router.canGoBack()) router.back();
     else router.replace('/profile');
@@ -113,13 +125,14 @@ export default function AccountSettingsPage() {
           <ProfileButton
             title={busy === 'logout' ? 'Logging Out...' : 'Log Out'}
             onPress={confirmLogOut}
+            variant="danger"
             loading={busy === 'logout'}
             disabled={!!busy}
           />
           <ProfileButton
             title={busy === 'delete' ? 'Deleting Account...' : 'Delete Account'}
             onPress={confirmDelete}
-            variant="danger"
+            variant="ghost"
             loading={busy === 'delete'}
             disabled={!!busy}
           />
@@ -128,8 +141,13 @@ export default function AccountSettingsPage() {
     >
       <ProfileHero profile={profile} />
       <View style={styles.settings}>
-        <View style={styles.themeRow}>
-          <Text variant="title" style={styles.brandText}>
+        <View style={styles.row}>
+          <Ionicons
+            name="color-palette-outline"
+            size={iconSize.md}
+            color={colors.content.onBase.secondary}
+          />
+          <Text variant="body" style={styles.rowLabel}>
             App Theme
           </Text>
           <View pointerEvents={busy ? 'none' : 'auto'} style={styles.themeMenu}>
@@ -156,7 +174,7 @@ export default function AccountSettingsPage() {
                 accessibilityState={{ disabled: !!busy }}
                 style={styles.themeValue}
               >
-                <Text variant="bodySmStrong" style={styles.brandText}>
+                <Text variant="bodySmStrong" style={styles.rowValue}>
                   {themes.find((theme) => theme.value === mode)?.label}
                 </Text>
                 <Ionicons
@@ -168,27 +186,33 @@ export default function AccountSettingsPage() {
             </MenuView>
           </View>
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Privacy Policy Information"
-          onPress={() => setSheet('privacy')}
-          disabled={!!busy}
-          style={({ pressed }) => [styles.privacyButton, pressed && styles.pressed]}
-        >
-          <Text variant="title" style={[styles.brandText, styles.centerText]}>
-            Privacy Policy Information
-          </Text>
-        </Pressable>
+        {legalRows.map((row) => (
+          <View key={row.label}>
+            <View style={styles.divider} />
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel={row.label}
+              onPress={() => openLegalLink(row.url)}
+              disabled={!!busy}
+              style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+            >
+              <Ionicons
+                name={row.icon}
+                size={iconSize.md}
+                color={colors.content.onBase.secondary}
+              />
+              <Text variant="body" style={styles.rowLabel}>
+                {row.label}
+              </Text>
+              <Ionicons
+                name="open-outline"
+                size={iconSize.sm}
+                color={colors.content.onBase.secondary}
+              />
+            </Pressable>
+          </View>
+        ))}
       </View>
-      <ProfileSheet
-        title="Privacy Policy Information"
-        visible={sheet === 'privacy'}
-        onClose={() => setSheet(null)}
-      >
-        <Text variant="body" style={styles.privacyNotice}>
-          The UF SASE privacy policy is pending setup. Please check back later.
-        </Text>
-      </ProfileSheet>
       {sheet === 'password' && user?.email && (
         <PasswordResetSheet email={user.email} onClose={() => setSheet(null)} />
       )}
@@ -198,59 +222,44 @@ export default function AccountSettingsPage() {
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
+    // One grouped card holding the settings rows
     settings: {
-      flex: 1,
-      justifyContent: 'space-around',
-      gap: space['1200'],
-      paddingTop: space['200'],
+      marginTop: space['600'],
+      backgroundColor: colors.surface.base.secondary,
+      borderRadius: radius.lg,
+      borderWidth: borderWidth.sm,
+      borderColor: colors.border.base.subtle,
+      overflow: 'hidden',
     },
-    themeRow: {
-      minHeight: 50,
+    row: {
+      minHeight: space['1200'],
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: space['200'],
-      backgroundColor: colors.surface.base.tertiary,
-      borderRadius: radius.full,
-      paddingHorizontal: space['600'],
-      paddingVertical: space['200'],
-      shadowColor: colors.surface.media.scrim,
-      shadowOffset: { width: 0, height: space['050'] },
-      shadowOpacity: 0.2,
-      shadowRadius: space['100'],
-      elevation: space['050'],
+      gap: space['300'],
+      paddingHorizontal: space['400'],
+      paddingVertical: space['250'],
     },
-    brandText: {
-      color: colors.content.onBase.primary,
+    rowLabel: {
       fontFamily: fonts.sans.medium,
-      flexShrink: 1,
+      flex: 1,
+    },
+    rowValue: { flexShrink: 1 },
+    divider: {
+      height: borderWidth.sm,
+      marginLeft: space['400'] + iconSize.md + space['300'],
+      backgroundColor: colors.border.base.subtle,
     },
     themeMenu: { flexShrink: 1 },
     themeValue: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.surface.base.secondary,
+      backgroundColor: colors.surface.base.tertiary,
       borderRadius: radius.full,
       paddingHorizontal: space['300'],
       paddingVertical: space['100'],
       gap: space['100'],
       flexShrink: 1,
     },
-    privacyButton: {
-      minHeight: 148,
-      backgroundColor: colors.surface.base.quaternary,
-      borderRadius: 60,
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: space['600'],
-      shadowColor: colors.surface.media.scrim,
-      shadowOffset: { width: 0, height: space['050'] },
-      shadowOpacity: 0.2,
-      shadowRadius: space['100'],
-      elevation: space['050'],
-    },
-    centerText: { textAlign: 'center' },
     actions: { gap: space['250'] },
     pressed: { opacity: 0.7 },
-    privacyNotice: { paddingBottom: space['600'] },
   });

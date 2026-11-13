@@ -102,6 +102,29 @@ describe('ProgramCards', () => {
       expect(Linking.openURL).toHaveBeenCalledWith('https://example.com/apply');
     });
 
+    it('offers to join, not apply, when the link is a Discord invite', async () => {
+      const joinProgram: ProgramWithPoCs = {
+        ...baseProgram,
+        application_url: 'https://discord.gg/G6bYG6gkd2',
+      };
+
+      jest.spyOn(Linking, 'canOpenURL').mockResolvedValue(true);
+      jest.spyOn(Linking, 'openURL').mockResolvedValue(true as any);
+
+      const user = userEvent.setup();
+
+      await render(
+        <ThemeProvider>
+          <ApplicationProgramCard program={joinProgram} />
+        </ThemeProvider>,
+      );
+
+      expect(screen.queryByRole('button', { name: /^Apply/ })).toBeNull();
+      await user.press(screen.getByRole('button', { name: 'Join Intramural Sports' }));
+
+      expect(Linking.openURL).toHaveBeenCalledWith('https://discord.gg/G6bYG6gkd2');
+    });
+
     it('shows waiting status when applications open in the future', async () => {
       const upcomingProgram: ProgramWithPoCs = {
         ...baseProgram,

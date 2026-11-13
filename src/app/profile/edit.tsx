@@ -9,10 +9,11 @@ import { ProfileButton } from '@/components/profile/ProfileButton';
 import { AvatarPicker } from '@/components/profile/AvatarPicker';
 import { Text } from '@/components/Text';
 import { getProfileError, useProfile } from '@/context/ProfileContext';
-import type { ProfileChanges, ProfileWithPrograms } from '@/types/profiles';
+import { isValidUfid } from '@/lib/ufid';
+import type { ProfileEdits, ProfileWithPrograms } from '@/types/profiles';
 import { useThemedStyles, type Colors, space } from '@/theme';
 
-function createDraft(profile: ProfileWithPrograms): ProfileDraft {
+function createDraft(profile: ProfileWithPrograms, ufid: string | null): ProfileDraft {
   return {
     full_name: profile.full_name,
     major: profile.major ?? '',
@@ -23,17 +24,18 @@ function createDraft(profile: ProfileWithPrograms): ProfileDraft {
     linkedin_url: profile.linkedin_url ?? '',
     bio: profile.bio ?? '',
     avatar_url: profile.avatar_url ?? '',
+    ufid: ufid ?? '',
   };
 }
 
 export default function EditProfilePage() {
-  const { profile } = useProfile();
+  const { profile, ufid } = useProfile();
   if (!profile) return <ProfileLoadingState />;
-  return <ProfileEditor key={profile.id} profile={profile} />;
+  return <ProfileEditor key={profile.id} profile={profile} ufid={ufid} />;
 }
 
-function ProfileEditor({ profile }: { profile: ProfileWithPrograms }) {
-  const [initialDraft] = useState(() => createDraft(profile));
+function ProfileEditor({ profile, ufid }: { profile: ProfileWithPrograms; ufid: string | null }) {
+  const [initialDraft] = useState(() => createDraft(profile, ufid));
   const [draft, setDraft] = useState(initialDraft);
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -71,6 +73,10 @@ function ProfileEditor({ profile }: { profile: ProfileWithPrograms }) {
       setError('Please enter your name.');
       return;
     }
+    if (!isValidUfid(draft.ufid)) {
+      setError('Enter your 8-digit UFID.');
+      return;
+    }
     if (draft.linkedin_url.trim()) {
       try {
         const url = new URL(draft.linkedin_url.trim());
@@ -86,10 +92,12 @@ function ProfileEditor({ profile }: { profile: ProfileWithPrograms }) {
     }
     setSaving(true);
     setError(null);
-    const changes: ProfileChanges = Object.fromEntries(
-      Object.entries(draft).map(([key, value]) => [key, value.trim() || null]),
+    const { ufid: draftUfid, ...fields } = draft;
+    const changes: ProfileEdits = Object.fromEntries(
+      Object.entries(fields).map(([key, value]) => [key, value.trim() || null]),
     );
     changes.full_name = draft.full_name.trim();
+    if (draftUfid !== initialDraft.ufid) changes.ufid = draftUfid;
     try {
       await save(changes);
       setSaved(true);

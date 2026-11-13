@@ -110,38 +110,37 @@ describe('LoginScreen', () => {
     });
   });
 
-  it('resolves username to email via rpc and then signs in', async () => {
-    (supabase.rpc as jest.Mock).mockResolvedValueOnce({
-      data: 'resolved@ufl.edu',
-      error: null,
-    });
-    (supabase.auth.signInWithPassword as jest.Mock).mockResolvedValueOnce({
-      data: { user: { id: '123' }, session: {} },
+  it('signs in a username through the login function without resolving the email on device', async () => {
+    (supabase.functions.invoke as jest.Mock).mockResolvedValueOnce({
+      data: { status: 'ok', access_token: 'access', refresh_token: 'refresh' },
       error: null,
     });
 
     const user = userEvent.setup();
     await render(<LoginScreen />);
 
-    await user.type(screen.getByPlaceholderText('Email or username'), 'gatorboy');
+    await user.type(screen.getByPlaceholderText('Email or username'), 'GatorBoy');
     await user.type(screen.getByPlaceholderText('Password'), 'secret123');
     await user.press(screen.getByRole('button', { name: /log in/i }));
 
     await waitFor(() => {
-      expect(supabase.rpc).toHaveBeenCalledWith('get_email_from_username', {
-        p_username: 'gatorboy',
+      expect(supabase.functions.invoke).toHaveBeenCalledWith('login', {
+        body: { username: 'gatorboy', password: 'secret123' },
       });
-      expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({
-        email: 'resolved@ufl.edu',
-        password: 'secret123',
+      expect(supabase.auth.setSession).toHaveBeenCalledWith({
+        access_token: 'access',
+        refresh_token: 'refresh',
       });
     });
+    expect(supabase.rpc).not.toHaveBeenCalled();
+    expect(supabase.auth.signInWithPassword).not.toHaveBeenCalled();
+    expect(alertSpy).not.toHaveBeenCalled();
   });
 
-  it('shows error when username lookup fails or returns no email', async () => {
-    (supabase.rpc as jest.Mock).mockResolvedValueOnce({
-      data: null,
-      error: { message: 'Username not found' },
+  it('shows an error and starts no session when a username login is rejected', async () => {
+    (supabase.functions.invoke as jest.Mock).mockResolvedValueOnce({
+      data: { status: 'invalid' },
+      error: null,
     });
 
     const user = userEvent.setup();
@@ -152,14 +151,57 @@ describe('LoginScreen', () => {
     await user.press(screen.getByRole('button', { name: /log in/i }));
 
     await waitFor(() => {
-      expect(supabase.rpc).toHaveBeenCalledWith('get_email_from_username', {
-        p_username: 'unknownuser',
-      });
-      expect(supabase.auth.signInWithPassword).not.toHaveBeenCalled();
       expect(alertSpy).toHaveBeenCalledWith(
         expect.stringMatching(/error|fail|invalid/i),
         expect.any(String),
       );
+    });
+    expect(supabase.auth.setSession).not.toHaveBeenCalled();
+  });
+
+  it('shows an error when the login function cannot be reached', async () => {
+    (supabase.functions.invoke as jest.Mock).mockResolvedValueOnce({
+      data: null,
+      error: new Error('Function unreachable'),
+    });
+    jest.spyOn(console, 'error').mockImplementation(jest.fn());
+
+    const user = userEvent.setup();
+    await render(<LoginScreen />);
+
+    await user.type(screen.getByPlaceholderText('Email or username'), 'gatorboy');
+    await user.type(screen.getByPlaceholderText('Password'), 'secret123');
+    await user.press(screen.getByRole('button', { name: /log in/i }));
+
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/error|fail|invalid/i),
+        expect.any(String),
+      );
+    });
+    expect(supabase.auth.setSession).not.toHaveBeenCalled();
+  });
+
+  it('sends an unverified username login to the verification screen', async () => {
+    (supabase.functions.invoke as jest.Mock).mockResolvedValueOnce({
+      data: { status: 'unconfirmed', email: 'pending@ufl.edu' },
+      error: null,
+    });
+
+    const user = userEvent.setup();
+    await render(<LoginScreen />);
+
+    await user.type(screen.getByPlaceholderText('Email or username'), 'pendingp');
+    await user.type(screen.getByPlaceholderText('Password'), 'secret123');
+    await user.press(screen.getByRole('button', { name: /log in/i }));
+
+    await waitFor(() => expect(alertSpy).toHaveBeenCalled());
+    const verifyButton = alertSpy.mock.calls[0][2]?.find((btn) => btn.text === 'Verify Code');
+    verifyButton?.onPress?.();
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/(auth)/verify',
+      params: { email: 'pending@ufl.edu', mode: 'signup' },
     });
   });
 

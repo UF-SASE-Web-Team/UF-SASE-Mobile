@@ -97,6 +97,22 @@ select is(
   'get_email_from_username should return null for nonexistent user'
 );
 
+-- The lookup is reserved for the login edge function (service role)
+select ok(
+  not has_function_privilege('anon', 'public.get_email_from_username(text)', 'execute'),
+  'Anon role cannot resolve a username to an email'
+);
+
+select ok(
+  not has_function_privilege('authenticated', 'public.get_email_from_username(text)', 'execute'),
+  'Signed-in members cannot resolve a username to an email'
+);
+
+select ok(
+  has_function_privilege('service_role', 'public.get_email_from_username(text)', 'execute'),
+  'Service role can resolve a username to an email'
+);
+
 -- 4. Test Trigger handle_new_user on auth.users
 do $$
 declare

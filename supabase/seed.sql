@@ -111,6 +111,12 @@ set major = 'Mechanical Engineering',
     avatar_url = 'sase-cat'
 where username = 'bob';
 
+-- Alice has finished onboarding. Bob has no UFID yet, so signing in as Bob
+-- shows the onboarding flow.
+insert into public.profile_private (user_id, ufid)
+select id, '12345678' from public.profiles where username = 'alice'
+on conflict (user_id) do nothing;
+
 insert into public.events (title, type, starts_at, ends_at, location_name, checkin_code, points_value)
 select 'Test Event', 'other', now() - interval '30 minutes', now() + interval '2 hours', 'LIT 223', '111111', 1
 where not exists (
@@ -200,7 +206,7 @@ Accepted participants will be organized into small Research Cohorts according to
 
 As a volunteer, you will work with other students to design and prepare fun science demonstrations and share them with kids in a fun way! Our goal is to make science feel creative, approachable, and fun!$$,
     'https://yoazhfliefswktpszaob.supabase.co/storage/v1/object/public/public-assets/programs/community-outreach.jpg',
-    'https://forms.gle/DuGVNQ3X1RcEb6F18',
+    'https://discord.gg/G6bYG6gkd2',
     null, null
   ),
   (
@@ -399,3 +405,10 @@ select 'General Body Meeting', 'gbm', now() + interval '1 day', now() + interval
 where not exists (
   select 1 from public.events where title = 'General Body Meeting'
 );
+
+-- A sample open report so the officer review queue is not empty locally.
+-- No profile_blocks are seeded: a block would hide a seeded profile in the app.
+insert into public.profile_reports (reporter_id, reported_id, reason, details)
+select reporter.id, reported.id, 'spam', 'Bio is only promotional links.'
+from public.profiles reporter, public.profiles reported
+where reporter.username = 'bob' and reported.username = 'alice';

@@ -2,6 +2,7 @@ import {
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   ScrollView,
   StyleSheet,
@@ -17,6 +18,7 @@ import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import { legalLinks } from '@/lib/links';
 import { supabase } from '@/lib/supabase';
 import { suggestUsername } from '@/services/auth';
 import { type Colors, iconSize, space } from '@/theme';
@@ -24,6 +26,12 @@ import { type Colors, iconSize, space } from '@/theme';
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_REGEX = /^[a-z][a-z0-9]*(?:[._][a-z0-9]+)*$/;
 const MIN_PASSWORD_LENGTH = 8;
+
+function openLegalLink(url: string) {
+  Linking.openURL(url).catch(() =>
+    Alert.alert('Could not open link', `Please visit ${url} in your browser.`),
+  );
+}
 
 export default function SignupScreen() {
   const [fullName, setFullName] = useState('');
@@ -452,6 +460,27 @@ export default function SignupScreen() {
             >
               Create account
             </Button>
+            <Text variant="bodySm" style={styles.legalNotice}>
+              By creating an account, you agree to the{' '}
+              <Text
+                variant="bodySmStrong"
+                accessibilityRole="link"
+                onPress={() => openLegalLink(legalLinks.terms)}
+                style={styles.legalLink}
+              >
+                Terms of Service
+              </Text>{' '}
+              and{' '}
+              <Text
+                variant="bodySmStrong"
+                accessibilityRole="link"
+                onPress={() => openLegalLink(legalLinks.privacy)}
+                style={styles.legalLink}
+              >
+                Privacy Policy
+              </Text>
+              .
+            </Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -503,5 +532,14 @@ const createStyles = (colors: Colors) =>
     },
     buttonContainer: {
       marginTop: space['200'],
+      gap: space['300'],
+    },
+    legalNotice: {
+      color: colors.content.onBase.secondary,
+      textAlign: 'center',
+    },
+    legalLink: {
+      color: colors.content.onBase.primary,
+      textDecorationLine: 'underline',
     },
   });

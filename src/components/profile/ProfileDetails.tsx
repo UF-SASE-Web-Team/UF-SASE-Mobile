@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/Text';
 import type { Profile } from '@/types/profiles';
-import { useTheme, useThemedStyles, type Colors, radius, space } from '@/theme';
+import { useTheme, useThemedStyles, type Colors, iconSize, radius, space } from '@/theme';
 
 export function ProfileCard({
   children,
@@ -30,19 +31,20 @@ export function ProfileCard({
 }
 
 export const academicFields = [
-  { key: 'full_name', label: 'Full Name' },
-  { key: 'major', label: 'Major' },
-  { key: 'minor', label: 'Minor' },
-  { key: 'grad_time', label: 'Grad Year' },
+  { key: 'full_name', label: 'Full Name', icon: 'person-outline' },
+  { key: 'major', label: 'Major', icon: 'school-outline' },
+  { key: 'minor', label: 'Minor', icon: 'book-outline' },
+  { key: 'grad_time', label: 'Grad Year', icon: 'calendar-outline' },
 ] as const;
 
 export const socialFields = [
-  { key: 'discord_handle', label: 'Discord' },
-  { key: 'instagram_handle', label: 'Instagram' },
-  { key: 'linkedin_url', label: 'LinkedIn' },
+  { key: 'discord_handle', label: 'Discord', icon: 'logo-discord' },
+  { key: 'instagram_handle', label: 'Instagram', icon: 'logo-instagram' },
+  { key: 'linkedin_url', label: 'LinkedIn', icon: 'logo-linkedin' },
 ] as const;
 
 export function ProfileDetails({ profile }: { profile: Profile }) {
+  const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const renderRow = (field: (typeof academicFields)[number] | (typeof socialFields)[number]) => (
     <View
@@ -55,6 +57,12 @@ export function ProfileDetails({ profile }: { profile: Profile }) {
           styles.socialRow,
       ]}
     >
+      <Ionicons
+        name={field.icon}
+        size={iconSize.sm}
+        color={colors.content.onBase.secondary}
+        style={styles.fieldIcon}
+      />
       <Text variant="body" style={styles.label}>
         {field.label}:
       </Text>
@@ -100,6 +108,7 @@ const createStyles = (colors: Colors) =>
       gap: space['100'],
     },
     socialRow: { minHeight: 38 },
+    fieldIcon: { marginRight: space['150'] },
     label: { width: '26%', color: colors.content.onBase.primary, lineHeight: space['500'] },
     valuePill: {
       flex: 1,

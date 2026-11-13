@@ -35,7 +35,7 @@ describe('Edit profile', () => {
     save.mockResolvedValue(undefined);
     (useRouter as jest.Mock).mockReturnValue({ back, canGoBack: () => true });
     (useNavigation as jest.Mock).mockReturnValue({ dispatch });
-    (useProfile as jest.Mock).mockReturnValue({ profile: profileFixture, save });
+    (useProfile as jest.Mock).mockReturnValue({ profile: profileFixture, ufid: '12345678', save });
   });
   afterEach(async () => {
     await cleanup();
@@ -87,6 +87,29 @@ describe('Edit profile', () => {
     await user.type(screen.getByLabelText('LinkedIn'), 'https://linkedin.com.example.com/alice');
     await user.press(screen.getByRole('button', { name: 'Save Changes' }));
     expect(screen.getByRole('alert')).toHaveTextContent(/valid LinkedIn URL/);
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it('saves a changed UFID and leaves an untouched one out of the save', async () => {
+    const user = userEvent.setup();
+    await renderEditor();
+    await user.type(screen.getByLabelText('Full Name'), ' Jr');
+    await user.press(screen.getByRole('button', { name: 'Save Changes' }));
+    expect(save.mock.calls[0][0]).not.toHaveProperty('ufid');
+
+    await user.clear(screen.getByLabelText('UFID'));
+    await user.type(screen.getByLabelText('UFID'), '8765-4321');
+    await user.press(screen.getByRole('button', { name: 'Save Changes' }));
+    expect(save).toHaveBeenLastCalledWith(expect.objectContaining({ ufid: '87654321' }));
+  });
+
+  it('rejects an incomplete UFID', async () => {
+    const user = userEvent.setup();
+    await renderEditor();
+    await user.clear(screen.getByLabelText('UFID'));
+    await user.type(screen.getByLabelText('UFID'), '1234');
+    await user.press(screen.getByRole('button', { name: 'Save Changes' }));
+    expect(screen.getByRole('alert')).toBeTruthy();
     expect(save).not.toHaveBeenCalled();
   });
 

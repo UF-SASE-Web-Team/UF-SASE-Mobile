@@ -98,6 +98,7 @@ jest.mock('@/lib/supabase', () => ({
   supabase: {
     auth: {
       signInWithPassword: jest.fn(),
+      setSession: jest.fn().mockResolvedValue({ error: null }),
       signUp: jest.fn(),
       verifyOtp: jest.fn(),
       resetPasswordForEmail: jest.fn(),
@@ -109,6 +110,7 @@ jest.mock('@/lib/supabase', () => ({
       })),
     },
     rpc: jest.fn(),
+    functions: { invoke: jest.fn() },
   },
 }));
 

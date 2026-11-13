@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { EventTag } from '@/components/EventTag';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { radius, space, type Colors } from '@/theme';
 import { EventRow } from '@/types/events';
@@ -42,9 +43,12 @@ export function HomeEventCard({ event, onPress }: HomeEventCardProps) {
           </View>
         )}
         <View style={styles.bottom}>
-          <Text style={styles.title} numberOfLines={2}>
-            {event.title}
-          </Text>
+          <View style={styles.info}>
+            <EventTag type={event.type} />
+            <Text style={styles.title} numberOfLines={2}>
+              {event.title}
+            </Text>
+          </View>
           <View style={styles.arrow}>
             <Ionicons name="chevron-forward" size={14} color="#fff" />
           </View>
@@ -90,8 +94,11 @@ const createStyles = (colors: Colors) =>
       padding: space['200'],
       gap: space['100'],
     },
-    title: {
+    info: {
       flex: 1,
+      gap: space['100'],
+    },
+    title: {
       fontSize: 17,
       fontWeight: '600',
       color: colors.content.onBase.primary,

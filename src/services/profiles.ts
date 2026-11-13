@@ -43,6 +43,35 @@ export async function updateProfile(userId: string, changes: ProfileChanges): Pr
   return data;
 }
 
+/** The signed-in member's own UFID. Other members' UFIDs are never readable. */
+export async function getUfid(userId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('profile_private')
+    .select('ufid')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data?.ufid ?? null;
+}
+
+export async function saveUfid(userId: string, ufid: string): Promise<string> {
+  const { data, error } = await supabase
+    .from('profile_private')
+    .upsert({ user_id: userId, ufid })
+    .select('ufid')
+    .single();
+
+  if (error) {
+    // Unique violation: another account already registered this UFID.
+    if (error.code === '23505') {
+      throw new Error('That UFID is already linked to another account.');
+    }
+    throw error;
+  }
+  return data.ufid;
+}
+
 export async function sendPasswordResetEmail(email: string): Promise<void> {
   const { error } = await supabase.auth.resetPasswordForEmail(email);
   if (error) throw error;

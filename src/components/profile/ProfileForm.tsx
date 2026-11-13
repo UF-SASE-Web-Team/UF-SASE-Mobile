@@ -15,9 +15,17 @@ import {
   textStyles,
   borderWidth,
 } from '@/theme';
+import { UFID_LENGTH, sanitizeUfid } from '@/lib/ufid';
 import type { ProfileChanges } from '@/types/profiles';
 
-export type ProfileDraft = { [K in keyof Required<ProfileChanges>]: string };
+export type ProfileDraft = { [K in keyof Required<ProfileChanges>]: string } & { ufid: string };
+
+// Private fields are editable here but deliberately absent from `ProfileDetails`,
+// so they never appear on a profile.
+const privateFields = [{ key: 'ufid', label: 'UFID', icon: 'card-outline' }] as const;
+
+type ProfileField =
+  (typeof academicFields)[number] | (typeof socialFields)[number] | (typeof privateFields)[number];
 
 const subjects = [
   'Computer Science',
@@ -44,13 +52,15 @@ interface ProfileFormProps {
   draft: ProfileDraft;
   onChange: (key: keyof ProfileDraft, value: string) => void;
   disabled: boolean;
+  /** `optional` leaves out the required fields (full name and UFID). */
+  variant?: 'full' | 'optional';
 }
 
-export function ProfileForm({ draft, onChange, disabled }: ProfileFormProps) {
+export function ProfileForm({ draft, onChange, disabled, variant = 'full' }: ProfileFormProps) {
   const [selection, setSelection] = useState<'major' | 'minor' | 'grad_time' | null>(null);
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
-  const renderRow = (field: (typeof academicFields)[number] | (typeof socialFields)[number]) => {
+  const renderRow = (field: ProfileField) => {
     const isSelect = field.key === 'major' || field.key === 'minor' || field.key === 'grad_time';
     return (
       <View
@@ -63,6 +73,12 @@ export function ProfileForm({ draft, onChange, disabled }: ProfileFormProps) {
             styles.socialRow,
         ]}
       >
+        <Ionicons
+          name={field.icon}
+          size={iconSize.sm}
+          color={colors.content.onBase.secondary}
+          style={styles.fieldIcon}
+        />
         <Text variant="body" style={styles.label}>
           {field.label}:
         </Text>
@@ -90,12 +106,22 @@ export function ProfileForm({ draft, onChange, disabled }: ProfileFormProps) {
             <Input
               accessibilityLabel={field.label}
               value={draft[field.key]}
-              onChangeText={(text) => onChange(field.key, text)}
+              onChangeText={(text) =>
+                onChange(field.key, field.key === 'ufid' ? sanitizeUfid(text) : text)
+              }
               editable={!disabled}
-              maxLength={field.key === 'linkedin_url' ? 300 : 100}
+              maxLength={
+                field.key === 'ufid' ? UFID_LENGTH : field.key === 'linkedin_url' ? 300 : 100
+              }
               autoCapitalize={field.key === 'full_name' ? 'words' : 'none'}
               autoCorrect={field.key === 'full_name'}
-              keyboardType={field.key === 'linkedin_url' ? 'url' : 'default'}
+              keyboardType={
+                field.key === 'ufid'
+                  ? 'number-pad'
+                  : field.key === 'linkedin_url'
+                    ? 'url'
+                    : 'default'
+              }
               placeholder={field.key === 'full_name' ? 'Full name' : undefined}
               containerStyle={styles.inputContainer}
               inputStyle={styles.input}
@@ -124,7 +150,19 @@ export function ProfileForm({ draft, onChange, disabled }: ProfileFormProps) {
   };
   return (
     <View style={styles.form}>
-      <ProfileCard editing>{academicFields.map(renderRow)}</ProfileCard>
+      <ProfileCard editing>
+        {academicFields
+          .filter((field) => variant === 'full' || field.key !== 'full_name')
+          .map(renderRow)}
+      </ProfileCard>
+      {variant === 'full' && (
+        <ProfileCard editing>
+          {privateFields.map(renderRow)}
+          <Text variant="bodySm" style={styles.privateNote}>
+            Only you can see your UFID.
+          </Text>
+        </ProfileCard>
+      )}
       <ProfileCard editing>{socialFields.map(renderRow)}</ProfileCard>
       <ProfileCard editing>
         <Input
@@ -167,6 +205,8 @@ const createStyles = (colors: Colors) =>
       gap: space['100'],
     },
     socialRow: { minHeight: 38 },
+    privateNote: { color: colors.content.onBase.secondary, paddingHorizontal: space['100'] },
+    fieldIcon: { marginRight: space['150'] },
     label: { width: '26%', color: colors.content.onBase.primary, lineHeight: space['500'] },
     inputWrapper: {
       flex: 1,

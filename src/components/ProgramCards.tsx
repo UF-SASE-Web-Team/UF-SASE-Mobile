@@ -3,6 +3,7 @@ import { Image, Linking, Pressable, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ProgramWithPoCs } from '@/types/programs';
+import { isJoinLink } from '@/lib/programs';
 import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { type Colors, space, radius, iconSize, borderWidth } from '@/theme';
@@ -83,6 +84,8 @@ export function ApplicationProgramCard({ program, onPress }: ProgramCardProps) {
 
   const isUpcoming = opensAt !== null && opensAt > now;
   const isOpen = !isUpcoming && (closesAt === null || closesAt > now);
+  const isJoin = isJoinLink(program.application_url);
+  const actionLabel = isJoin ? 'Join' : 'Apply';
 
   const formatShortDate = (date: Date) =>
     date.toLocaleDateString('en-US', {
@@ -153,9 +156,16 @@ export function ApplicationProgramCard({ program, onPress }: ProgramCardProps) {
             </>
           ) : closesAt ? (
             <>
-              Apply by{' '}
+              {actionLabel} by{' '}
               <Text variant="bodySmStrong" color={colors.content.onBase.primary}>
                 {formatShortDate(closesAt)}!
+              </Text>
+            </>
+          ) : isJoin ? (
+            <>
+              Open to{' '}
+              <Text variant="bodySmStrong" color={colors.content.onBase.primary}>
+                join!
               </Text>
             </>
           ) : (
@@ -173,13 +183,13 @@ export function ApplicationProgramCard({ program, onPress }: ProgramCardProps) {
           disabled={!isOpen || !program.application_url}
           onPress={handleApplyPress}
           accessibilityRole="button"
-          accessibilityLabel={`Apply to ${program.name}`}
+          accessibilityLabel={`${actionLabel} ${isJoin ? '' : 'to '}${program.name}`}
         >
           <Text
             variant="bodySmStrong"
             color={isOpen ? colors.content.onSaseBlue.secondary : colors.content.onBase.secondary}
           >
-            Apply
+            {actionLabel}
           </Text>
           {isOpen && (
             <Ionicons

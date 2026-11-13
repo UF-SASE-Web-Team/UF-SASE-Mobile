@@ -1,7 +1,7 @@
 import { StyleSheet, Alert, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { signInWithIdentifier } from '@/services/auth';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { BackButton } from '@/components/BackButton';
@@ -28,46 +28,28 @@ export default function LoginScreen() {
     }
 
     setLoading(true);
-    let resolvedEmail = cleanIdentifier;
-    if (!cleanIdentifier.includes('@')) {
-      const { data: targetEmail, error: lookupError } = await supabase.rpc(
-        'get_email_from_username',
-        { p_username: cleanIdentifier },
-      );
-      if (lookupError || !targetEmail) {
-        if (lookupError) {
-          console.error('Username lookup error:', lookupError);
-        }
-        setLoading(false);
-        Alert.alert('Login failed', 'Invalid username/email or password.');
-        return;
-      }
-      resolvedEmail = targetEmail;
-    }
-
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: resolvedEmail,
-      password,
-    });
-    setLoading(false);
-
-    if (signInError) {
-      console.error('Sign-in error:', signInError);
-      if (signInError.message.toLowerCase().includes('email not confirmed')) {
+    try {
+      const result = await signInWithIdentifier(cleanIdentifier, password);
+      if (result.status === 'unconfirmed') {
         Alert.alert('Email Unverified', 'Please verify your email before logging in.', [
           {
             text: 'Verify Code',
             onPress: () =>
               router.push({
                 pathname: '/(auth)/verify',
-                params: { email: resolvedEmail, mode: 'signup' },
+                params: { email: result.email, mode: 'signup' },
               }),
           },
           { text: 'Cancel', style: 'cancel' },
         ]);
-      } else {
+      } else if (result.status === 'invalid') {
         Alert.alert('Login failed', 'Invalid username/email or password.');
       }
+    } catch (cause) {
+      console.error('Sign-in error:', cause);
+      Alert.alert('Login failed', 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -243,6 +243,116 @@ export type Database = {
           },
         ];
       };
+      profile_blocks: {
+        Row: {
+          blocked_id: string;
+          blocker_id: string;
+          created_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          blocked_id: string;
+          blocker_id?: string;
+          created_at?: string;
+        };
+        Update: {
+          blocked_id?: string;
+          blocker_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'profile_blocks_blocked_id_fkey';
+            columns: ['blocked_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'profile_blocks_blocker_id_fkey';
+            columns: ['blocker_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      profile_private: {
+        Row: {
+          created_at: string;
+          ufid: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          ufid: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          ufid?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'profile_private_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      profile_reports: {
+        Row: {
+          created_at: string;
+          details: string | null;
+          id: string;
+          reason: Database['public']['Enums']['report_reason'];
+          reported_id: string;
+          reporter_id: string | null;
+          resolved_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          details?: string | null;
+          id?: string;
+          reason: Database['public']['Enums']['report_reason'];
+          reported_id: string;
+          reporter_id?: string | null;
+          resolved_at?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          details?: string | null;
+          id?: string;
+          reason?: Database['public']['Enums']['report_reason'];
+          reported_id?: string;
+          reporter_id?: string | null;
+          resolved_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'profile_reports_reported_id_fkey';
+            columns: ['reported_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'profile_reports_reporter_id_fkey';
+            columns: ['reporter_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       profiles: {
         Row: {
           avatar_url: string | null;
@@ -480,6 +590,7 @@ export type Database = {
       checkin_method: 'code' | 'qr' | 'manual';
       event_type: 'gbm' | 'career' | 'social' | 'team' | 'other';
       program_category: 'events_and_committees' | 'technical_and_research' | 'community';
+      report_reason: 'harassment' | 'inappropriate' | 'impersonation' | 'spam' | 'other';
       resource_category: 'general' | 'sase' | 'academic' | 'professional';
       user_role: 'member' | 'officer' | 'alumni';
     };
@@ -599,6 +710,7 @@ export const Constants = {
       checkin_method: ['code', 'qr', 'manual'],
       event_type: ['gbm', 'career', 'social', 'team', 'other'],
       program_category: ['events_and_committees', 'technical_and_research', 'community'],
+      report_reason: ['harassment', 'inappropriate', 'impersonation', 'spam', 'other'],
       resource_category: ['general', 'sase', 'academic', 'professional'],
       user_role: ['member', 'officer', 'alumni'],
     },
