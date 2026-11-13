@@ -78,3 +78,17 @@ export async function signInWithIdentifier(
   if (sessionError) throw sessionError;
   return { status: 'ok' };
 }
+
+/**
+ * Clears a sign-up for this email that was never verified, so a new attempt
+ * starts fresh instead of keeping the abandoned one's password and username.
+ * Verified accounts are untouched. Best effort: sign-up proceeds either way.
+ */
+export async function discardUnverifiedSignup(email: string): Promise<void> {
+  await supabase.rpc('discard_unverified_signup', { p_email: email.trim().toLowerCase() });
+}
+
+/** Emails a fresh sign-up verification code. Best effort: the verify screen can resend. */
+export async function resendSignupCode(email: string): Promise<void> {
+  await supabase.auth.resend({ type: 'signup', email });
+}

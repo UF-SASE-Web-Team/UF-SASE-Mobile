@@ -20,7 +20,7 @@ import { Text } from '@/components/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { legalLinks } from '@/lib/links';
 import { supabase } from '@/lib/supabase';
-import { suggestUsername } from '@/services/auth';
+import { discardUnverifiedSignup, suggestUsername } from '@/services/auth';
 import { type Colors, iconSize, space } from '@/theme';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -215,6 +215,7 @@ export default function SignupScreen() {
     }
 
     setLoading(true);
+    await discardUnverifiedSignup(cleanEmail).catch(() => undefined);
     const { data, error } = await supabase.auth.signUp({
       email: cleanEmail,
       password,

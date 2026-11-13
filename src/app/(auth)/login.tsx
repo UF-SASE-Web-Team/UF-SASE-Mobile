@@ -1,7 +1,7 @@
 import { StyleSheet, Alert, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
-import { signInWithIdentifier } from '@/services/auth';
+import { resendSignupCode, signInWithIdentifier } from '@/services/auth';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { BackButton } from '@/components/BackButton';
@@ -34,11 +34,14 @@ export default function LoginScreen() {
         Alert.alert('Email Unverified', 'Please verify your email before logging in.', [
           {
             text: 'Verify Code',
-            onPress: () =>
+            onPress: () => {
+              // The code from sign-up has likely expired, so send a new one.
+              resendSignupCode(result.email).catch(() => undefined);
               router.push({
                 pathname: '/(auth)/verify',
                 params: { email: result.email, mode: 'signup' },
-              }),
+              });
+            },
           },
           { text: 'Cancel', style: 'cancel' },
         ]);

@@ -592,6 +592,7 @@ export type Database = {
       };
       check_username_available: { Args: { input_username: string }; Returns: boolean };
       delete_user_account: { Args: Record<PropertyKey, never>; Returns: undefined };
+      discard_unverified_signup: { Args: { p_email: string }; Returns: undefined };
       get_email_from_username: { Args: { p_username: string }; Returns: string };
       suggest_username: { Args: { p_separator?: string }; Returns: string };
       toggle_event_rsvp: { Args: { p_event_id: string }; Returns: boolean };

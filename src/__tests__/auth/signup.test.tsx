@@ -228,6 +228,16 @@ describe('SignupScreen', () => {
 
     await user.press(screen.getByRole('button', { name: /create account/i }));
 
+    // An earlier unverified attempt is cleared first so this password and username apply
+    await waitFor(() => {
+      expect(supabase.rpc).toHaveBeenCalledWith('discard_unverified_signup', {
+        p_email: 'albert@ufl.edu',
+      });
+      expect((supabase.rpc as jest.Mock).mock.invocationCallOrder.at(-1)!).toBeLessThan(
+        (supabase.auth.signUp as jest.Mock).mock.invocationCallOrder[0],
+      );
+    });
+
     await waitFor(() => {
       expect(supabase.auth.signUp).toHaveBeenCalledWith({
         email: 'albert@ufl.edu',

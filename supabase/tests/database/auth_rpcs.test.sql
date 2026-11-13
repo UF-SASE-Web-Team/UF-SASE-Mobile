@@ -338,5 +338,48 @@ select matches(
   'Suggested username with invalid separator falls back to valid format without hyphens'
 );
 
+-- 5. Unverified sign-ups are replaceable placeholders
+insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data)
+values (
+  '00000000-0000-0000-0000-0000000000a1',
+  '00000000-0000-0000-0000-000000000000',
+  'authenticated', 'authenticated', 'pending@gmail.com',
+  '{"username": "pendingp", "full_name": "Pending Person"}'
+);
+
+select is(
+  public.check_username_available('pendingp'),
+  true,
+  'A username held only by an unverified account should be available'
+);
+
+insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data)
+values (
+  '00000000-0000-0000-0000-0000000000a2',
+  '00000000-0000-0000-0000-000000000000',
+  'authenticated', 'authenticated', 'claimer@gmail.com',
+  '{"username": "pendingp", "full_name": "Claimer"}'
+);
+
+select is(
+  (select array_agg(u.email::text) from auth.users u join public.profiles p on p.id = u.id where p.username = 'pendingp'),
+  array['claimer@gmail.com'],
+  'Signing up with a username held by an unverified account should replace that account'
+);
+
+select public.discard_unverified_signup('  CLAIMER@gmail.com ');
+select is(
+  (select count(*)::int from auth.users where email = 'claimer@gmail.com'),
+  0,
+  'discard_unverified_signup should remove an unverified account'
+);
+
+select public.discard_unverified_signup('alice@gmail.com');
+select is(
+  (select count(*)::int from public.profiles where username = 'alice'),
+  1,
+  'discard_unverified_signup should never remove a verified account'
+);
+
 select * from finish();
 rollback;

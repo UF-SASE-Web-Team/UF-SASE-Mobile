@@ -256,5 +256,9 @@ describe('LoginScreen', () => {
       pathname: '/(auth)/verify',
       params: { email: 'unverified@ufl.edu', mode: 'signup' },
     });
+    expect(supabase.auth.resend).toHaveBeenCalledWith({
+      type: 'signup',
+      email: 'unverified@ufl.edu',
+    });
   });
 });
