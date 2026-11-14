@@ -36,7 +36,7 @@ as $$
 declare
   v_username text := lower(trim(new.raw_user_meta_data->>'username'));
   v_name text := trim(new.raw_user_meta_data->>'full_name');
-  v_avatar text := 'https://yoazhfliefswktpszaob.supabase.co/storage/v1/object/public/public-assets/sase-cat.png';
+  v_avatar text := 'sase-cat';
 begin
   if v_username is null or v_username = '' then
     raise exception 'username is required in user_metadata';

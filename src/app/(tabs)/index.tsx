@@ -213,6 +213,7 @@ export default function HomePage() {
               source={avatarSource}
               style={styles.profileAvatar}
               contentFit="cover"
+              cachePolicy="memory-disk"
               accessibilityLabel={
                 profile?.full_name ? `${profile.full_name}'s profile picture` : 'Profile picture'
               }

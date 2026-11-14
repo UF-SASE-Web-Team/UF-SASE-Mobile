@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, Linking, ScrollView, StyleSheet, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, View } from 'react-native';
+import { Image } from 'expo-image';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from 'expo-router';
@@ -100,7 +101,8 @@ export default function ProgramDetailScreen({ onContactPress }: ProgramDetailScr
             <Image
               source={require('@/assets/star-left.png')}
               style={styles.starLeft}
-              resizeMode="contain"
+              contentFit="cover"
+              cachePolicy="memory-disk"
               accessibilityRole="none"
               importantForAccessibility="no"
               accessibilityElementsHidden
@@ -135,7 +137,8 @@ export default function ProgramDetailScreen({ onContactPress }: ProgramDetailScr
             <Image
               source={require('@/assets/star-right.png')}
               style={styles.starRight}
-              resizeMode="contain"
+              contentFit="cover"
+              cachePolicy="memory-disk"
               accessibilityRole="none"
               importantForAccessibility="no"
               accessibilityElementsHidden

@@ -275,6 +275,7 @@ export default function EventDetailScreen() {
             testID="event-backdrop-image"
             source={{ uri: flyerUrl }}
             contentFit="cover"
+            cachePolicy="memory-disk"
             style={styles.flyerHeroImage}
             accessibilityRole="image"
             accessibilityLabel="Event flyer"

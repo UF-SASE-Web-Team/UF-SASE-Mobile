@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BackButton } from '@/components/BackButton';
@@ -101,7 +102,8 @@ export default function FreshmanFaqsPage() {
                 <Image
                   source={require('@/assets/rings.png')}
                   style={styles.decorativeRings}
-                  resizeMode="contain"
+                  contentFit="contain"
+                  cachePolicy="memory-disk"
                   accessibilityRole="none"
                   importantForAccessibility="no"
                   accessibilityElementsHidden

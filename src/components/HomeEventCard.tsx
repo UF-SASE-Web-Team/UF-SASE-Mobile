@@ -39,6 +39,7 @@ export function HomeEventCard({ event, onPress }: HomeEventCardProps) {
           source={{ uri: event.flyer_url ?? '' }}
           style={styles.image}
           contentFit="cover"
+          cachePolicy="memory-disk"
           onError={() => setImageFailed(true)}
         />
       ) : (
