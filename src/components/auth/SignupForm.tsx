@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { useSignupForm } from '@/hooks/useSignupForm';
-import { iconSize, space, type Colors } from '@/theme';
+import { iconSize, radius, space, type Colors } from '@/theme';
 
 type SignupFormProps = ReturnType<typeof useSignupForm>;
 
@@ -285,7 +285,7 @@ const createStyles = (colors: Colors) =>
       paddingVertical: space['100'],
       paddingHorizontal: space['200'],
       backgroundColor: colors.surface.saseBlueSubtle.primary,
-      borderRadius: 16,
+      borderRadius: radius.full,
     },
     suggestButtonText: {
       color: colors.content.onSaseBlueSubtle.primary,

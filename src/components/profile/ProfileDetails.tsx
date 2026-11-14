@@ -92,27 +92,27 @@ const createStyles = (colors: Colors) =>
   StyleSheet.create({
     details: { gap: space['200'] },
     border: {
-      padding: 5,
-      borderRadius: 35,
+      padding: space['100'],
+      borderRadius: radius.xl,
     },
     card: {
       backgroundColor: colors.surface.base.secondary,
-      borderRadius: 30,
+      borderRadius: radius.lg,
       padding: space['250'],
       gap: space['200'],
     },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
-      minHeight: 42,
+      paddingVertical: space['100'],
       gap: space['100'],
     },
-    socialRow: { minHeight: 38 },
+    socialRow: {},
     fieldIcon: { marginRight: space['150'] },
     label: { width: '26%', color: colors.content.onBase.primary, lineHeight: space['500'] },
     valuePill: {
       flex: 1,
-      minHeight: 32,
+      minHeight: space['800'],
       backgroundColor: colors.surface.base.tertiary,
       borderRadius: radius.full,
       paddingHorizontal: space['200'],
@@ -124,7 +124,6 @@ const createStyles = (colors: Colors) =>
     bio: {
       color: colors.content.onBase.secondary,
       lineHeight: space['500'],
-      minHeight: 100,
-      paddingTop: space['100'],
+      paddingVertical: space['200'],
     },
   });

@@ -1,6 +1,7 @@
 import React from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useThemedStyles } from '@/context/ThemeContext';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/Text';
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { radius, space, type Colors } from '@/theme';
 
 interface PointsInfoModalProps {
@@ -9,19 +10,22 @@ interface PointsInfoModalProps {
 }
 
 export function PointsInfoModal({ visible, onClose }: PointsInfoModalProps) {
+  const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.modalBackdrop}>
         <View style={styles.modalCard}>
-          <Text style={styles.modalText}>
-            <Text style={styles.modalBold}>SASE Points</Text> are a reward system designed to
-            recognize members for their involvement and participation. Members can earn points by
-            attending events such as General Body Meetings (GBMs), socials, and other SASE
-            activities, as well as participating in our programs.
+          <Text variant="bodySm" color={colors.content.onBase.secondary}>
+            <Text variant="bodySmStrong" color={colors.content.onBase.primary}>
+              SASE Points
+            </Text>{' '}
+            are a reward system designed to recognize members for their involvement and
+            participation. Members can earn points by attending events such as General Body Meetings
+            (GBMs), socials, and other SASE activities, as well as participating in our programs.
           </Text>
-          <Text style={styles.modalText}>
+          <Text variant="bodySm" color={colors.content.onBase.secondary}>
             As you accumulate points, you can unlock rewards, including free SASE merchandise!
             Remember to check in at every event you attend to ensure your points are recorded!
           </Text>
@@ -31,7 +35,9 @@ export function PointsInfoModal({ visible, onClose }: PointsInfoModalProps) {
             onPress={onClose}
             style={({ pressed }) => [styles.infoButton, pressed && styles.pressed]}
           >
-            <Text style={styles.infoButtonText}>Back to Attendance</Text>
+            <Text variant="bodySmStrong" color={colors.content.onSaseBlueSubtle.primary}>
+              Back to Attendance
+            </Text>
           </Pressable>
         </View>
       </View>
@@ -43,7 +49,7 @@ const createStyles = (colors: Colors) =>
   StyleSheet.create({
     modalBackdrop: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: colors.surface.media.scrim,
       justifyContent: 'center',
       alignItems: 'center',
       padding: space['600'],
@@ -56,26 +62,12 @@ const createStyles = (colors: Colors) =>
       maxWidth: 400,
       width: '100%',
     },
-    modalText: {
-      fontSize: 15,
-      lineHeight: 22,
-      color: colors.content.onBase.secondary,
-    },
-    modalBold: {
-      fontWeight: '700',
-      color: colors.content.onBase.primary,
-    },
     infoButton: {
       alignSelf: 'center',
       paddingVertical: space['200'],
       paddingHorizontal: space['400'],
       backgroundColor: colors.surface.saseBlueSubtle.primary,
       borderRadius: radius.full,
-    },
-    infoButtonText: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: colors.content.onSaseBlueSubtle.primary,
     },
     pressed: {
       opacity: 0.7,
