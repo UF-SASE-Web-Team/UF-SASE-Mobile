@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { Session, User, isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { posthog } from '@/lib/posthog';
 
 interface AuthContextType {
   session: Session | null;
@@ -39,6 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await supabase.auth.signOut({ scope: 'local' });
     } finally {
       setSession(null);
+      posthog?.reset();
     }
   }, []);
 
@@ -53,6 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!currentSession) {
         setSession(null);
         setIsLoading(false);
+        posthog?.reset();
         return;
       }
 

@@ -5,6 +5,8 @@ import {
   ThemeProvider as NavThemeProvider,
   DarkTheme,
   DefaultTheme,
+  usePathname,
+  useSegments,
 } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
@@ -15,8 +17,7 @@ import { ProfileProvider, useProfile } from '@/context/ProfileContext';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { fontAssets } from '@/theme';
 import { PostHogProvider } from 'posthog-react-native';
-
-const posthogApiKey = process.env.EXPO_PUBLIC_POSTHOG_API_KEY;
+import { posthog } from '@/lib/posthog';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -39,6 +40,17 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
       SplashScreen.hideAsync();
     }
   }, [isLoading, isThemeLoaded, fontsReady, isRouteKnown]);
+
+  const pathname = usePathname();
+  const segments = useSegments();
+
+  useEffect(() => {
+    if (pathname) {
+      posthog?.screen(pathname, {
+        route: segments.join('/'),
+      });
+    }
+  }, [pathname, segments]);
 
   const navTheme = useMemo(
     () => ({
@@ -111,19 +123,13 @@ export default function RootLayout() {
   );
 
   // If no PostHog API key is provided, render app without PostHog
-  if (!posthogApiKey) {
+  if (!posthog) {
     return appContent;
   }
 
   // If PostHog API key is provided, wrap app with PostHog provider
   return (
-    <PostHogProvider
-      apiKey={posthogApiKey}
-      options={{
-        host: 'https://us.i.posthog.com',
-      }}
-      autocapture
-    >
+    <PostHogProvider client={posthog} autocapture>
       {appContent}
     </PostHogProvider>
   );

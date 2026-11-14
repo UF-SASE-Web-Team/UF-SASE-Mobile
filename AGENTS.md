@@ -115,6 +115,13 @@ Keep files readable and avoid monolithic screens:
 
 ## 5. Database, Types & Supabase Workflow
 
+- **Creating Migrations via CLI**: Always generate new migration files using the Supabase CLI so timestamps are valid and sequence-accurate:
+  ```bash
+  npx supabase migration new <migration_name>
+  # or
+  npm run db:migration <migration_name>
+  ```
+  Never create migration files manually or invent arbitrary timestamps; the CLI guarantees UTC timestamp accuracy and prevents migration ordering collisions.
 - **Local Supabase First**: Develop migrations and test against the local Docker instance (`supabase start`, `npm run db:reset`). Never edit remote staging or production schema directly.
 - **Update `seed.sql` with Migrations**: Whenever a migration adds or alters a table, column, constraint, or enum, immediately update `supabase/seed.sql` with corresponding mock data. Running `npm run db:reset` acts as an automated safety check: if an agent wrote invalid SQL, missed a `NOT NULL` default, or created constraint mismatches, `db:reset` immediately catches it.
 - **Automated Type Generation**:

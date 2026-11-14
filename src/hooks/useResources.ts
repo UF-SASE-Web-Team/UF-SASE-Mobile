@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Linking } from 'react-native';
 import { useRouter } from 'expo-router';
+import { openExternalLink } from '@/lib/links';
 import { getResourceSections } from '@/services/resources';
 import {
   ResourceRow,
@@ -107,16 +107,7 @@ export function useResources() {
       return;
     }
 
-    try {
-      const supported = await Linking.canOpenURL(resource.url);
-      if (supported) {
-        await Linking.openURL(resource.url);
-      } else {
-        console.warn(`Cannot open URL: ${resource.url}`);
-      }
-    } catch (err: any) {
-      console.error('Failed to open resource URL:', err.message);
-    }
+    await openExternalLink(resource.url, resource.name);
   };
 
   return {

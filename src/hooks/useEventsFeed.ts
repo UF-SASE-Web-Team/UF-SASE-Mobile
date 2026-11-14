@@ -65,7 +65,7 @@ export function useEventsFeed() {
       const rsvpUrl = (event as EventWithRsvp).rsvp_link?.url;
       // Send the user to the RSVP form when they RSVP, not when they cancel.
       if (isGoing && rsvpUrl) {
-        await openExternalLink(rsvpUrl);
+        await openExternalLink(rsvpUrl, `${event.title} RSVP`);
       }
     } catch (err: any) {
       Alert.alert('RSVP Error', err.message || 'Could not update RSVP status.');

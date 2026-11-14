@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -7,6 +7,7 @@ import { ProgramWithPoCs } from '@/types/programs';
 import { isJoinLink } from '@/services/programs';
 import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import { openExternalLink } from '@/lib/links';
 import { type Colors, space, radius, iconSize, borderWidth } from '@/theme';
 
 export interface ProgramCardProps {
@@ -99,10 +100,7 @@ export function ApplicationProgramCard({ program, onPress }: ProgramCardProps) {
 
   const handleApplyPress = async () => {
     if (!program.application_url) return;
-    const supported = await Linking.canOpenURL(program.application_url);
-    if (supported) {
-      await Linking.openURL(program.application_url);
-    }
+    await openExternalLink(program.application_url, `${program.name} ${actionLabel}`);
   };
 
   return (

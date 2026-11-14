@@ -109,7 +109,7 @@ export function useEventDetail(id?: string) {
       setIsRsvped(serverStatus);
       // Send the user to the RSVP form when they RSVP, not when they cancel.
       if (serverStatus && event.rsvp_link?.url) {
-        await openExternalLink(event.rsvp_link.url);
+        await openExternalLink(event.rsvp_link.url, `${event.title} RSVP`);
       }
     } catch (err: any) {
       setIsRsvped(previousStatus);

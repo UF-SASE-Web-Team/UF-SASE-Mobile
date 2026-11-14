@@ -51,15 +51,22 @@ jest.mock('expo-router', () => ({
 }));
 
 // Mock posthog-react-native
-jest.mock('posthog-react-native', () => ({
-  PostHogProvider: ({ children }: { children?: React.ReactNode }) => children ?? null,
-  usePostHog: () => ({
+jest.mock('posthog-react-native', () => {
+  const mockPostHogInstance = {
     capture: jest.fn(),
     identify: jest.fn(),
     reset: jest.fn(),
     screen: jest.fn(),
-  }),
-}));
+  };
+  const MockPostHog = jest.fn().mockImplementation(() => mockPostHogInstance);
+  return {
+    __esModule: true,
+    default: MockPostHog,
+    PostHog: MockPostHog,
+    PostHogProvider: ({ children }: { children?: React.ReactNode }) => children ?? null,
+    usePostHog: () => mockPostHogInstance,
+  };
+});
 
 // Mock expo-router/unstable-native-tabs
 const createTriggerSubcomponent = (name: string) => {

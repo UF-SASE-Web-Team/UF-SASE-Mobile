@@ -92,7 +92,7 @@ export function EventLinksSection({
             <Pressable
               key={link.id}
               style={({ pressed }) => [styles.linkCard, pressed && styles.linkCardPressed]}
-              onPress={() => openExternalLink(link.url)}
+              onPress={() => openExternalLink(link.url, link.title)}
               accessibilityRole="link"
               accessibilityLabel={link.title}
             >
