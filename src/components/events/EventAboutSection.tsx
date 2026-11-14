@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  NativeSyntheticEvent,
-  Pressable,
-  StyleSheet,
-  TextLayoutEventData,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, TextLayoutEvent, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
@@ -16,7 +10,7 @@ interface EventAboutSectionProps {
   isExpanded: boolean;
   shouldShowExpandButton: boolean;
   onToggleExpand: () => void;
-  onTextLayout: (e: NativeSyntheticEvent<TextLayoutEventData>) => void;
+  onTextLayout: (e: TextLayoutEvent) => void;
 }
 
 export function EventAboutSection({

@@ -3,7 +3,7 @@ import {
   Alert,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  TextLayoutEventData,
+  TextLayoutEvent,
   useAnimatedValue,
   useWindowDimensions,
 } from 'react-native';
@@ -42,7 +42,7 @@ export function useEventDetail(id?: string) {
   const [isAboutExpanded, setIsAboutExpanded] = useState(false);
   const [isTextLong, setIsTextLong] = useState(false);
 
-  const handleAboutTextLayout = useCallback((e: NativeSyntheticEvent<TextLayoutEventData>) => {
+  const handleAboutTextLayout = useCallback((e: TextLayoutEvent) => {
     if (e.nativeEvent.lines.length > 5) {
       setIsTextLong(true);
     }

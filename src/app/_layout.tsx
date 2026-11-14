@@ -8,11 +8,15 @@ import {
 } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { EventsProvider } from '@/context/EventsContext';
 import { ProfileProvider, useProfile } from '@/context/ProfileContext';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { fontAssets } from '@/theme';
+import { PostHogProvider } from 'posthog-react-native';
+
+const posthogApiKey = process.env.EXPO_PUBLIC_POSTHOG_API_KEY;
 
 SplashScreen.preventAutoHideAsync();
 
@@ -20,15 +24,13 @@ export const unstable_settings = {
   anchor: '(tabs)',
 };
 
-function ThemedStatusBar() {
-  const { isDark } = useTheme();
-  return <StatusBar style={isDark ? 'light' : 'dark'} />;
-}
-
-function SplashController({ fontsReady }: { fontsReady: boolean }) {
-  const { isLoading, session } = useAuth();
+function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
+  const { isLoading, session, isRecovering } = useAuth();
+  const { colors, isDark, isLoaded: isThemeLoaded } = useTheme();
   const { onboarding } = useProfile();
-  const { isLoaded: isThemeLoaded } = useTheme();
+
+  const isAuthenticated = !!session && !isRecovering;
+  const isOnboarded = onboarding === 'complete';
   // Keep the splash up until we know whether to land on the app or onboarding.
   const isRouteKnown = !session || onboarding !== 'loading';
 
@@ -37,16 +39,6 @@ function SplashController({ fontsReady }: { fontsReady: boolean }) {
       SplashScreen.hideAsync();
     }
   }, [isLoading, isThemeLoaded, fontsReady, isRouteKnown]);
-
-  return null;
-}
-
-function RootNavigator() {
-  const { session, isRecovering } = useAuth();
-  const { colors, isDark } = useTheme();
-  const { onboarding } = useProfile();
-  const isAuthenticated = !!session && !isRecovering;
-  const isOnboarded = onboarding === 'complete';
 
   const navTheme = useMemo(
     () => ({
@@ -67,6 +59,7 @@ function RootNavigator() {
   // syncs custom theme tokens with react navigation elements and screen transitions
   return (
     <NavThemeProvider value={navTheme}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
           headerShown: false,
@@ -87,6 +80,7 @@ function RootNavigator() {
         <Stack.Protected guard={!isAuthenticated}>
           <Stack.Screen name="(auth)" />
         </Stack.Protected>
+        <Stack.Screen name="+not-found" />
       </Stack>
     </NavThemeProvider>
   );
@@ -100,17 +94,37 @@ export default function RootLayout() {
     return null;
   }
 
+  const fontsReady = Boolean(fontsLoaded || fontError);
+
+  const appContent = (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
+        <AuthProvider>
+          <ProfileProvider>
+            <EventsProvider>
+              <RootNavigator fontsReady={fontsReady} />
+            </EventsProvider>
+          </ProfileProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
+  );
+
+  // If no PostHog API key is provided, render app without PostHog
+  if (!posthogApiKey) {
+    return appContent;
+  }
+
+  // If PostHog API key is provided, wrap app with PostHog provider
   return (
-    <ThemeProvider>
-      <ThemedStatusBar />
-      <AuthProvider>
-        <ProfileProvider>
-          <EventsProvider>
-            <SplashController fontsReady={Boolean(fontsLoaded || fontError)} />
-            <RootNavigator />
-          </EventsProvider>
-        </ProfileProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <PostHogProvider
+      apiKey={posthogApiKey}
+      options={{
+        host: 'https://us.i.posthog.com',
+      }}
+      autocapture
+    >
+      {appContent}
+    </PostHogProvider>
   );
 }
