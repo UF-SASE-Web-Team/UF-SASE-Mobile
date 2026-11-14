@@ -86,5 +86,30 @@ Video: [How to Manage Database Migration Using Supabase CLI - SupabaseTips](http
 - Never change staging or prod schema directly in Studio.
 - After pulling new migrations, run `db reset`.
 - Always run `db reset` before committing a migration.
-- Development data that lives beyond `db reset`'s belongs in `seed.sql`.
-- When a migration adds a new table or column update `seed.sql` at the same time.
+- Development data that lives beyond `db reset`'s belongs in `supabase/seeds/`.
+- When a migration adds a new table or column, update the corresponding SQL file in `supabase/seeds/`.
+
+---
+
+## Seeding & Baseline Data
+
+Seeding initializes baseline records for local development, staging verification, and production environments. Baseline data is organized into modular seed files in `supabase/seeds/` (e.g. `01_academic_terms.sql`, `03_programs.sql`, `06_events.sql`) that execute in dependency order.
+
+The SQL files are written as idempotent `INSERT ... ON CONFLICT (...) DO UPDATE` statements wrapped in transactions so they can be executed repeatedly and safely without duplicating records or corrupting data.
+
+### Common Seeding Commands
+
+```bash
+# Full local reset: runs all migrations and modular seeds
+npx supabase db reset
+
+# Apply a specific seed file locally
+node scripts/seed.ts --local --only=events
+
+# Update events in production (or use --staging)
+node scripts/seed.ts --prod --only=events
+
+# Apply all baseline seeds to a remote environment
+node scripts/seed.ts --staging --all
+```
+

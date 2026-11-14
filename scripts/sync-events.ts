@@ -4,7 +4,6 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { createClient } from '@supabase/supabase-js';
 
 // Types
 export type EventType = 'gbm' | 'career' | 'social' | 'team' | 'other';
@@ -277,9 +276,6 @@ const BUILDING_PATTERNS: BuildingRule[] = [
     lng: -82.3882,
   },
 ];
-
-const LOCAL_SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const LOCAL_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 function unescapeIcs(str: string): string {
   return str
@@ -1029,151 +1025,9 @@ export function generateSql(events: ParsedEvent[]): string {
   return `${sqlParts.join('\n\n')}\n`;
 }
 
-async function syncToDatabase(events: ParsedEvent[], dryRun: boolean) {
-  const supabaseUrl = process.env.SUPABASE_URL || LOCAL_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || LOCAL_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl) {
-    throw new Error(
-      `Missing Supabase URL.\nPlease run with --env-file=.env or set EXPO_PUBLIC_SUPABASE_URL in your environment.`,
-    );
-  }
-
-  if (!serviceKey) {
-    throw new Error(
-      `Missing SUPABASE_SERVICE_ROLE_KEY.\n` +
-        `Because public.events has RLS enabled, inserting/updating events requires the admin service_role key.\n` +
-        `Please ensure SUPABASE_SERVICE_ROLE_KEY is set in your .env file.`,
-    );
-  }
-
-  console.log(`Connecting to Supabase at: ${supabaseUrl}`);
-  const supabase = createClient(supabaseUrl, serviceKey, {
-    auth: { persistSession: false },
-  });
-
-  if (dryRun) {
-    console.log(`\n[DRY RUN] Would sync ${events.length} events to ${supabaseUrl}:`);
-    for (const e of events.slice(0, 15)) {
-      const geoInfo = e.lat && e.lng ? ` [${e.lat}, ${e.lng}]` : '';
-      const addrInfo = e.address ? ` -> ${e.address}` : '';
-      console.log(
-        `  - [${e.type.toUpperCase()}] ${e.title} (${e.starts_at.slice(0, 10)} @ ${e.location_name}${geoInfo}${addrInfo})`,
-      );
-      if (e.links && e.links.length > 0) {
-        for (const l of e.links) {
-          console.log(`    🔗 [${l.title}]: ${l.url}`);
-        }
-      }
-    }
-    if (events.length > 15) {
-      console.log(`  ... and ${events.length - 15} more events.`);
-    }
-    return;
-  }
-
-  // 1. Fetch existing events to upsert safely by (title, starts_at)
-  const { data: existingEvents, error: fetchErr } = await supabase
-    .from('events')
-    .select('id, title, starts_at');
-
-  if (fetchErr) {
-    throw new Error(`Failed to query existing events: ${fetchErr.message}`);
-  }
-
-  const existingMap = new Map<string, string>();
-  for (const ex of existingEvents || []) {
-    const key = `${ex.title.trim().toLowerCase()}_${new Date(ex.starts_at).toISOString()}`;
-    existingMap.set(key, ex.id);
-  }
-
-  let inserted = 0;
-  let updated = 0;
-
-  for (const event of events) {
-    const key = `${event.title.trim().toLowerCase()}_${new Date(event.starts_at).toISOString()}`;
-    const existingId = existingMap.get(key);
-
-    let eventId = existingId;
-
-    if (existingId) {
-      // Update existing record
-      const { error: updateErr } = await supabase
-        .from('events')
-        .update({
-          description: event.description,
-          ends_at: event.ends_at,
-          location_name: event.location_name,
-          address: event.address,
-          lat: event.lat,
-          lng: event.lng,
-          type: event.type,
-        })
-        .eq('id', existingId);
-
-      if (updateErr) {
-        console.error(`Error updating event "${event.title}":`, updateErr.message);
-      } else {
-        updated++;
-      }
-    } else {
-      // Insert new record (omit checkin_code so Postgres generates it with default lpad(...))
-      const { data: insertedData, error: insertErr } = await supabase
-        .from('events')
-        .insert({
-          id: event.id,
-          title: event.title,
-          description: event.description,
-          starts_at: event.starts_at,
-          ends_at: event.ends_at,
-          location_name: event.location_name,
-          address: event.address,
-          lat: event.lat,
-          lng: event.lng,
-          type: event.type,
-          points_value: event.points_value,
-        })
-        .select('id')
-        .single();
-
-      if (insertErr) {
-        console.error(`Error inserting event "${event.title}":`, insertErr.message);
-      } else {
-        inserted++;
-        eventId = insertedData?.id || event.id;
-      }
-    }
-
-    if (eventId) {
-      const { error: delErr } = await supabase.from('event_links').delete().eq('event_id', eventId);
-
-      if (delErr) {
-        console.error(`Error clearing links for event "${event.title}":`, delErr.message);
-      } else if (event.links && event.links.length > 0) {
-        const { error: linkErr } = await supabase.from('event_links').insert(
-          event.links.map((link, idx) => ({
-            event_id: eventId,
-            title: link.title,
-            url: link.url,
-            display_order: idx,
-          })),
-        );
-        if (linkErr) {
-          console.error(`Error inserting links for event "${event.title}":`, linkErr.message);
-        }
-      }
-    }
-  }
-
-  console.log(
-    `\nSync complete! Inserted: ${inserted}, Updated: ${updated}, Total: ${events.length}`,
-  );
-}
-
 export async function main(overrideArgs?: string[]) {
   const args = overrideArgs || process.argv.slice(2);
   const isSql = args.includes('--sql');
-  const isSeed = args.includes('--seed');
   const isDryRun = args.includes('--dry-run');
   const fileArg = args.find((a) => !a.startsWith('--'));
 
@@ -1198,18 +1052,25 @@ export async function main(overrideArgs?: string[]) {
   const totalLinks = events.reduce((acc, e) => acc + (e.links ? e.links.length : 0), 0);
   console.log(`Extracted ${totalLinks} links across ${events.length} events.`);
 
+  const sql = generateSql(events);
+
   if (isSql) {
-    const sql = generateSql(events);
     console.log('\n--- SQL Output ---\n');
     console.log(sql);
-  } else if (isSeed) {
-    const sql = generateSql(events);
-    const seedPath = path.resolve('supabase/seeds/events.sql');
-    fs.mkdirSync(path.dirname(seedPath), { recursive: true });
-    fs.writeFileSync(seedPath, sql, 'utf-8');
-    console.log(`Wrote SQL seed file to: ${seedPath}`);
+  } else if (isDryRun) {
+    console.log('\n🔍 [DRY RUN] Generated SQL preview:');
+    console.log(`   Events: ${events.length} | Links: ${totalLinks}`);
+    console.log('   (No files written)');
   } else {
-    await syncToDatabase(events, isDryRun);
+    const seedPath06 = path.resolve('supabase/seeds/06_events.sql');
+    const seedPathLegacy = path.resolve('supabase/seeds/events.sql');
+    fs.mkdirSync(path.dirname(seedPath06), { recursive: true });
+    fs.writeFileSync(seedPath06, sql, 'utf-8');
+    fs.writeFileSync(seedPathLegacy, sql, 'utf-8');
+    console.log(`\n✨ Successfully generated SQL seeds:`);
+    console.log(`   • ${seedPath06}`);
+    console.log(`   • ${seedPathLegacy}`);
+    console.log(`\nTo deploy events to production, run: node scripts/seed.ts --prod --only=events`);
   }
 }
 
