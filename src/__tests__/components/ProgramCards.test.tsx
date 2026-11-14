@@ -1,7 +1,7 @@
 import React from 'react';
 import { Linking } from 'react-native';
 import { render, screen, userEvent, cleanup } from '@testing-library/react-native';
-import { StandardProgramCard, ApplicationProgramCard } from '@/components/ProgramCards';
+import { StandardProgramCard, ApplicationProgramCard } from '@/components/programs/ProgramCards';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { ProgramWithPoCs } from '@/types/programs';
 

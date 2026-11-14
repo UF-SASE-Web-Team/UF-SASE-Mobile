@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, cleanup, userEvent } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
-import { ContactCard } from '@/components/ContactCard';
+import { ContactCard } from '@/components/ui/ContactCard';
 import { ThemeProvider } from '@/context/ThemeContext';
 
 function renderCard(props: React.ComponentProps<typeof ContactCard>) {

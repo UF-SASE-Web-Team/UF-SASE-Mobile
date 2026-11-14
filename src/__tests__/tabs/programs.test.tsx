@@ -6,7 +6,11 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import * as programsService from '@/services/programs';
 import { ProgramWithPoCs } from '@/types/programs';
 
-jest.mock('@/services/programs');
+jest.mock('@/services/programs', () => ({
+  ...jest.requireActual('@/services/programs'),
+  getPrograms: jest.fn(),
+  getProgramBySlug: jest.fn(),
+}));
 
 const initialMetrics = {
   frame: { x: 0, y: 0, width: 390, height: 844 },

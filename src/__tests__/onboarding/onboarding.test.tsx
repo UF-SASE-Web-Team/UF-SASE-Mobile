@@ -4,7 +4,25 @@ import { useAuth } from '@/context/AuthContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { useProfile } from '@/context/ProfileContext';
 import { saveUfid, updateProfile } from '@/services/profiles';
-import { profileFixture } from '@/test-utils/profile';
+import type { ProfileWithPrograms } from '@/types/profiles';
+
+const mockProfile: ProfileWithPrograms = {
+  id: 'user-alice',
+  full_name: 'Alice Gator',
+  username: 'alice',
+  role: 'member',
+  avatar_url: 'sase-shark',
+  majors: ['Computer Science'],
+  minors: ['Digital Arts and Sciences'],
+  grad_time: '2029',
+  discord_handle: 'alice.gator',
+  instagram_handle: 'alice.gator',
+  linkedin_url: 'https://www.linkedin.com/in/alice-gator',
+  bio: 'I enjoy building things with SASE.',
+  created_at: '2026-11-01T00:00:00Z',
+  updated_at: '2026-11-01T00:00:00Z',
+  programNames: ['SWEET', 'SASEHacks'],
+};
 
 jest.mock(
   'react-native-safe-area-context',
@@ -36,9 +54,9 @@ describe('Onboarding', () => {
     save.mockResolvedValue(undefined);
     signOut.mockResolvedValue(undefined);
     (saveUfid as jest.Mock).mockResolvedValue('12345678');
-    (updateProfile as jest.Mock).mockResolvedValue(profileFixture);
-    (useAuth as jest.Mock).mockReturnValue({ user: { id: profileFixture.id }, signOut });
-    (useProfile as jest.Mock).mockReturnValue({ profile: profileFixture, ufid: null, save });
+    (updateProfile as jest.Mock).mockResolvedValue(mockProfile);
+    (useAuth as jest.Mock).mockReturnValue({ user: { id: mockProfile.id }, signOut });
+    (useProfile as jest.Mock).mockReturnValue({ profile: mockProfile, ufid: null, save });
   });
   afterEach(async () => {
     await cleanup();
@@ -46,7 +64,7 @@ describe('Onboarding', () => {
 
   it('starts from the name given at sign-up', async () => {
     await renderOnboarding();
-    expect(screen.getByLabelText('Full name')).toHaveDisplayValue(profileFixture.full_name);
+    expect(screen.getByLabelText('Full name')).toHaveDisplayValue(mockProfile.full_name);
   });
 
   it('requires a full name and an 8-digit UFID before continuing', async () => {
@@ -84,9 +102,9 @@ describe('Onboarding', () => {
     const user = userEvent.setup();
     await renderOnboarding();
     await completeRequiredStep(user);
-    expect(saveUfid).toHaveBeenCalledWith(profileFixture.id, '12345678');
-    expect(updateProfile).toHaveBeenCalledWith(profileFixture.id, {
-      full_name: profileFixture.full_name,
+    expect(saveUfid).toHaveBeenCalledWith(mockProfile.id, '12345678');
+    expect(updateProfile).toHaveBeenCalledWith(mockProfile.id, {
+      full_name: mockProfile.full_name,
     });
     expect(save).not.toHaveBeenCalled();
   });
@@ -95,14 +113,14 @@ describe('Onboarding', () => {
     const user = userEvent.setup();
     await renderOnboarding();
     await completeRequiredStep(user);
-    expect(saveUfid).toHaveBeenCalledWith(profileFixture.id, '12345678');
+    expect(saveUfid).toHaveBeenCalledWith(mockProfile.id, '12345678');
     await user.clear(screen.getByLabelText('Bio'));
     await user.type(screen.getByLabelText('Bio'), 'Hello SASE');
     await user.press(screen.getByRole('button', { name: 'Finish' }));
     await waitFor(() =>
       expect(save).toHaveBeenCalledWith(
         expect.objectContaining({
-          full_name: profileFixture.full_name,
+          full_name: mockProfile.full_name,
           ufid: '12345678',
           bio: 'Hello SASE',
         }),
@@ -118,7 +136,7 @@ describe('Onboarding', () => {
     await user.type(screen.getByLabelText('Bio'), 'Discarded');
     await user.press(screen.getByRole('button', { name: 'Skip for now' }));
     await waitFor(() =>
-      expect(save).toHaveBeenCalledWith({ full_name: profileFixture.full_name, ufid: '12345678' }),
+      expect(save).toHaveBeenCalledWith({ full_name: mockProfile.full_name, ufid: '12345678' }),
     );
   });
 
@@ -130,7 +148,7 @@ describe('Onboarding', () => {
     await user.type(screen.getByLabelText('Bio'), 'Discarded');
     await user.press(screen.getByRole('button', { name: 'Close' }));
     await waitFor(() =>
-      expect(save).toHaveBeenCalledWith({ full_name: profileFixture.full_name, ufid: '12345678' }),
+      expect(save).toHaveBeenCalledWith({ full_name: mockProfile.full_name, ufid: '12345678' }),
     );
   });
 

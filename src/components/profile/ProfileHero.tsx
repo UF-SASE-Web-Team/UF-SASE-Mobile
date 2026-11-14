@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Text } from '@/components/Text';
+import { Text } from '@/components/ui/Text';
 import {
   getProfileAvatarSource,
   isProfileAvatarPreset,

@@ -1,15 +1,7 @@
 import { supabase } from '@/lib/supabase';
-import { EventType } from '@/types/events';
+import type { PointsLogEntry } from '@/types/points';
 
-export interface PointsLogEntry {
-  id: string;
-  checkedInAt: string;
-  eventId: string;
-  eventTitle: string;
-  eventType: EventType;
-  eventStartsAt: string;
-  pointsValue: number;
-}
+export type { PointsLogEntry };
 
 export async function getPointsLog(userId: string): Promise<PointsLogEntry[]> {
   const { data, error } = await supabase

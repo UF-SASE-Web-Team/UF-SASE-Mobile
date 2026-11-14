@@ -1,11 +1,12 @@
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Button } from '@/components/Button';
-import { Text } from '@/components/Text';
+import { Button } from '@/components/ui/Button';
+import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { type Colors, space } from '@/theme';
-import { SaseFlask, SaseLogo } from '@/components/icons';
+import { SaseFlask } from '@/components/ui/SaseFlask';
+import { SaseLogo } from '@/components/ui/SaseLogo';
 
 export default function LandingScreen() {
   const router = useRouter();

@@ -3,7 +3,7 @@ import { Alert, Linking } from 'react-native';
 import { render, screen, waitFor, fireEvent, userEvent } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import EventsPage from '@/app/(tabs)/events/index';
+import EventsPage from '@/app/(tabs)/events';
 import { EventsProvider } from '@/context/EventsContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';

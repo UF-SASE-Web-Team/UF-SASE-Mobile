@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Input } from '@/components/Input';
-import { Text } from '@/components/Text';
+import { Input } from '@/components/ui/Input';
+import { Text } from '@/components/ui/Text';
 import { ProfileButton } from './ProfileButton';
 import { ProfileSheet } from './ProfileSheet';
 import { getProfileError } from '@/context/ProfileContext';

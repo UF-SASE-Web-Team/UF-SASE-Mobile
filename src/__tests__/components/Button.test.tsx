@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, userEvent } from '@testing-library/react-native';
-import { Button } from '@/components/Button';
+import { Button } from '@/components/ui/Button';
 import { ThemeProvider } from '@/context/ThemeContext';
 
 describe('Button', () => {

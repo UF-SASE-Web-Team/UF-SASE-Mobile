@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, userEvent } from '@testing-library/react-native';
 import { TextInput } from 'react-native';
-import { Input } from '@/components/Input';
+import { Input } from '@/components/ui/Input';
 import { ThemeProvider } from '@/context/ThemeContext';
 
 describe('Input', () => {

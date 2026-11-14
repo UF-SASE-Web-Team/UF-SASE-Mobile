@@ -3,7 +3,25 @@ import { Button, Text, View } from 'react-native';
 import { ProfileProvider, useProfile } from '@/context/ProfileContext';
 import { useAuth } from '@/context/AuthContext';
 import { getProfile, getUfid, saveUfid, updateProfile } from '@/services/profiles';
-import { profileFixture } from '@/test-utils/profile';
+import type { ProfileWithPrograms } from '@/types/profiles';
+
+const mockProfile: ProfileWithPrograms = {
+  id: 'user-alice',
+  full_name: 'Alice Gator',
+  username: 'alice',
+  role: 'member',
+  avatar_url: 'sase-shark',
+  majors: ['Computer Science'],
+  minors: ['Digital Arts and Sciences'],
+  grad_time: '2029',
+  discord_handle: 'alice.gator',
+  instagram_handle: 'alice.gator',
+  linkedin_url: 'https://www.linkedin.com/in/alice-gator',
+  bio: 'I enjoy building things with SASE.',
+  created_at: '2026-11-01T00:00:00Z',
+  updated_at: '2026-11-01T00:00:00Z',
+  programNames: ['SWEET', 'SASEHacks'],
+};
 
 jest.mock('@/services/profiles');
 
@@ -24,8 +42,8 @@ function ProfileConsumer() {
 describe('Profile data shared across the profile flow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useAuth as jest.Mock).mockReturnValue({ user: { id: profileFixture.id } });
-    (getProfile as jest.Mock).mockResolvedValue(profileFixture);
+    (useAuth as jest.Mock).mockReturnValue({ user: { id: mockProfile.id } });
+    (getProfile as jest.Mock).mockResolvedValue(mockProfile);
     (getUfid as jest.Mock).mockResolvedValue('12345678');
     (saveUfid as jest.Mock).mockImplementation(async (_userId: string, ufid: string) => ufid);
   });
@@ -35,7 +53,7 @@ describe('Profile data shared across the profile flow', () => {
 
   it('loads and propagates a saved profile without losing current memberships', async () => {
     (updateProfile as jest.Mock).mockResolvedValue({
-      ...profileFixture,
+      ...mockProfile,
       full_name: 'Alice Updated',
     });
     await render(
@@ -47,7 +65,7 @@ describe('Profile data shared across the profile flow', () => {
     await userEvent.setup().press(screen.getByRole('button', { name: 'Rename' }));
     expect(await screen.findByText('Alice Updated')).toBeTruthy();
     expect(screen.getByText('SWEET | SASEHacks')).toBeTruthy();
-    expect(updateProfile).toHaveBeenCalledWith(profileFixture.id, { full_name: 'Alice Updated' });
+    expect(updateProfile).toHaveBeenCalledWith(mockProfile.id, { full_name: 'Alice Updated' });
     expect(getProfile).toHaveBeenCalledTimes(1);
   });
 
@@ -61,7 +79,7 @@ describe('Profile data shared across the profile flow', () => {
     await screen.findByText('Alice Gator');
     expect(screen.getByTestId('onboarding')).toHaveTextContent('required');
     await userEvent.setup().press(screen.getByRole('button', { name: 'Set UFID' }));
-    expect(saveUfid).toHaveBeenCalledWith(profileFixture.id, '12345678');
+    expect(saveUfid).toHaveBeenCalledWith(mockProfile.id, '12345678');
     expect(updateProfile).not.toHaveBeenCalled();
     expect(screen.getByTestId('onboarding')).toHaveTextContent('complete');
   });
@@ -123,7 +141,7 @@ describe('Profile data shared across the profile flow', () => {
   it('signs out automatically when the user profile is missing (database reset / PGRST116)', async () => {
     const mockSignOut = jest.fn();
     (useAuth as jest.Mock).mockReturnValue({
-      user: { id: profileFixture.id },
+      user: { id: mockProfile.id },
       signOut: mockSignOut,
     });
     (getProfile as jest.Mock).mockRejectedValueOnce({
@@ -143,7 +161,7 @@ describe('Profile data shared across the profile flow', () => {
   it('signs out automatically when the session token is rejected (PGRST301 or 401)', async () => {
     const mockSignOut = jest.fn();
     (useAuth as jest.Mock).mockReturnValue({
-      user: { id: profileFixture.id },
+      user: { id: mockProfile.id },
       signOut: mockSignOut,
     });
     (getProfile as jest.Mock).mockRejectedValueOnce({

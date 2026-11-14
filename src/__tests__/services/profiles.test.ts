@@ -6,7 +6,25 @@ import {
   updateProfile,
 } from '@/services/profiles';
 import { supabase } from '@/lib/supabase';
-import { profileFixture } from '@/test-utils/profile';
+import type { ProfileWithPrograms } from '@/types/profiles';
+
+const mockProfile: ProfileWithPrograms = {
+  id: 'user-alice',
+  full_name: 'Alice Gator',
+  username: 'alice',
+  role: 'member',
+  avatar_url: 'sase-shark',
+  majors: ['Computer Science'],
+  minors: ['Digital Arts and Sciences'],
+  grad_time: '2029',
+  discord_handle: 'alice.gator',
+  instagram_handle: 'alice.gator',
+  linkedin_url: 'https://www.linkedin.com/in/alice-gator',
+  bio: 'I enjoy building things with SASE.',
+  created_at: '2026-11-01T00:00:00Z',
+  updated_at: '2026-11-01T00:00:00Z',
+  programNames: ['SWEET', 'SASEHacks'],
+};
 
 describe('Profile service', () => {
   beforeEach(() => {
@@ -16,7 +34,7 @@ describe('Profile service', () => {
   it('loads the member and current program memberships', async () => {
     const single = jest.fn().mockResolvedValue({
       data: {
-        ...profileFixture,
+        ...mockProfile,
         program_members: [{ program: { name: 'SWEET' } }, { program: { name: 'SWEET' } }],
       },
       error: null,
@@ -25,8 +43,8 @@ describe('Profile service', () => {
     query.eq.mockReturnValue(query);
     const select = jest.fn().mockReturnValue(query);
     (supabase.from as jest.Mock) = jest.fn().mockReturnValue({ select });
-    const result = await getProfile(profileFixture.id);
-    expect(query.eq).toHaveBeenCalledWith('id', profileFixture.id);
+    const result = await getProfile(mockProfile.id);
+    expect(query.eq).toHaveBeenCalledWith('id', mockProfile.id);
     expect(query.eq).toHaveBeenCalledWith('program_members.term.is_current', true);
     expect(result.programNames).toEqual(['SWEET']);
   });
@@ -34,16 +52,16 @@ describe('Profile service', () => {
   it('updates only editable fields for the specified member', async () => {
     const single = jest
       .fn()
-      .mockResolvedValue({ data: { ...profileFixture, full_name: 'Alice Updated' }, error: null });
+      .mockResolvedValue({ data: { ...mockProfile, full_name: 'Alice Updated' }, error: null });
     const select = jest.fn().mockReturnValue({ single });
     const eq = jest.fn().mockReturnValue({ select });
     const update = jest.fn().mockReturnValue({ eq });
     (supabase.from as jest.Mock) = jest.fn().mockReturnValue({ update });
-    const result = await updateProfile(profileFixture.id, {
+    const result = await updateProfile(mockProfile.id, {
       full_name: 'Alice Updated',
       bio: null,
     });
-    expect(eq).toHaveBeenCalledWith('id', profileFixture.id);
+    expect(eq).toHaveBeenCalledWith('id', mockProfile.id);
     expect(update).toHaveBeenCalledWith(
       expect.objectContaining({ full_name: 'Alice Updated', bio: null }),
     );
@@ -57,7 +75,7 @@ describe('Profile service', () => {
     query.eq.mockReturnValue(query);
     query.select.mockReturnValue(query);
     (supabase.from as jest.Mock) = jest.fn().mockReturnValue({ update: () => query });
-    await expect(updateProfile(profileFixture.id, { full_name: 'Alice' })).rejects.toThrow(
+    await expect(updateProfile(mockProfile.id, { full_name: 'Alice' })).rejects.toThrow(
       'Update failed',
     );
   });
@@ -67,25 +85,25 @@ describe('Profile service', () => {
     const eq = jest.fn().mockReturnValue({ maybeSingle });
     const select = jest.fn().mockReturnValue({ eq });
     (supabase.from as jest.Mock) = jest.fn().mockReturnValue({ select });
-    await expect(getUfid(profileFixture.id)).resolves.toBe('12345678');
+    await expect(getUfid(mockProfile.id)).resolves.toBe('12345678');
     expect(supabase.from).toHaveBeenCalledWith('profile_private');
-    expect(eq).toHaveBeenCalledWith('user_id', profileFixture.id);
+    expect(eq).toHaveBeenCalledWith('user_id', mockProfile.id);
   });
 
   it('reports no UFID for a member who has not onboarded', async () => {
     const maybeSingle = jest.fn().mockResolvedValue({ data: null, error: null });
     const eq = jest.fn().mockReturnValue({ maybeSingle });
     (supabase.from as jest.Mock) = jest.fn().mockReturnValue({ select: () => ({ eq }) });
-    await expect(getUfid(profileFixture.id)).resolves.toBeNull();
+    await expect(getUfid(mockProfile.id)).resolves.toBeNull();
   });
 
   it('saves the UFID for the specified member', async () => {
     const single = jest.fn().mockResolvedValue({ data: { ufid: '12345678' }, error: null });
     const upsert = jest.fn().mockReturnValue({ select: () => ({ single }) });
     (supabase.from as jest.Mock) = jest.fn().mockReturnValue({ upsert });
-    await expect(saveUfid(profileFixture.id, '12345678')).resolves.toBe('12345678');
+    await expect(saveUfid(mockProfile.id, '12345678')).resolves.toBe('12345678');
     expect(supabase.from).toHaveBeenCalledWith('profile_private');
-    expect(upsert).toHaveBeenCalledWith({ user_id: profileFixture.id, ufid: '12345678' });
+    expect(upsert).toHaveBeenCalledWith({ user_id: mockProfile.id, ufid: '12345678' });
   });
 
   it('rejects a UFID that another account already uses', async () => {
@@ -94,7 +112,7 @@ describe('Profile service', () => {
       .mockResolvedValue({ data: null, error: { code: '23505', message: 'duplicate key' } });
     const upsert = jest.fn().mockReturnValue({ select: () => ({ single }) });
     (supabase.from as jest.Mock) = jest.fn().mockReturnValue({ upsert });
-    await expect(saveUfid(profileFixture.id, '12345678')).rejects.toThrow(/already/);
+    await expect(saveUfid(mockProfile.id, '12345678')).rejects.toThrow(/already/);
   });
 
   it('fetches multiple profiles by userIds', async () => {

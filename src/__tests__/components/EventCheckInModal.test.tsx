@@ -1,7 +1,7 @@
 import React from 'react';
 import { Alert } from 'react-native';
 import { render, screen, userEvent, cleanup, waitFor, act } from '@testing-library/react-native';
-import { EventCheckInModal } from '@/components/EventCheckInModal';
+import { EventCheckInModal } from '@/components/events/EventCheckInModal';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
 import * as eventsService from '@/services/events';

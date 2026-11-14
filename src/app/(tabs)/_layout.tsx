@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { SaseFlask } from '@/components/icons';
+import { SaseFlask } from '@/components/ui/SaseFlask';
 import { useTheme } from '@/theme';
 
 export default function TabsLayout() {

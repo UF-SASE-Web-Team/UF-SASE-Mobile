@@ -2,7 +2,7 @@ import React from 'react';
 import { Linking } from 'react-native';
 import { cleanup, render, screen, userEvent } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
-import { ResourceCard, ResourceCardProps } from '@/components/ResourceCard';
+import { ResourceCard, ResourceCardProps } from '@/components/resources/ResourceCard';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { ResourceRow } from '@/types/resources';
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react-native';
-import { EventContactsSection } from '@/components/EventContactsSection';
+import { EventContactsSection } from '@/components/events/EventContactsSection';
 import { ThemeProvider } from '@/context/ThemeContext';
 
 async function renderSection(props: React.ComponentProps<typeof EventContactsSection>) {

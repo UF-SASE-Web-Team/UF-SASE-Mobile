@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
-import { Input } from '@/components/Input';
-import { Text } from '@/components/Text';
-import { SixDigitInput } from '@/components/SixDigitInput';
+import { Input } from '@/components/ui/Input';
+import { Text } from '@/components/ui/Text';
+import { SixDigitInput } from '@/components/ui/SixDigitInput';
 import { ProfileSheet } from './ProfileSheet';
 import { ProfileButton } from './ProfileButton';
 import { getProfileError } from '@/context/ProfileContext';

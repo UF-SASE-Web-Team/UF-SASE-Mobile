@@ -1,7 +1,7 @@
 import React from 'react';
 import { cleanup, render, screen, userEvent } from '@testing-library/react-native';
 import { Text } from 'react-native';
-import { ContactList } from '@/components/ContactList';
+import { ContactList } from '@/components/ui/ContactList';
 import { ThemeProvider } from '@/context/ThemeContext';
 
 async function renderContactList(props: React.ComponentProps<typeof ContactList>) {

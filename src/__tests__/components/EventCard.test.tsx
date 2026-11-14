@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, userEvent, cleanup } from '@testing-library/react-native';
-import { EventCard, EventCardProps } from '@/components/EventCard';
+import { EventCard, EventCardProps } from '@/components/events/EventCard';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { EventWithRsvp } from '@/types/events';
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react-native';
-import { PointsItem } from '@/components/PointsItem';
+import { PointsItem } from '@/components/points/PointsItem';
 import { ThemeProvider } from '@/context/ThemeContext';
 
 type PointsItemProps = React.ComponentProps<typeof PointsItem>;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, userEvent, cleanup } from '@testing-library/react-native';
-import { HomeEventCard } from '@/components/HomeEventCard';
+import { HomeEventCard } from '@/components/events/HomeEventCard';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { EventRow } from '@/types/events';
 

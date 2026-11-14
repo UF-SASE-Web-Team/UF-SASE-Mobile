@@ -1,7 +1,7 @@
 import { FlatList, Pressable, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Text } from '@/components/Text';
+import { Text } from '@/components/ui/Text';
 import { ProfileSheet } from './ProfileSheet';
 import { profileAvatars } from '@/lib/profileAvatars';
 import { useTheme, useThemedStyles, type Colors, iconSize, radius, space } from '@/theme';

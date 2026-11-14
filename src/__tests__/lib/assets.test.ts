@@ -1,4 +1,12 @@
-import { resolveAssetUrl } from '@/lib/assets';
+import { GRAPHICS, resolveAssetUrl } from '@/lib/assets';
+
+describe('GRAPHICS', () => {
+  it('defines valid graphics assets for illustrations', () => {
+    expect(GRAPHICS.rings).toBeDefined();
+    expect(GRAPHICS.starLeft).toBeDefined();
+    expect(GRAPHICS.starRight).toBeDefined();
+  });
+});
 
 describe('resolveAssetUrl', () => {
   it('resolves bucket paths against the configured Supabase project', () => {

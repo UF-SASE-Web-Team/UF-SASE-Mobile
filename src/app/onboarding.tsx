@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -8,20 +7,19 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button } from '@/components/Button';
-import { Input } from '@/components/Input';
-import { Text } from '@/components/Text';
 import { AvatarPicker } from '@/components/profile/AvatarPicker';
 import { ProfileButton } from '@/components/profile/ProfileButton';
-import { ProfileForm, type ProfileDraft } from '@/components/profile/ProfileForm';
+import { ProfileForm } from '@/components/profile/ProfileForm';
 import { ProfileHero } from '@/components/profile/ProfileHero';
 import { ProfileScreen } from '@/components/profile/ProfileScreen';
-import { useAuth } from '@/context/AuthContext';
-import { getProfileError, useProfile } from '@/context/ProfileContext';
-import { UFID_LENGTH, isValidUfid, sanitizeUfid } from '@/lib/ufid';
-import { saveUfid, updateProfile } from '@/services/profiles';
-import type { ProfileEdits, ProfileWithPrograms } from '@/types/profiles';
-import { useTheme, useThemedStyles, type Colors, space } from '@/theme';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Text } from '@/components/ui/Text';
+import { useProfile } from '@/context/ProfileContext';
+import { useOnboarding } from '@/hooks/useOnboarding';
+import { sanitizeUfid, UFID_LENGTH } from '@/lib/ufid';
+import { type Colors, space, useTheme, useThemedStyles } from '@/theme';
+import type { ProfileWithPrograms } from '@/types/profiles';
 
 export default function OnboardingPage() {
   const { profile, ufid } = useProfile();
@@ -43,104 +41,22 @@ export default function OnboardingPage() {
 }
 
 function Onboarding({ profile, ufid }: { profile: ProfileWithPrograms; ufid: string | null }) {
-  const [step, setStep] = useState<'required' | 'personalize'>('required');
-  const [draft, setDraft] = useState<ProfileDraft>(() => ({
-    full_name: profile.full_name,
-    majors: profile.majors,
-    minors: profile.minors,
-    grad_time: profile.grad_time ?? '',
-    discord_handle: profile.discord_handle ?? '',
-    instagram_handle: profile.instagram_handle ?? '',
-    linkedin_url: profile.linkedin_url ?? '',
-    bio: profile.bio ?? '',
-    avatar_url: profile.avatar_url ?? '',
-    ufid: ufid ?? '',
-  }));
-  const [submitted, setSubmitted] = useState(false);
-  const [busy, setBusy] = useState<'continue' | 'finish' | 'skip' | 'logout' | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
-  const { user, signOut } = useAuth();
-  const { save } = useProfile();
+  const {
+    step,
+    setStep,
+    draft,
+    change,
+    busy,
+    error,
+    nameError,
+    ufidError,
+    avatarPickerOpen,
+    setAvatarPickerOpen,
+    continueToPersonalize,
+    finish,
+    logOut,
+  } = useOnboarding({ profile, ufid });
   const styles = useThemedStyles(createStyles);
-
-  const fullName = draft.full_name.trim();
-  const nameError = submitted && !fullName ? 'Please enter your full name.' : undefined;
-  const ufidError =
-    submitted && !isValidUfid(draft.ufid) ? `Your UFID is ${UFID_LENGTH} digits.` : undefined;
-
-  const change = <K extends keyof ProfileDraft>(key: K, value: ProfileDraft[K]) => {
-    setDraft((current) => ({ ...current, [key]: value }));
-    setError(null);
-  };
-
-  // Submitting the UFID is enough to be onboarded: the required details are
-  // persisted here, so quitting during the optional step loses nothing. Finish
-  // and Skip only decide what happens to the optional details. The UFID goes
-  // first because it is the write that can be rejected (already in use).
-  const continueToPersonalize = async () => {
-    setSubmitted(true);
-    if (!fullName || !isValidUfid(draft.ufid) || !user) return;
-    setBusy('continue');
-    setError(null);
-    try {
-      await saveUfid(user.id, draft.ufid);
-      await updateProfile(user.id, { full_name: fullName });
-      setStep('personalize');
-    } catch (cause) {
-      setError(getProfileError(cause, 'Could not save your details. Please try again.'));
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const finish = async (mode: 'finish' | 'skip') => {
-    if (mode === 'finish' && draft.linkedin_url.trim()) {
-      try {
-        const url = new URL(draft.linkedin_url.trim());
-        if (
-          url.protocol !== 'https:' ||
-          !(url.hostname === 'linkedin.com' || url.hostname.endsWith('.linkedin.com'))
-        )
-          throw new Error();
-      } catch {
-        setError('Enter a valid LinkedIn URL beginning with https://.');
-        return;
-      }
-    }
-    setBusy(mode);
-    setError(null);
-    const { ufid: draftUfid, full_name: _fullName, ...optional } = draft;
-    const changes: ProfileEdits = {
-      ...(mode === 'finish'
-        ? Object.fromEntries(
-            Object.entries(optional).map(([key, value]) => [
-              key,
-              typeof value === 'string' ? value.trim() || null : value,
-            ]),
-          )
-        : {}),
-      full_name: fullName,
-      ufid: draftUfid,
-    };
-    try {
-      // Completing the save marks onboarding done, which swaps this screen for the app.
-      await save(changes);
-    } catch (cause) {
-      setError(getProfileError(cause, 'Could not save your profile. Please try again.'));
-      setBusy(null);
-    }
-  };
-
-  const logOut = async () => {
-    setBusy('logout');
-    try {
-      await signOut();
-    } catch (cause) {
-      setError(getProfileError(cause, 'Could not log out. Please try again.'));
-      setBusy(null);
-    }
-  };
 
   if (step === 'personalize') {
     return (

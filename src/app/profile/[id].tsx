@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { BackButton } from '@/components/BackButton';
+import { BackButton } from '@/components/ui/BackButton';
 import { ProfileButton } from '@/components/profile/ProfileButton';
 import { ProfileDetails } from '@/components/profile/ProfileDetails';
 import { ProfileHero } from '@/components/profile/ProfileHero';
 import { ProfileScreen } from '@/components/profile/ProfileScreen';
 import { ReportMemberSheet } from '@/components/profile/ReportMemberSheet';
-import { Text } from '@/components/Text';
+import { Text } from '@/components/ui/Text';
 import { useAuth } from '@/context/AuthContext';
 import { getProfileError } from '@/context/ProfileContext';
 import { blockMember, isMemberBlocked, unblockMember } from '@/services/moderation';

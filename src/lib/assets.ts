@@ -1,5 +1,13 @@
 import { getSupabaseEnvironment } from '@/lib/env';
 
+export const GRAPHICS = {
+  rings: require('@/assets/graphics/rings.png'),
+  starLeft: require('@/assets/graphics/star-left.png'),
+  starRight: require('@/assets/graphics/star-right.png'),
+} as const;
+
+export type GraphicAssetKey = keyof typeof GRAPHICS;
+
 const PUBLIC_ASSETS_BUCKET = 'public-assets';
 
 /**

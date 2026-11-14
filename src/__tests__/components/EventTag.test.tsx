@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react-native';
-import { EventTag, TAG_LABELS } from '@/components/EventTag';
+import { EventTag, TAG_LABELS } from '@/components/events/EventTag';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { EventType } from '@/types/events';
 

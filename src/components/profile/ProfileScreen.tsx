@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { BackButton } from '@/components/BackButton';
-import { Text } from '@/components/Text';
+import { BackButton } from '@/components/ui/BackButton';
+import { Text } from '@/components/ui/Text';
 import { ProfileButton } from './ProfileButton';
 import { useProfile } from '@/context/ProfileContext';
 import { useThemedStyles, useTheme, type Colors, iconSize, space } from '@/theme';

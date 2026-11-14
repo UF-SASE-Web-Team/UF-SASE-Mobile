@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { resendSignupCode, signInWithIdentifier } from '@/services/auth';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { BackButton } from '@/components/BackButton';
-import { Button } from '@/components/Button';
-import { Text } from '@/components/Text';
-import { Input } from '@/components/Input';
+import { BackButton } from '@/components/ui/BackButton';
+import { Button } from '@/components/ui/Button';
+import { Text } from '@/components/ui/Text';
+import { Input } from '@/components/ui/Input';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { type Colors, iconSize, space } from '@/theme';
 

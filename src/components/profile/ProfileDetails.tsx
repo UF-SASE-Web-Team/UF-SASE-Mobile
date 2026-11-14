@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Text } from '@/components/Text';
+import { Text } from '@/components/ui/Text';
 import type { Profile } from '@/types/profiles';
 import { useTheme, useThemedStyles, type Colors, iconSize, radius, space } from '@/theme';
 

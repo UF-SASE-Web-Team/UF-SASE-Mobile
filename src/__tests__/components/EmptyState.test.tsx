@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, userEvent } from '@testing-library/react-native';
-import { EmptyState } from '@/components/EmptyState';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { ThemeProvider } from '@/context/ThemeContext';
 
 describe('EmptyState', () => {

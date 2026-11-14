@@ -3,7 +3,7 @@ import { Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MenuView } from '@expo/ui/community/menu';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Text } from '@/components/Text';
+import { Text } from '@/components/ui/Text';
 import { ProfileScreen, ProfileLoadingState } from '@/components/profile/ProfileScreen';
 import { ProfileHero } from '@/components/profile/ProfileHero';
 import { ProfileButton } from '@/components/profile/ProfileButton';

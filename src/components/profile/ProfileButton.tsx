@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Text } from '@/components/Text';
+import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles, type Colors, fonts, radius, space } from '@/theme';
 
 interface ProfileButtonProps {

@@ -5,11 +5,11 @@
     "owner": "uf-sase",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/app/icon.png",
     "scheme": "ufsasemobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/images/icon.png",
+      "icon": "./assets/app/icon.png",
       "bundleIdentifier": "com.ufsase.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -19,15 +19,15 @@
       "package": "com.ufsase.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/app/android-icon-foreground.png",
+        "backgroundImage": "./assets/app/android-icon-background.png",
+        "monochromeImage": "./assets/app/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/app/favicon.png"
     },
     "plugins": [
       [
@@ -41,11 +41,11 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#FFFFFF",
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/app/splash-icon.png",
           "imageWidth": 160,
           "resizeMode": "contain",
           "dark": {
-            "image": "./assets/images/splash-icon-dark.png",
+            "image": "./assets/app/splash-icon-dark.png",
             "backgroundColor": "#121212"
           }
         }

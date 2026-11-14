@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -8,92 +8,28 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { EmptyState } from '@/components/EmptyState';
-import { type AccentTone } from '@/components/AccentIcon';
-import { ApplicationProgramCard, StandardProgramCard } from '@/components/ProgramCards';
-import { SectionHeader } from '@/components/SectionHeader';
-import { Text } from '@/components/Text';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ApplicationProgramCard, StandardProgramCard } from '@/components/programs/ProgramCards';
+import { SectionHeader } from '@/components/ui/SectionHeader';
+import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { getOpenApplicationPrograms } from '@/lib/programs';
-import { getPrograms } from '@/services/programs';
+import { useProgramsFeed } from '@/hooks/useProgramsFeed';
 import { type Colors, space } from '@/theme';
-import { ProgramCategory, ProgramWithPoCs } from '@/types/programs';
-
-const CATEGORY_SECTIONS: {
-  key: ProgramCategory;
-  title: string;
-  icon: React.ComponentProps<typeof SectionHeader>['icon'];
-  tone: AccentTone;
-}[] = [
-  { key: 'events_and_committees', title: 'Leadership', icon: 'ribbon-outline', tone: 'orange' },
-  {
-    key: 'technical_and_research',
-    title: 'Professional Development',
-    icon: 'briefcase-outline',
-    tone: 'green',
-  },
-  { key: 'community', title: 'Community', icon: 'heart-outline', tone: 'pink' },
-];
 
 export default function ProgramsPage() {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
-  const router = useRouter();
-  const [programs, setPrograms] = useState<ProgramWithPoCs[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    getPrograms()
-      .then((formattedPrograms) => {
-        if (!isMounted) return;
-        setPrograms(formattedPrograms);
-        setError(null);
-      })
-      .catch((err: any) => {
-        if (!isMounted) return;
-        console.error('Error fetching programs:', err.message);
-        setError(err.message);
-      })
-      .finally(() => {
-        if (!isMounted) return;
-        setLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    try {
-      const formattedPrograms = await getPrograms();
-      setPrograms(formattedPrograms);
-      setError(null);
-    } catch (err: any) {
-      console.error('Error fetching programs:', err.message);
-      setError(err.message);
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-  // Duplicate programs that have application info filled out and are not closed,
-  // ordered by closest deadline (closes_at) first.
-  const openApplicationPrograms = useMemo(() => getOpenApplicationPrograms(programs), [programs]);
-
-  const handleCardPress = (program: ProgramWithPoCs) => {
-    router.push({
-      pathname: `/programs/${program.slug}`,
-      params: { name: program.name },
-    } as any);
-  };
+  const {
+    programs,
+    openApplicationPrograms,
+    categorySections,
+    loading,
+    refreshing,
+    error,
+    handleRefresh,
+    handleCardPress,
+  } = useProgramsFeed();
 
   if (loading) {
     return (
@@ -150,30 +86,24 @@ export default function ProgramsPage() {
         )}
 
         {/* Rows 1-3: Category Rows */}
-        {CATEGORY_SECTIONS.map((section) => {
-          const categoryPrograms = programs.filter((p) => p.category === section.key);
-
-          if (categoryPrograms.length === 0) return null;
-
-          return (
-            <View key={section.key} style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <SectionHeader title={section.title} icon={section.icon} tone={section.tone} />
-              </View>
-
-              <FlatList
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                data={categoryPrograms}
-                keyExtractor={(item) => `${section.key}-${item.id}`}
-                contentContainerStyle={styles.horizontalList}
-                renderItem={({ item }) => (
-                  <StandardProgramCard program={item} onPress={handleCardPress} />
-                )}
-              />
+        {categorySections.map((section) => (
+          <View key={section.key} style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <SectionHeader title={section.title} icon={section.icon} tone={section.tone} />
             </View>
-          );
-        })}
+
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={section.programs}
+              keyExtractor={(item) => `${section.key}-${item.id}`}
+              contentContainerStyle={styles.horizontalList}
+              renderItem={({ item }) => (
+                <StandardProgramCard program={item} onPress={handleCardPress} />
+              )}
+            />
+          </View>
+        ))}
 
         {programs.length === 0 && <EmptyState icon="people-outline" message="No programs found." />}
       </ScrollView>

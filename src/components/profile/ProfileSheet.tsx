@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Text } from '@/components/Text';
+import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles, type Colors, iconSize, radius, space } from '@/theme';
 
 interface ProfileSheetProps {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { cleanup, render, screen, userEvent } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
-import { BackButton } from '@/components/BackButton';
+import { BackButton } from '@/components/ui/BackButton';
 import { ThemeProvider } from '@/context/ThemeContext';
 
 function renderBackButton(props = {}) {

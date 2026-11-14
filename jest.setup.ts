@@ -47,6 +47,7 @@ jest.mock('expo-router', () => ({
     jest.fn(({ children }: { children?: React.ReactNode }) => children ?? null),
     { Screen: jest.fn(() => null) },
   ),
+  Link: jest.fn(({ children, ...props }: any) => children ?? null),
 }));
 
 // Mock expo-router/unstable-native-tabs

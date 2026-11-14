@@ -1,7 +1,11 @@
 import React from 'react';
 import { Alert, Linking } from 'react-native';
 import { render, screen, cleanup, userEvent } from '@testing-library/react-native';
-import { EventLinksSection, getLinkIcon, normalizeUrl } from '@/components/EventLinksSection';
+import {
+  EventLinksSection,
+  getLinkIcon,
+  normalizeUrl,
+} from '@/components/events/EventLinksSection';
 import { ThemeProvider } from '@/context/ThemeContext';
 
 async function renderSection(props: React.ComponentProps<typeof EventLinksSection>) {

@@ -2,32 +2,32 @@ export const profileAvatars = [
   {
     id: 'sase-shark',
     label: 'SASE Shark',
-    source: require('@/assets/images/profile/sase-shark.png'),
+    source: require('@/assets/avatars/sase-shark.png'),
   },
   {
     id: 'sase-cat',
     label: 'SASE Cat',
-    source: require('@/assets/images/profile/sase-cat.png'),
+    source: require('@/assets/avatars/sase-cat.png'),
   },
   {
     id: 'saseski',
     label: 'SASEski',
-    source: require('@/assets/images/profile/saseski.png'),
+    source: require('@/assets/avatars/saseski.png'),
   },
   {
     id: 'sase-gator',
     label: 'SASE Gator',
-    source: require('@/assets/images/profile/sase-gator.png'),
+    source: require('@/assets/avatars/sase-gator.png'),
   },
   {
     id: 'sase-mantis',
     label: 'SASE Mantis',
-    source: require('@/assets/images/profile/sase-mantis.png'),
+    source: require('@/assets/avatars/sase-mantis.png'),
   },
   {
     id: 'sase-sweeter',
     label: 'SASE Sweeter',
-    source: require('@/assets/images/profile/sase-sweeter.png'),
+    source: require('@/assets/avatars/sase-sweeter.png'),
   },
 ] as const;
 
