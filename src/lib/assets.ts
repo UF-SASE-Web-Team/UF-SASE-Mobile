@@ -4,7 +4,7 @@ const PUBLIC_ASSETS_BUCKET = 'public-assets';
 
 /**
  * Image columns hold either an absolute URL or a path inside the `public-assets`
- * storage bucket (e.g. `programs/interns.jpg`). Paths resolve against the Supabase
+ * storage bucket (e.g. `programs/interns.webp`). Paths resolve against the Supabase
  * project the app is configured for, so the same row works in every environment.
  */
 export function resolveAssetUrl(value: string | null): string | null {

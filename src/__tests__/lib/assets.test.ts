@@ -2,9 +2,9 @@ import { resolveAssetUrl } from '@/lib/assets';
 
 describe('resolveAssetUrl', () => {
   it('resolves bucket paths against the configured Supabase project', () => {
-    const expected = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/storage/v1/object/public/public-assets/programs/interns.jpg`;
-    expect(resolveAssetUrl('programs/interns.jpg')).toBe(expected);
-    expect(resolveAssetUrl('/programs/interns.jpg')).toBe(expected);
+    const expected = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/storage/v1/object/public/public-assets/programs/interns.webp`;
+    expect(resolveAssetUrl('programs/interns.webp')).toBe(expected);
+    expect(resolveAssetUrl('/programs/interns.webp')).toBe(expected);
   });
 
   it('leaves absolute URLs untouched', () => {

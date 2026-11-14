@@ -3,7 +3,11 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/Text';
-import { getProfileAvatarSource, profileAvatars } from '@/lib/profileAvatars';
+import {
+  getProfileAvatarSource,
+  isProfileAvatarPreset,
+  profileAvatars,
+} from '@/lib/profileAvatars';
 import type { ProfileWithPrograms } from '@/types/profiles';
 import {
   useThemedStyles,
@@ -25,6 +29,7 @@ export function ProfileHero({ profile, onEditAvatar }: ProfileHeroProps) {
   const { colors } = useTheme();
   const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>();
   const imageFailed = failedAvatarUrl === profile.avatar_url;
+  const isPreset = imageFailed || !profile.avatar_url || isProfileAvatarPreset(profile.avatar_url);
   const roleLabel = profile.role.charAt(0).toUpperCase() + profile.role.slice(1);
   return (
     <View style={styles.hero}>
@@ -34,8 +39,9 @@ export function ProfileHero({ profile, onEditAvatar }: ProfileHeroProps) {
             source={
               imageFailed ? profileAvatars[0].source : getProfileAvatarSource(profile.avatar_url)
             }
-            style={styles.avatar}
-            contentFit="contain"
+            style={isPreset ? styles.avatar : styles.avatarCover}
+            contentFit={isPreset ? 'contain' : 'cover'}
+            cachePolicy="memory-disk"
             accessibilityLabel={`${profile.full_name}'s profile picture`}
             onError={() => setFailedAvatarUrl(profile.avatar_url)}
           />
@@ -81,6 +87,7 @@ const createStyles = (colors: Colors) =>
       overflow: 'hidden',
     },
     avatar: { width: 123, height: 123 },
+    avatarCover: { width: '100%', height: '100%' },
     editAvatar: {
       position: 'absolute',
       top: -space['100'],

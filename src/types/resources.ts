@@ -14,7 +14,7 @@ export function isTopResource(resource: ResourceRow): boolean {
   return Boolean(resource.is_top);
 }
 
-const APP_DEEPLINK_SCHEMES = ['ufsasemobile:', 'ufsase:'];
+const APP_DEEPLINK_SCHEMES = ['ufsasemobile:'];
 
 /**
  * Determines whether a URL is an internal app deeplink or relative in-app path.

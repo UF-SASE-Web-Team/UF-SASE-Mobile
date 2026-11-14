@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ProgramWithPoCs } from '@/types/programs';
@@ -33,7 +34,8 @@ export function StandardProgramCard({ program, onPress }: ProgramCardProps) {
         <Image
           source={{ uri: program.image_url }}
           style={styles.backgroundImage}
-          resizeMode="cover"
+          contentFit="cover"
+          cachePolicy="memory-disk"
           accessibilityRole="image"
           accessibilityLabel={`${program.name} banner`}
         />
@@ -115,7 +117,8 @@ export function ApplicationProgramCard({ program, onPress }: ProgramCardProps) {
           <Image
             source={{ uri: program.image_url }}
             style={styles.image}
-            resizeMode="cover"
+            contentFit="cover"
+            cachePolicy="memory-disk"
             accessibilityRole="image"
             accessibilityLabel={`${program.name} banner`}
           />

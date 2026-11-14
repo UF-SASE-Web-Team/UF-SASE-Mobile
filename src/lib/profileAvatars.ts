@@ -31,6 +31,13 @@ export const profileAvatars = [
   },
 ] as const;
 
+export type ProfileAvatarId = (typeof profileAvatars)[number]['id'];
+
+export function isProfileAvatarPreset(avatarUrl?: string | null): avatarUrl is ProfileAvatarId {
+  if (!avatarUrl) return false;
+  return profileAvatars.some((avatar) => avatar.id === avatarUrl);
+}
+
 export function getProfileAvatarSource(avatarUrl?: string | null) {
   const preset = profileAvatars.find((avatar) => avatar.id === avatarUrl);
   return preset?.source ?? (avatarUrl ? { uri: avatarUrl } : profileAvatars[0].source);

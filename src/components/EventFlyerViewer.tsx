@@ -112,6 +112,7 @@ export function EventFlyerViewer({
             testID="event-flyer-viewer-image"
             source={{ uri: flyerUrl }}
             contentFit="contain"
+            cachePolicy="memory-disk"
             style={{ width, height }}
             accessibilityRole="image"
             accessibilityLabel="Event flyer"

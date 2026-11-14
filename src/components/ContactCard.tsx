@@ -33,6 +33,7 @@ export function ContactCard({ name, avatarUrl, userId, onPress, style, testID }:
             source={getProfileAvatarSource(avatarUrl)}
             style={styles.avatarImage}
             contentFit="cover"
+            cachePolicy="memory-disk"
             accessibilityLabel={`${name}'s avatar`}
           />
         ) : (

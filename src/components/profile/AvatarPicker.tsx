@@ -37,6 +37,7 @@ export function AvatarPicker({ visible, selected, onSelect, onClose }: AvatarPic
             <Image
               source={item.source}
               contentFit="contain"
+              cachePolicy="memory-disk"
               style={styles.image}
               accessible={false}
             />

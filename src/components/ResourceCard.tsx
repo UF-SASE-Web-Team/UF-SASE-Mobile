@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/Text';
@@ -69,7 +70,8 @@ export function ResourceCard({ resource, isInternal, width, onPress, testID }: R
           <Image
             source={{ uri: resource.image_url }}
             style={styles.iconImage}
-            resizeMode="contain"
+            contentFit="cover"
+            cachePolicy="memory-disk"
             accessibilityRole="image"
             accessibilityLabel={`${title} icon`}
           />
