@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useAuth } from './AuthContext';
+import { posthog } from '@/lib/posthog';
 import { getProfile, getUfid, saveUfid, updateProfile } from '@/services/profiles';
 import type { ProfileEdits, ProfileWithPrograms } from '@/types/profiles';
 
@@ -54,6 +55,17 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         ? 'complete'
         : 'required';
   const isLoading = !!userId && !isCurrent;
+
+  useEffect(() => {
+    if (profile?.id) {
+      posthog?.identify(profile.id, {
+        name: profile.full_name,
+        role: profile.role,
+        majors: profile.majors,
+        grad_time: profile.grad_time,
+      });
+    }
+  }, [profile?.id, profile?.full_name, profile?.role, profile?.grad_time, profile?.majors]);
 
   useEffect(() => {
     let active = true;

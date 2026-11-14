@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Linking } from 'react-native';
 import { ContactItem } from '@/components/ui/ContactList';
+import { openExternalLink } from '@/lib/links';
 import { getProgramAction, getProgramBySlug } from '@/services/programs';
 import { ProgramWithPoCs } from '@/types/programs';
 
@@ -42,8 +42,8 @@ export function useProgramDetail(slug?: string, paramName?: string) {
   const action = program ? getProgramAction(program) : null;
 
   const openAction = async () => {
-    if (action && (await Linking.canOpenURL(action.url))) {
-      await Linking.openURL(action.url);
+    if (action) {
+      await openExternalLink(action.url, `${programName} ${action.label}`);
     }
   };
 

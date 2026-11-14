@@ -1,10 +1,11 @@
 import React from 'react';
-import { Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/ui/Text';
 import { useThemedStyles } from '@/context/ThemeContext';
+import { openExternalLink } from '@/lib/links';
 import { type Colors, fonts, radius, space } from '@/theme';
 import { ResourceRow, isInternalUrl, resolveInternalPath } from '@/types/resources';
 
@@ -39,16 +40,7 @@ export function ResourceCard({ resource, isInternal, width, onPress, testID }: R
         return;
       }
 
-      try {
-        const supported = await Linking.canOpenURL(resource.url);
-        if (supported) {
-          await Linking.openURL(resource.url);
-        } else {
-          console.warn(`Cannot open URL: ${resource.url}`);
-        }
-      } catch (err: any) {
-        console.error('Failed to open resource URL:', err.message);
-      }
+      await openExternalLink(resource.url, resource.name);
     }
   };
 

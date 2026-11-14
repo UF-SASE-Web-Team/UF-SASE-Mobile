@@ -1,4 +1,5 @@
 import { Alert, Linking } from 'react-native';
+import { posthog } from '@/lib/posthog';
 
 /** Public legal pages, shown at sign-up and in account settings. */
 export const legalLinks = {
@@ -21,12 +22,14 @@ export function normalizeUrl(url: string): string {
 /**
  * Opens a user-supplied link outside the app, alerting when it cannot be opened.
  */
-export async function openExternalLink(rawUrl: string): Promise<void> {
+export async function openExternalLink(rawUrl: string, label?: string): Promise<void> {
   const url = normalizeUrl(rawUrl);
   if (!url) {
     Alert.alert('Invalid link', 'No URL provided.');
     return;
   }
+
+  posthog?.capture('outbound_link_clicked', { url, ...(label ? { label } : {}) });
 
   try {
     const supported = await Linking.canOpenURL(url);
