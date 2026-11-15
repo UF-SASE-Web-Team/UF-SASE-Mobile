@@ -25,7 +25,7 @@ export function ModalSheet({
 }: ModalSheetProps) {
   const styles = useThemedStyles(createStyles);
   const { bottom } = useSafeAreaInsets();
-  const insetStyle = useMemo(() => ({ paddingBottom: bottom + space['400'] }), [bottom]);
+  const insetStyle = useMemo(() => ({ paddingBottom: Math.max(bottom, space['400']) }), [bottom]);
 
   return (
     <Modal

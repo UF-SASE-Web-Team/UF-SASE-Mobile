@@ -64,7 +64,7 @@ export function DeleteAccountSheet({ visible, onClose }: DeleteAccountSheetProps
 
           <View style={styles.inputSection}>
             <Text variant="body" style={styles.instruction}>
-              To confirm deletion, please type <Text variant="bodyStrong">confirm</Text> below:
+              To confirm deletion, type <Text variant="bodyStrong">confirm</Text> below:
             </Text>
             <Input
               accessibilityLabel="Type confirm to delete account"

@@ -248,8 +248,8 @@ export function ChangeUsernameSheet({
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     content: {
-      paddingVertical: space['400'],
-      gap: space['400'],
+      paddingTop: space['200'],
+      gap: space['500'],
     },
     inputGroup: {
       gap: space['150'],
