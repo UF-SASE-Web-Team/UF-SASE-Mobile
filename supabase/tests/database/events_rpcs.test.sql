@@ -95,6 +95,8 @@ $$;
 
 select pass('Authenticated user can toggle RSVP on and off, and closed window is enforced');
 
+reset role;
+
 -- 4. Test automatic default check-in window and check-in behavior
 do $$
 declare
@@ -154,12 +156,8 @@ begin
     raise exception 'Expected custom checkin_closes_at to be preserved, got %', v_event.checkin_closes_at;
   end if;
 
-  -- C. Authenticate as Alice to test check_in RPC
-  execute format('set local role authenticated');
-  execute format('set local "request.jwt.claim.sub" to %L', v_alice_id::text);
-  execute format('set local "request.jwt.claims" to %L', json_build_object('sub', v_alice_id::text, 'role', 'authenticated')::text);
-
-  -- C1. Check-in during early window (event starts in 15 min; doors open 30 min before)
+  -- C. Prepare test events for check-in before switching to authenticated user
+  -- C1. Early window (event starts in 15 min; doors open 30 min before)
   insert into public.events (
     id, title, starts_at, ends_at, location_name, checkin_code
   ) values (
@@ -171,12 +169,7 @@ begin
     '333333'
   );
 
-  v_ci := public.check_in(v_early_event_id, 'code', '333333');
-  if v_ci.id is null then
-    raise exception 'Expected check-in to succeed during 30 min window before event start';
-  end if;
-
-  -- C2. Check-in during extended after-event window (event ended 15 min ago; closes 30 min after)
+  -- C2. Extended after-event window (event ended 15 min ago; closes 30 min after)
   insert into public.events (
     id, title, starts_at, ends_at, location_name, checkin_code
   ) values (
@@ -188,12 +181,7 @@ begin
     '444444'
   );
 
-  v_ci := public.check_in(v_late_event_id, 'code', '444444');
-  if v_ci.id is null then
-    raise exception 'Expected check-in to succeed during 30 min window after event end';
-  end if;
-
-  -- C3. Check-in fails when too early (starts in 45 min)
+  -- C3. Too early (starts in 45 min; opens in 15 min)
   insert into public.events (
     id, title, starts_at, ends_at, location_name, checkin_code
   ) values (
@@ -205,16 +193,7 @@ begin
     '555555'
   );
 
-  begin
-    perform public.check_in(v_too_early_event_id, 'code', '555555');
-    raise exception 'Expected exception when checking in more than 30 min before event';
-  exception when others then
-    if sqlerrm not like '%Check-in is not open%' then
-      raise exception 'Unexpected error when checking in too early: %', sqlerrm;
-    end if;
-  end;
-
-  -- C4. Check-in fails when too late (ended 45 min ago)
+  -- C4. Too late (ended 45 min ago; closed 15 min ago)
   insert into public.events (
     id, title, starts_at, ends_at, location_name, checkin_code
   ) values (
@@ -226,6 +205,34 @@ begin
     '666666'
   );
 
+  -- Authenticate as Alice to test check_in RPC
+  execute format('set local role authenticated');
+  execute format('set local "request.jwt.claim.sub" to %L', v_alice_id::text);
+  execute format('set local "request.jwt.claims" to %L', json_build_object('sub', v_alice_id::text, 'role', 'authenticated')::text);
+
+  -- C1. Check-in during early window
+  v_ci := public.check_in(v_early_event_id, 'code', '333333');
+  if v_ci.id is null then
+    raise exception 'Expected check-in to succeed during 30 min window before event start';
+  end if;
+
+  -- C2. Check-in during extended after-event window
+  v_ci := public.check_in(v_late_event_id, 'code', '444444');
+  if v_ci.id is null then
+    raise exception 'Expected check-in to succeed during 30 min window after event end';
+  end if;
+
+  -- C3. Check-in fails when too early
+  begin
+    perform public.check_in(v_too_early_event_id, 'code', '555555');
+    raise exception 'Expected exception when checking in more than 30 min before event';
+  exception when others then
+    if sqlerrm not like '%Check-in is not open%' then
+      raise exception 'Unexpected error when checking in too early: %', sqlerrm;
+    end if;
+  end;
+
+  -- C4. Check-in fails when too late
   begin
     perform public.check_in(v_too_late_event_id, 'code', '666666');
     raise exception 'Expected exception when checking in more than 30 min after event';
@@ -238,6 +245,8 @@ end;
 $$;
 
 select pass('Automatic 30 min before and after check-in window is enforced in events and check_in RPC');
+
+reset role;
 
 select * from finish();
 rollback;
