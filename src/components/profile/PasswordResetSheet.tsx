@@ -3,7 +3,7 @@ import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
 import { SixDigitInput } from '@/components/ui/SixDigitInput';
-import { ProfileSheet } from './ProfileSheet';
+import { ModalSheet } from '@/components/ui/ModalSheet';
 import { Button } from '@/components/ui/Button';
 import { getProfileError } from '@/context/ProfileContext';
 import {
@@ -81,7 +81,7 @@ export function PasswordResetSheet({ email, onClose }: { email: string; onClose:
   };
 
   return (
-    <ProfileSheet
+    <ModalSheet
       title={step === 'code' ? 'Check your email' : 'Reset Password'}
       visible
       onClose={onClose}
@@ -143,7 +143,7 @@ export function PasswordResetSheet({ email, onClose }: { email: string; onClose:
           </Text>
         )}
       </ScrollView>
-    </ProfileSheet>
+    </ModalSheet>
   );
 }
 

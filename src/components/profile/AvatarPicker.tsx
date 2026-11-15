@@ -2,7 +2,7 @@ import { FlatList, Pressable, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/ui/Text';
-import { ProfileSheet } from './ProfileSheet';
+import { ModalSheet } from '@/components/ui/ModalSheet';
 import { profileAvatars } from '@/lib/profileAvatars';
 import { useTheme, useThemedStyles, type Colors, iconSize, radius, space } from '@/theme';
 
@@ -17,7 +17,7 @@ export function AvatarPicker({ visible, selected, onSelect, onClose }: AvatarPic
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
   return (
-    <ProfileSheet title="Profile Picture" visible={visible} onClose={onClose}>
+    <ModalSheet title="Profile Picture" visible={visible} onClose={onClose}>
       <FlatList
         data={profileAvatars}
         keyExtractor={(item) => item.id}
@@ -54,7 +54,7 @@ export function AvatarPicker({ visible, selected, onSelect, onClose }: AvatarPic
           </Pressable>
         )}
       />
-    </ProfileSheet>
+    </ModalSheet>
   );
 }
 

@@ -4,7 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
-import { ProfileSheet } from './ProfileSheet';
+import { ModalSheet } from '@/components/ui/ModalSheet';
 import { getProfileError } from '@/context/ProfileContext';
 import { reportMember } from '@/services/moderation';
 import { useTheme, useThemedStyles, type Colors, iconSize, radius, space } from '@/theme';
@@ -55,7 +55,7 @@ export function ReportMemberSheet({
   };
 
   return (
-    <ProfileSheet title="Report Member" visible onClose={onClose} busy={busy}>
+    <ModalSheet title="Report Member" visible onClose={onClose} busy={busy}>
       <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           <Text variant="body" color={colors.content.onBase.secondary}>
@@ -107,7 +107,7 @@ export function ReportMemberSheet({
           </Button>
         </View>
       </ScrollView>
-    </ProfileSheet>
+    </ModalSheet>
   );
 }
 

@@ -70,7 +70,12 @@ function Onboarding({ profile, ufid }: { profile: ProfileWithPrograms; ufid: str
                 {error}
               </Text>
             )}
-            <Button onPress={() => finish('finish')} variant="secondary" loading={busy === 'finish'} disabled={!!busy}>
+            <Button
+              onPress={() => finish('finish')}
+              variant="secondary"
+              loading={busy === 'finish'}
+              disabled={!!busy}
+            >
               {busy === 'finish' ? 'Saving...' : 'Finish'}
             </Button>
             <Button

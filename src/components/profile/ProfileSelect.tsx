@@ -4,7 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
-import { ProfileSheet } from './ProfileSheet';
+import { ModalSheet } from '@/components/ui/ModalSheet';
 import {
   useTheme,
   useThemedStyles,
@@ -70,7 +70,7 @@ export function ProfileSelect({
   };
 
   return (
-    <ProfileSheet title={label} visible={visible} onClose={onClose}>
+    <ModalSheet title={label} visible={visible} onClose={onClose}>
       <FlatList
         data={matches}
         keyExtractor={(item) => item}
@@ -166,7 +166,7 @@ export function ProfileSelect({
           <Button onPress={onClose}>Done</Button>
         </View>
       )}
-    </ProfileSheet>
+    </ModalSheet>
   );
 }
 
