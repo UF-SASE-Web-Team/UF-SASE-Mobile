@@ -56,7 +56,7 @@ export function SignupForm({
   const passwordError = useMemo(() => {
     if (!(touched.password || hasSubmitted)) return undefined;
     if (!password) return 'Password is required.';
-    if (!isPasswordValid) return 'Must be 8+ characters with at least 1 letter and 1 number.';
+    if (!isPasswordValid) return 'Must be 8+ characters with letters and numbers.';
     return undefined;
   }, [password, isPasswordValid, touched.password, hasSubmitted]);
 
@@ -245,7 +245,7 @@ export function SignupForm({
             <Ionicons
               name="sparkles-outline"
               size={iconSize.sm}
-              color={colors.surface.saseBlue.primary}
+              color={colors.content.onBase.brand}
             />
             <Text variant="bodySmStrong" style={styles.suggestButtonText}>
               {isSuggesting ? 'Generating...' : 'Suggest username'}
@@ -257,6 +257,7 @@ export function SignupForm({
       <View style={styles.buttonContainer}>
         <Button
           variant="primary"
+          size="lg"
           onPress={handleSignup}
           loading={loading}
           accessibilityLabel="Create account"
@@ -283,15 +284,13 @@ const createStyles = (colors: Colors) =>
       gap: space['150'],
       alignSelf: 'flex-start',
       paddingVertical: space['100'],
-      paddingHorizontal: space['200'],
-      backgroundColor: colors.surface.saseBlueSubtle.primary,
-      borderRadius: 16,
+      paddingHorizontal: space['100'],
     },
     suggestButtonText: {
-      color: colors.content.onSaseBlueSubtle.primary,
+      color: colors.content.onBase.brand,
     },
     iconButton: {
-      padding: space['100'],
+      paddingHorizontal: space['100'],
       justifyContent: 'center',
       alignItems: 'center',
     },

@@ -6,7 +6,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/ui/Text';
 import { useThemedStyles } from '@/context/ThemeContext';
 import { openExternalLink } from '@/lib/links';
-import { type Colors, fonts, radius, space } from '@/theme';
+import { type Colors, borderWidth, radius, space } from '@/theme';
 import { ResourceRow, isInternalUrl, resolveInternalPath } from '@/types/resources';
 
 export interface ResourceCardProps {
@@ -72,7 +72,7 @@ export function ResourceCard({ resource, isInternal, width, onPress, testID }: R
         )}
       </View>
 
-      <Text style={styles.cardTitle} numberOfLines={2}>
+      <Text variant="bodySmStrong" style={styles.cardTitle} numberOfLines={2}>
         {title}
       </Text>
 
@@ -95,16 +95,11 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       minHeight: 56,
       backgroundColor: colors.surface.base.secondary,
-      borderRadius: radius.lg,
-      borderWidth: 1.5,
+      borderRadius: radius.md,
+      borderWidth: borderWidth.sm,
       borderColor: colors.border.base.strong,
       paddingHorizontal: space['250'],
       paddingVertical: space['150'],
-      shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.12,
-      shadowRadius: 3,
-      elevation: 2,
     },
     pressedCard: {
       opacity: 0.7,
@@ -124,10 +119,6 @@ const createStyles = (colors: Colors) =>
     },
     cardTitle: {
       flex: 1,
-      fontFamily: fonts.sans.semibold,
-      fontSize: 13,
-      lineHeight: 16,
-      color: colors.content.onBase.primary,
       marginLeft: space['200'],
       marginRight: space['050'],
     },

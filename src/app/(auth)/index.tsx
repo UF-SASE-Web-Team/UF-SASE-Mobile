@@ -46,6 +46,7 @@ export default function LandingScreen() {
       <View style={styles.actionsContainer}>
         <Button
           variant="secondary"
+          size="lg"
           onPress={() => router.push('/(auth)/signup')}
           accessibilityLabel="Create an account"
         >
@@ -54,6 +55,7 @@ export default function LandingScreen() {
 
         <Button
           variant="primary"
+          size="lg"
           onPress={() => router.push('/(auth)/login')}
           accessibilityLabel="Login"
         >

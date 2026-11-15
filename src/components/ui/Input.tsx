@@ -12,7 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { type Colors, iconSize, radius, space, textStyles } from '@/theme';
+import { type Colors, borderWidth, iconSize, radius, space, textStyles } from '@/theme';
 
 export interface InputProps extends RNTextInputProps {
   icon?: keyof typeof Ionicons.glyphMap | React.ReactNode;
@@ -40,6 +40,8 @@ export function Input({
   error,
   testID,
   ref,
+  multiline,
+  textAlignVertical,
   ...props
 }: InputProps) {
   const localInputRef = useRef<RNTextInput | null>(null);
@@ -71,7 +73,12 @@ export function Input({
   return (
     <View style={styles.wrapper}>
       <Pressable
-        style={[styles.container, Boolean(error) ? styles.containerError : null, containerStyle]}
+        style={[
+          styles.container,
+          multiline ? styles.containerMultiline : null,
+          Boolean(error) ? styles.containerError : null,
+          containerStyle,
+        ]}
         onPress={() => localInputRef.current?.focus()}
         accessible={false}
         testID={testID ? `${testID}-container` : undefined}
@@ -90,7 +97,9 @@ export function Input({
           ref={handleRef}
           keyboardAppearance={keyboardAppearance ?? themeKeyboardAppearance}
           placeholderTextColor={resolvedPlaceholderColor}
-          style={[styles.input, inputStyle, style]}
+          multiline={multiline}
+          textAlignVertical={textAlignVertical ?? (multiline ? 'top' : 'center')}
+          style={[styles.input, multiline ? styles.inputMultiline : null, inputStyle, style]}
           testID={testID}
           aria-invalid={Boolean(error)}
           {...props}
@@ -119,12 +128,18 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.surface.base.secondary,
       borderRadius: radius.full,
       paddingHorizontal: space['600'],
-      paddingVertical: space['400'],
+      paddingVertical: space['200'],
       gap: space['300'],
       minHeight: 56,
     },
+    containerMultiline: {
+      borderRadius: radius.lg,
+      paddingVertical: space['300'],
+      minHeight: 100,
+      alignItems: 'flex-start',
+    },
     containerError: {
-      borderWidth: 1,
+      borderWidth: borderWidth.sm,
       borderColor: colors.border.danger.primary,
     },
     input: {
@@ -136,6 +151,9 @@ const createStyles = (colors: Colors) =>
       paddingHorizontal: 0,
       margin: 0,
       textAlignVertical: 'center',
+    },
+    inputMultiline: {
+      textAlignVertical: 'top',
     },
     rightIconWrapper: {
       justifyContent: 'center',

@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AvatarPicker } from '@/components/profile/AvatarPicker';
-import { ProfileButton } from '@/components/profile/ProfileButton';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { ProfileHero } from '@/components/profile/ProfileHero';
 import { ProfileScreen } from '@/components/profile/ProfileScreen';
@@ -71,23 +70,27 @@ function Onboarding({ profile, ufid }: { profile: ProfileWithPrograms; ufid: str
                 {error}
               </Text>
             )}
-            <ProfileButton
-              title={busy === 'finish' ? 'Saving...' : 'Finish'}
+            <Button
               onPress={() => finish('finish')}
+              variant="secondary"
+              size="lg"
               loading={busy === 'finish'}
               disabled={!!busy}
-            />
-            <ProfileButton
-              title="Skip for now"
+            >
+              {busy === 'finish' ? 'Saving...' : 'Finish'}
+            </Button>
+            <Button
               onPress={() => finish('skip')}
               variant="ghost"
               loading={busy === 'skip'}
               disabled={!!busy}
-            />
+            >
+              Skip for now
+            </Button>
           </View>
         }
       >
-        <View style={styles.intro}>
+        <View style={styles.personalizeIntro}>
           <Text variant="title">Make it yours</Text>
           <Text variant="body" style={styles.subtitle}>
             All of this is optional, and you can change it anytime from your profile.
@@ -165,6 +168,7 @@ function Onboarding({ profile, ufid }: { profile: ProfileWithPrograms; ufid: str
             )}
             <Button
               variant="primary"
+              size="lg"
               onPress={continueToPersonalize}
               loading={busy === 'continue'}
               disabled={!!busy}
@@ -172,13 +176,9 @@ function Onboarding({ profile, ufid }: { profile: ProfileWithPrograms; ufid: str
             >
               Continue
             </Button>
-            <ProfileButton
-              title="Log Out"
-              onPress={logOut}
-              variant="ghost"
-              loading={busy === 'logout'}
-              disabled={!!busy}
-            />
+            <Button onPress={logOut} variant="ghost" loading={busy === 'logout'} disabled={!!busy}>
+              Log Out
+            </Button>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -199,11 +199,16 @@ const createStyles = (colors: Colors) =>
       gap: space['600'],
     },
     intro: { gap: space['200'], paddingBottom: space['400'] },
+    personalizeIntro: {
+      gap: space['200'],
+      paddingTop: space['200'],
+      paddingBottom: space['600'],
+    },
     subtitle: { color: colors.content.onBase.secondary },
     form: { gap: space['400'] },
     fieldGroup: { gap: space['150'] },
     hint: { color: colors.content.onBase.secondary, paddingHorizontal: space['400'] },
     actions: { gap: space['300'] },
-    footer: { gap: space['200'] },
+    footer: { gap: space['100'] },
     error: { color: colors.surface.danger.primary },
   });

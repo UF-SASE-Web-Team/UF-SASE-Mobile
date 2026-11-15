@@ -161,7 +161,7 @@ const createStyles = (colors: Colors) =>
       marginBottom: space['400'],
     },
     header: {
-      marginBottom: space['100'],
+      marginBottom: space['000'],
     },
     monthHeader: {
       flexDirection: 'row',

@@ -3,8 +3,8 @@ import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
 import { SixDigitInput } from '@/components/ui/SixDigitInput';
-import { ProfileSheet } from './ProfileSheet';
-import { ProfileButton } from './ProfileButton';
+import { ModalSheet } from '@/components/ui/ModalSheet';
+import { Button } from '@/components/ui/Button';
 import { getProfileError } from '@/context/ProfileContext';
 import {
   sendPasswordResetEmail,
@@ -81,7 +81,7 @@ export function PasswordResetSheet({ email, onClose }: { email: string; onClose:
   };
 
   return (
-    <ProfileSheet
+    <ModalSheet
       title={step === 'code' ? 'Check your email' : 'Reset Password'}
       visible
       onClose={onClose}
@@ -92,18 +92,12 @@ export function PasswordResetSheet({ email, onClose }: { email: string; onClose:
           <>
             <Text variant="body">Enter the 6-digit password reset code sent to {email}.</Text>
             <SixDigitInput value={token} onChangeText={setToken} disabled={busy} />
-            <ProfileButton
-              title={busy ? 'Verifying...' : 'Verify Code'}
-              onPress={verify}
-              disabled={token.length !== 6}
-              loading={busy}
-            />
-            <ProfileButton
-              title={cooldown > 0 ? `Resend Code (${cooldown}s)` : 'Resend Code'}
-              onPress={resend}
-              variant="secondary"
-              disabled={cooldown > 0 || busy}
-            />
+            <Button onPress={verify} disabled={token.length !== 6} loading={busy}>
+              {busy ? 'Verifying...' : 'Verify Code'}
+            </Button>
+            <Button onPress={resend} variant="secondary" disabled={cooldown > 0 || busy}>
+              {cooldown > 0 ? `Resend Code (${cooldown}s)` : 'Resend Code'}
+            </Button>
           </>
         ) : (
           <>
@@ -138,11 +132,9 @@ export function PasswordResetSheet({ email, onClose }: { email: string; onClose:
                 style={styles.input}
               />
             </View>
-            <ProfileButton
-              title={busy ? 'Updating Password...' : 'Update Password'}
-              onPress={submit}
-              loading={busy}
-            />
+            <Button onPress={submit} loading={busy}>
+              {busy ? 'Updating Password...' : 'Update Password'}
+            </Button>
           </>
         )}
         {error && (
@@ -151,7 +143,7 @@ export function PasswordResetSheet({ email, onClose }: { email: string; onClose:
           </Text>
         )}
       </ScrollView>
-    </ProfileSheet>
+    </ModalSheet>
   );
 }
 

@@ -91,7 +91,7 @@ export function useSignupForm() {
   // Debounced Supabase RPC call
   useEffect(() => {
     if (!cleanUsername || !isUsernameFormatValid) return;
-    if (serverCheck.evaluatedUsername === cleanUsername && serverCheck.isAvailable === true) {
+    if (serverCheck.evaluatedUsername === cleanUsername && !serverCheck.networkError) {
       return;
     }
 
@@ -121,7 +121,7 @@ export function useSignupForm() {
     cleanUsername,
     isUsernameFormatValid,
     serverCheck.evaluatedUsername,
-    serverCheck.isAvailable,
+    serverCheck.networkError,
   ]);
 
   const handleSuggestUsername = async () => {

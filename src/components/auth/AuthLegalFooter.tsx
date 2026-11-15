@@ -48,7 +48,7 @@ const createStyles = (colors: Colors) =>
       lineHeight: 20,
     },
     legalLink: {
-      color: colors.content.onBase.brand,
+      color: colors.content.onBase.primary,
       textDecorationLine: 'underline',
     },
   });

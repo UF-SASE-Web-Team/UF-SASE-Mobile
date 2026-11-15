@@ -3,8 +3,8 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
-import { ProfileButton } from './ProfileButton';
-import { ProfileSheet } from './ProfileSheet';
+import { Button } from '@/components/ui/Button';
+import { ModalSheet } from '@/components/ui/ModalSheet';
 import { getProfileError } from '@/context/ProfileContext';
 import { reportMember } from '@/services/moderation';
 import { useTheme, useThemedStyles, type Colors, iconSize, radius, space } from '@/theme';
@@ -55,7 +55,7 @@ export function ReportMemberSheet({
   };
 
   return (
-    <ProfileSheet title="Report Member" visible onClose={onClose} busy={busy}>
+    <ModalSheet title="Report Member" visible onClose={onClose} busy={busy}>
       <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           <Text variant="body" color={colors.content.onBase.secondary}>
@@ -96,22 +96,18 @@ export function ReportMemberSheet({
             maxLength={maxDetailsLength}
             editable={!busy}
             multiline
-            containerStyle={styles.details}
           />
           {error && (
             <Text variant="bodySm" accessibilityRole="alert" color={colors.content.onBase.primary}>
               {error}
             </Text>
           )}
-          <ProfileButton
-            title={busy ? 'Sending Report...' : 'Send Report'}
-            onPress={submit}
-            loading={busy}
-            disabled={!reason}
-          />
+          <Button onPress={submit} loading={busy} disabled={!reason}>
+            {busy ? 'Sending Report...' : 'Send Report'}
+          </Button>
         </View>
       </ScrollView>
-    </ProfileSheet>
+    </ModalSheet>
   );
 }
 
@@ -133,6 +129,5 @@ const createStyles = (colors: Colors) =>
       paddingVertical: space['250'],
     },
     reasonLabel: { flexShrink: 1 },
-    details: { borderRadius: radius.lg },
     pressed: { opacity: 0.7 },
   });

@@ -1,10 +1,10 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Text } from '@/components/ui/Text';
+import { Button } from '@/components/ui/Button';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { iconSize, radius, space, type Colors } from '@/theme';
+import { iconSize, space, type Colors } from '@/theme';
 
 interface EventCheckInBottomBarProps {
   insetsBottom: number;
@@ -32,18 +32,22 @@ export function EventCheckInBottomBar({ insetsBottom, onPress }: EventCheckInBot
         style={styles.bottomGradient}
         pointerEvents="none"
       />
-      <Pressable
+      <Button
         testID="event-checkin-button"
-        style={({ pressed }) => [styles.checkInButton, pressed && styles.checkInButtonPressed]}
+        variant="secondary"
+        size="md"
         onPress={onPress}
-        accessibilityRole="button"
         accessibilityLabel="Check in to event"
+        leftIcon={
+          <Ionicons
+            name="barcode-outline"
+            size={iconSize.md}
+            color={colors.content.onSaseBlue.secondary}
+          />
+        }
       >
-        <Ionicons name="qr-code" size={iconSize.md} color={colors.content.onSaseBlue.primary} />
-        <Text variant="bodyStrong" color={colors.content.onSaseBlue.primary}>
-          Check-in
-        </Text>
-      </Pressable>
+        Check-in
+      </Button>
     </View>
   );
 }
@@ -65,17 +69,5 @@ const createStyles = (colors: Colors) =>
       left: 0,
       right: 0,
       bottom: 0,
-    },
-    checkInButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: space['200'],
-      backgroundColor: colors.surface.saseBlue.secondary,
-      borderRadius: radius.md,
-      paddingVertical: space['300'],
-    },
-    checkInButtonPressed: {
-      opacity: 0.85,
     },
   });

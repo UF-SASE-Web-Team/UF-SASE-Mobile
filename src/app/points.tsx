@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { PointsInfoModal } from '@/components/points/PointsInfoModal';
@@ -7,9 +7,10 @@ import { PointsItem } from '@/components/points/PointsItem';
 import { PointsProgressCard } from '@/components/points/PointsProgressCard';
 import { BackButton } from '@/components/ui/BackButton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { usePointsLog } from '@/hooks/usePointsLog';
-import { space, type Colors } from '@/theme';
+import { borderWidth, space, type Colors } from '@/theme';
 import { EventType } from '@/types/events';
 
 const EVENT_TYPE_LABELS: Record<EventType, string> = {
@@ -34,7 +35,7 @@ export default function PointsLogPage() {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.header}>
         <BackButton />
-        <Text style={styles.headerTitle} accessibilityRole="header">
+        <Text variant="title" style={styles.headerTitle} accessibilityRole="header">
           Points Log
         </Text>
       </View>
@@ -97,21 +98,19 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: space['300'],
-      paddingHorizontal: 20,
+      paddingHorizontal: space['400'],
       paddingTop: space['300'],
       paddingBottom: space['400'],
     },
     headerTitle: {
-      fontSize: 24,
-      fontWeight: '700',
       color: colors.content.onBase.primary,
     },
     listContent: {
-      paddingHorizontal: 20,
+      paddingHorizontal: space['400'],
       paddingBottom: space['800'],
     },
     separator: {
-      height: 1,
+      height: borderWidth.sm,
       backgroundColor: colors.border.base.subtle,
       marginVertical: space['200'],
     },

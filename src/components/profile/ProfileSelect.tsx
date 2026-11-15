@@ -3,8 +3,8 @@ import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
-import { ProfileButton } from './ProfileButton';
-import { ProfileSheet } from './ProfileSheet';
+import { Button } from '@/components/ui/Button';
+import { ModalSheet } from '@/components/ui/ModalSheet';
 import {
   useTheme,
   useThemedStyles,
@@ -70,7 +70,7 @@ export function ProfileSelect({
   };
 
   return (
-    <ProfileSheet title={label} visible={visible} onClose={onClose}>
+    <ModalSheet title={label} visible={visible} onClose={onClose}>
       <FlatList
         data={matches}
         keyExtractor={(item) => item}
@@ -154,22 +154,19 @@ export function ProfileSelect({
                 maxLength={100}
                 style={styles.input}
               />
-              <ProfileButton
-                title="Add"
-                onPress={addOther}
-                variant="secondary"
-                disabled={!other.trim()}
-              />
+              <Button onPress={addOther} variant="secondary" disabled={!other.trim()}>
+                Add
+              </Button>
             </View>
           )
         }
       />
       {multiple && (
         <View style={styles.done}>
-          <ProfileButton title="Done" onPress={onClose} />
+          <Button onPress={onClose}>Done</Button>
         </View>
       )}
-    </ProfileSheet>
+    </ModalSheet>
   );
 }
 

@@ -183,6 +183,7 @@ export default function ResetPasswordScreen() {
           <View style={styles.buttonContainer}>
             <Button
               variant="primary"
+              size="lg"
               onPress={handleUpdatePassword}
               loading={loading}
               accessibilityLabel="Update password"
@@ -207,15 +208,15 @@ const createStyles = (colors: Colors) =>
     },
     scrollContent: {
       paddingHorizontal: space['600'],
-      paddingVertical: space['400'],
-      gap: space['400'],
+      paddingTop: space['300'],
+      paddingBottom: space['800'],
     },
     backButton: {
       alignSelf: 'flex-start',
-      marginBottom: space['100'],
+      marginBottom: space['400'],
     },
     title: {
-      marginBottom: space['200'],
+      marginBottom: space['600'],
     },
     form: {
       gap: space['400'],

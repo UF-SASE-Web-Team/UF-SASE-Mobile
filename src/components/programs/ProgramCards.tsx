@@ -1,10 +1,10 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ProgramWithPoCs } from '@/types/programs';
 import { isJoinLink } from '@/services/programs';
+import { PosterCard } from '@/components/ui/PosterCard';
 import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { openExternalLink } from '@/lib/links';
@@ -20,57 +20,18 @@ export interface ProgramCardProps {
  * prominent program title, and circular chevron action button.
  */
 export function StandardProgramCard({ program, onPress }: ProgramCardProps) {
-  const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
   return (
-    <Pressable
-      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+    <PosterCard
+      title={program.name}
+      imageUrl={program.image_url}
+      imageAccessibilityLabel={`${program.name} banner`}
+      fallbackIcon="sparkles-outline"
+      showChevron
       onPress={() => onPress?.(program)}
-      accessibilityRole="button"
-      accessibilityLabel={program.name}
-    >
-      {/* Full-bleed Background Image */}
-      {program.image_url ? (
-        <Image
-          source={{ uri: program.image_url }}
-          style={styles.backgroundImage}
-          contentFit="cover"
-          cachePolicy="memory-disk"
-          accessibilityRole="image"
-          accessibilityLabel={`${program.name} banner`}
-        />
-      ) : (
-        <View style={styles.placeholderContainer}>
-          <Ionicons name="sparkles-outline" size={32} color={colors.content.onBase.secondary} />
-        </View>
-      )}
-
-      {/* Bottom Fade Gradient */}
-      <LinearGradient
-        colors={['transparent', 'rgba(12, 12, 13, 0.4)', colors.surface.media.scrim]}
-        style={styles.bottomFadeGradient}
-        pointerEvents="none"
-      />
-
-      {/* Card Body: Title & Action Chevron */}
-      <View style={styles.contentContainer}>
-        <View style={styles.titleWrapper}>
-          <Text variant="bodyStrong" color={colors.content.onMedia.primary} numberOfLines={2}>
-            {program.name}
-          </Text>
-        </View>
-
-        <View style={styles.actionCircle} aria-hidden>
-          <Ionicons
-            name="chevron-forward"
-            size={16}
-            color={colors.content.onSaseBlue.primary}
-            style={styles.actionChevron}
-          />
-        </View>
-      </View>
-    </Pressable>
+      style={styles.card}
+    />
   );
 }
 
@@ -208,11 +169,6 @@ const createStyles = (colors: Colors) =>
     cardPressed: {
       opacity: 0.85,
     },
-    backgroundImage: {
-      ...StyleSheet.absoluteFill,
-      width: '100%',
-      height: '100%',
-    },
     image: {
       width: '100%',
       height: '100%',
@@ -222,38 +178,6 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: colors.surface.base.tertiary,
-    },
-    bottomFadeGradient: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: 120,
-    },
-    contentContainer: {
-      flexDirection: 'row',
-      alignItems: 'flex-end',
-      justifyContent: 'space-between',
-      paddingHorizontal: space['300'],
-      paddingBottom: space['300'],
-      gap: space['200'],
-      zIndex: 1,
-    },
-    titleWrapper: {
-      flex: 1,
-      justifyContent: 'flex-end',
-    },
-    actionCircle: {
-      width: 34,
-      height: 34,
-      borderRadius: radius.full,
-      backgroundColor: colors.content.onMedia.primary,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-    },
-    actionChevron: {
-      marginLeft: 1,
     },
     // Application Program Card Styles
     appCard: {

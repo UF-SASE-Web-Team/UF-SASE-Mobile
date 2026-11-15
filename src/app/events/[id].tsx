@@ -13,7 +13,7 @@ import { EventDetailMeta } from '@/components/events/EventDetailMeta';
 import { EventFlyerViewer } from '@/components/events/EventFlyerViewer';
 import { EventLinksSection } from '@/components/events/EventLinksSection';
 import { BackButton } from '@/components/ui/BackButton';
-import { Text } from '@/components/ui/Text';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { useEventDetail } from '@/hooks/useEventDetail';
 import { radius, space, type Colors } from '@/theme';
@@ -81,12 +81,13 @@ export default function EventDetailScreen() {
   if (error || !event) {
     return (
       <View style={styles.centerContainer}>
-        <Text variant="body" color={colors.content.onDanger.primary}>
-          {error || 'Event not found.'}
-        </Text>
-        <Pressable style={styles.errorBackButton} onPress={handleBack} accessibilityRole="button">
-          <Text variant="bodyStrong">Go Back</Text>
-        </Pressable>
+        <EmptyState
+          icon="alert-circle-outline"
+          tone="orange"
+          message={error || 'Event not found.'}
+          actionLabel="Go Back"
+          onAction={handleBack}
+        />
       </View>
     );
   }
@@ -226,8 +227,9 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.surface.base.primary,
       borderTopLeftRadius: radius.xl,
       borderTopRightRadius: radius.xl,
-      paddingHorizontal: space['400'],
-      paddingTop: space['400'],
+      paddingHorizontal: space['500'],
+      paddingTop: space['600'],
+      gap: space['300'],
     },
     loadingCardContainer: {
       flex: 1,
@@ -239,10 +241,6 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'center',
       alignItems: 'center',
       padding: space['400'],
-    },
-    errorBackButton: {
-      marginTop: space['400'],
-      padding: space['300'],
     },
     linksSection: {
       marginBottom: space['400'],

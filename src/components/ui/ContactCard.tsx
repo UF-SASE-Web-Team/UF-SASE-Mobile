@@ -3,7 +3,7 @@ import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native'
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { Text } from '@/components/ui/Text';
-import { useThemedStyles } from '@/context/ThemeContext';
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { type Colors, borderWidth, radius, space } from '@/theme';
 import { getProfileAvatarSource } from '@/lib/profileAvatars';
 
@@ -18,6 +18,7 @@ export interface ContactCardProps {
 
 export function ContactCard({ name, avatarUrl, userId, onPress, style, testID }: ContactCardProps) {
   const router = useRouter();
+  const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
   const initial = (name[0] || 'C').toUpperCase();
@@ -38,7 +39,7 @@ export function ContactCard({ name, avatarUrl, userId, onPress, style, testID }:
           />
         ) : (
           <View style={styles.avatarPlaceholder}>
-            <Text variant="bodySmStrong" color="#FFFFFF">
+            <Text variant="bodySmStrong" color={colors.content.onMedia.primary}>
               {initial}
             </Text>
           </View>

@@ -85,10 +85,9 @@ const createStyles = (colors: Colors) =>
   StyleSheet.create({
     headerRow: {
       flexDirection: 'row',
-      alignItems: 'flex-start',
+      alignItems: 'center',
       justifyContent: 'space-between',
-      gap: space['400'],
-      marginBottom: space['300'],
+      gap: space['200'],
     },
     title: {
       flex: 1,

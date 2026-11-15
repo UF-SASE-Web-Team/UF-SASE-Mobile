@@ -171,8 +171,6 @@ export function ProfileForm({ draft, onChange, disabled, variant = 'full' }: Pro
           multiline
           maxLength={500}
           editable={!disabled}
-          textAlignVertical="top"
-          containerStyle={styles.bioContainer}
           inputStyle={styles.bio}
         />
       </ProfileCard>
@@ -237,7 +235,6 @@ const createStyles = (colors: Colors) =>
       gap: space['100'],
     },
     selectText: { color: colors.content.onBase.primary, flex: 1, lineHeight: space['500'] },
-    bioContainer: {},
     bio: {
       ...textStyles.body,
       color: colors.content.onBase.primary,

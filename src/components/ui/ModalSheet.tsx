@@ -6,25 +6,28 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles, type Colors, iconSize, radius, space } from '@/theme';
 
-interface ProfileSheetProps {
+export interface ModalSheetProps {
   title: string;
   visible: boolean;
   onClose: () => void;
   children: ReactNode;
   busy?: boolean;
+  testID?: string;
 }
 
-export function ProfileSheet({
+export function ModalSheet({
   title,
   visible,
   onClose,
   children,
   busy = false,
-}: ProfileSheetProps) {
+  testID,
+}: ModalSheetProps) {
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
   const { bottom } = useSafeAreaInsets();
   const insetStyle = useMemo(() => ({ paddingBottom: bottom + space['400'] }), [bottom]);
+
   return (
     <Modal
       transparent
@@ -35,6 +38,7 @@ export function ProfileSheet({
       }}
       statusBarTranslucent
       presentationStyle="overFullScreen"
+      testID={testID}
     >
       <KeyboardAvoidingView
         style={styles.overlay}
@@ -46,6 +50,7 @@ export function ProfileSheet({
           disabled={busy}
           accessibilityRole="button"
           accessibilityLabel={`Dismiss ${title}`}
+          testID="modal-sheet-scrim"
         />
         <View style={[styles.sheet, insetStyle]} accessibilityViewIsModal>
           <View style={styles.grabber} />

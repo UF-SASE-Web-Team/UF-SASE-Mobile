@@ -67,4 +67,16 @@ describe('Input', () => {
     expect(inputRef.current).toBeTruthy();
     expect(typeof inputRef.current?.focus).toBe('function');
   });
+
+  it('supports multiline mode with top text alignment', async () => {
+    await render(
+      <ThemeProvider>
+        <Input placeholder="Bio" multiline testID="bio-input" />
+      </ThemeProvider>,
+    );
+
+    const input = screen.getByPlaceholderText('Bio');
+    expect(input.props.multiline).toBe(true);
+    expect(input.props.textAlignVertical).toBe('top');
+  });
 });

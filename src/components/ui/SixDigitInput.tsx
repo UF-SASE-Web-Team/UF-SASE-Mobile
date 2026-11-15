@@ -108,13 +108,14 @@ const createStyles = (colors: Colors) =>
       maxWidth: space['1200'],
       borderWidth: borderWidth.sm,
       borderColor: colors.border.base.subtle,
-      borderRadius: radius.sm,
+      borderRadius: radius.md,
       backgroundColor: colors.surface.base.secondary,
       justifyContent: 'center',
       alignItems: 'center',
     },
     otpBoxFilled: {
       borderColor: colors.border.base.strong,
+      borderWidth: borderWidth.sm,
       backgroundColor: colors.surface.base.primary,
     },
     otpBoxActive: {

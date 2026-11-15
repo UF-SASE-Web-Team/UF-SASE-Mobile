@@ -6,7 +6,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/ui/Text';
 import { ProfileScreen, ProfileLoadingState } from '@/components/profile/ProfileScreen';
 import { ProfileHero } from '@/components/profile/ProfileHero';
-import { ProfileButton } from '@/components/profile/ProfileButton';
+import { Button } from '@/components/ui/Button';
 import { PasswordResetSheet } from '@/components/profile/PasswordResetSheet';
 import { useAuth } from '@/context/AuthContext';
 import { getProfileError, useProfile } from '@/context/ProfileContext';
@@ -115,27 +115,33 @@ export default function AccountSettingsPage() {
       onBack={goBack}
       footer={
         <View style={styles.actions}>
-          <ProfileButton
-            title={busy === 'reset' ? 'Sending Reset Email...' : 'Reset Email'}
+          <Button
             onPress={resetEmail}
             variant="secondary"
+            size="lg"
             loading={busy === 'reset'}
             disabled={!!busy || accountDeleted}
-          />
-          <ProfileButton
-            title={busy === 'logout' ? 'Logging Out...' : 'Log Out'}
+          >
+            {busy === 'reset' ? 'Sending Reset Email...' : 'Reset Email'}
+          </Button>
+          <Button
             onPress={confirmLogOut}
             variant="danger"
+            size="lg"
             loading={busy === 'logout'}
             disabled={!!busy}
-          />
-          <ProfileButton
-            title={busy === 'delete' ? 'Deleting Account...' : 'Delete Account'}
+          >
+            {busy === 'logout' ? 'Logging Out...' : 'Log Out'}
+          </Button>
+          <Button
             onPress={confirmDelete}
             variant="ghost"
+            size="lg"
             loading={busy === 'delete'}
             disabled={!!busy}
-          />
+          >
+            {busy === 'delete' ? 'Deleting Account...' : 'Delete Account'}
+          </Button>
         </View>
       }
     >

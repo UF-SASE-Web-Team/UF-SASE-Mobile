@@ -61,7 +61,7 @@ describe('EventCheckInModal', () => {
       expect(codeTab.props.accessibilityState.selected).toBe(true);
       expect(screen.getByLabelText('6-digit verification code')).toBeTruthy();
       expect(screen.getByRole('button', { name: 'Cancel' })).toBeTruthy();
-      expect(screen.getByRole('button', { name: 'Submit code' })).toBeTruthy();
+      expect(screen.queryByText('Submit')).toBeNull();
     }, 15000);
 
     it('calls onClose when Cancel button is pressed', async () => {

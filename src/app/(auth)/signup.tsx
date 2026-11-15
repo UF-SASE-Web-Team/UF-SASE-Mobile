@@ -49,7 +49,7 @@ const createStyles = (colors: Colors) =>
     },
     scrollContent: {
       paddingHorizontal: space['600'],
-      paddingVertical: space['400'],
+      paddingTop: space['300'],
       paddingBottom: space['800'],
     },
     backButton: {

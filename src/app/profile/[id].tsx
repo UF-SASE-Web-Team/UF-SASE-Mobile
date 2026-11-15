@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BackButton } from '@/components/ui/BackButton';
-import { ProfileButton } from '@/components/profile/ProfileButton';
+import { Button } from '@/components/ui/Button';
 import { ProfileDetails } from '@/components/profile/ProfileDetails';
 import { ProfileHero } from '@/components/profile/ProfileHero';
 import { ProfileScreen } from '@/components/profile/ProfileScreen';
@@ -128,26 +128,17 @@ export default function PublicProfilePage() {
   const moderationFooter = (
     <View style={styles.actions}>
       {blocked && (
-        <ProfileButton
-          title={blockBusy ? 'Unblocking...' : 'Unblock Member'}
-          onPress={() => setBlock(false)}
-          variant="secondary"
-          loading={blockBusy}
-        />
+        <Button onPress={() => setBlock(false)} variant="secondary" loading={blockBusy}>
+          {blockBusy ? 'Unblocking...' : 'Unblock Member'}
+        </Button>
       )}
-      <ProfileButton
-        title="Report Member"
-        onPress={() => setReporting(true)}
-        variant="ghost"
-        disabled={blockBusy}
-      />
+      <Button onPress={() => setReporting(true)} variant="ghost" disabled={blockBusy}>
+        Report Member
+      </Button>
       {!blocked && (
-        <ProfileButton
-          title={blockBusy ? 'Blocking...' : 'Block Member'}
-          onPress={confirmBlock}
-          variant="ghost"
-          loading={blockBusy}
-        />
+        <Button onPress={confirmBlock} variant="ghost" loading={blockBusy}>
+          {blockBusy ? 'Blocking...' : 'Block Member'}
+        </Button>
       )}
     </View>
   );
@@ -157,10 +148,9 @@ export default function PublicProfilePage() {
       onEdit={isOwnProfile ? () => router.push('/profile/edit') : undefined}
       footer={
         isOwnProfile ? (
-          <ProfileButton
-            title="Account Settings"
-            onPress={() => router.push('/profile/settings')}
-          />
+          <Button size="lg" onPress={() => router.push('/profile/settings')}>
+            Account Settings
+          </Button>
         ) : (
           moderationFooter
         )

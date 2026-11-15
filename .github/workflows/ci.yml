@@ -42,4 +42,4 @@ jobs:
         run: npm run typecheck
 
       - name: Run tests
-        run: npm run test -- --passWithNoTests
+        run: npm run test -- --ci --maxWorkers=2 --passWithNoTests

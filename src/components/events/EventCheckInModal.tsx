@@ -1,7 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -10,12 +9,12 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { CameraView } from 'expo-camera';
+import { Button } from '@/components/ui/Button';
 import { SixDigitInput } from '@/components/ui/SixDigitInput';
 import { Text } from '@/components/ui/Text';
-import { useAuth } from '@/context/AuthContext';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { checkInToEvent } from '@/services/events';
+import { useEventCheckIn } from '@/hooks/useEventCheckIn';
 import { type Colors, borderWidth, iconSize, radius, space } from '@/theme';
 
 export interface EventCheckInModalProps {
@@ -28,6 +27,11 @@ export interface EventCheckInModalProps {
   initialMode?: 'code' | 'qr';
 }
 
+const SEGMENT_TABS = [
+  { key: 'qr', label: 'Scan QR', icon: 'qr-code-outline' },
+  { key: 'code', label: 'Code', icon: 'keypad-outline' },
+] as const;
+
 export function EventCheckInModal({
   visible,
   onClose,
@@ -37,123 +41,29 @@ export function EventCheckInModal({
   onSuccess,
   initialMode = 'qr',
 }: EventCheckInModalProps) {
-  const { user } = useAuth();
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
-  const [mode, setMode] = useState<'code' | 'qr'>(initialMode);
-  const [checkInCode, setCheckInCode] = useState('');
-  const [checkInError, setCheckInError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [permission, requestPermission] = useCameraPermissions();
-  const hasScannedRef = useRef(false);
-  const cooldownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (cooldownTimeoutRef.current) {
-        clearTimeout(cooldownTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const handleClose = () => {
-    if (isSubmitting) return;
-    if (cooldownTimeoutRef.current) {
-      clearTimeout(cooldownTimeoutRef.current);
-    }
-    setCheckInCode('');
-    setCheckInError(null);
-    hasScannedRef.current = false;
-    setMode(initialMode);
-    onClose();
-  };
-
-  const handleModeChange = (newMode: 'code' | 'qr') => {
-    if (isSubmitting) return;
-    if (cooldownTimeoutRef.current) {
-      clearTimeout(cooldownTimeoutRef.current);
-    }
-    setCheckInError(null);
-    hasScannedRef.current = false;
-    setMode(newMode);
-  };
-
-  const handleCheckInSubmit = async (codeToSubmit: string) => {
-    if (!user) {
-      Alert.alert('Sign in required', 'Please sign in to check in to events.');
-      return;
-    }
-    if (!eventId || codeToSubmit.length !== 6 || isSubmitting) return;
-
-    setIsSubmitting(true);
-    setCheckInError(null);
-
-    try {
-      await checkInToEvent(eventId, codeToSubmit);
-      setCheckInCode('');
-      onSuccess();
-      onClose();
-      Alert.alert('Check-in successful!', `You've gained +${pointsValue} points.`);
-    } catch (err: any) {
-      setCheckInError(err.message || 'Invalid check-in code. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleBarcodeScanned = async ({ data }: { data: string }) => {
-    if (isSubmitting || hasScannedRef.current) return;
-    if (!data || typeof data !== 'string') return;
-
-    if (!user) {
-      Alert.alert('Sign in required', 'Please sign in to check in to events.');
-      return;
-    }
-
-    hasScannedRef.current = true;
-    setIsSubmitting(true);
-    setCheckInError(null);
-
-    const trimmed = data.trim();
-    let method: 'code' | 'qr' = 'qr';
-    let payload = trimmed;
-
-    if (/^\d{6}$/.test(trimmed)) {
-      method = 'code';
-      payload = trimmed;
-    } else {
-      try {
-        const url = new URL(trimmed);
-        const codeParam = url.searchParams.get('code');
-        if (codeParam && /^\d{6}$/.test(codeParam.trim())) {
-          method = 'code';
-          payload = codeParam.trim();
-        }
-      } catch {
-        // Not a URL with query params; treat as direct QR payload
-      }
-    }
-
-    try {
-      await checkInToEvent(eventId, payload, method);
-      onSuccess();
-      onClose();
-      Alert.alert('Check-in successful!', `You've gained +${pointsValue} points.`);
-    } catch (err: any) {
-      setCheckInError(err.message || 'Invalid QR code. Please try again.');
-      // Cooldown for 2.5 seconds before allowing another scan attempt
-      if (cooldownTimeoutRef.current) {
-        clearTimeout(cooldownTimeoutRef.current);
-      }
-      cooldownTimeoutRef.current = setTimeout(() => {
-        hasScannedRef.current = false;
-      }, 2500);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const {
+    mode,
+    checkInCode,
+    setCheckInCode,
+    checkInError,
+    setCheckInError,
+    isSubmitting,
+    permission,
+    requestPermission,
+    handleModeChange,
+    handleCheckInSubmit,
+    handleBarcodeScanned,
+    handleClose,
+  } = useEventCheckIn({
+    eventId,
+    pointsValue,
+    initialMode,
+    onSuccess,
+    onClose,
+  });
 
   return (
     <Modal
@@ -164,7 +74,7 @@ export function EventCheckInModal({
       testID="event-check-in-modal"
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.modalOverlay}
       >
         <Pressable
@@ -179,85 +89,39 @@ export function EventCheckInModal({
           </Text>
 
           {/* Segmented Control */}
-          <View style={styles.segmentContainer}>
-            <Pressable
-              style={[styles.segmentButton, mode === 'qr' && styles.segmentButtonActive]}
-              onPress={() => handleModeChange('qr')}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: mode === 'qr' }}
-              accessibilityLabel="Scan QR"
-            >
-              <Ionicons
-                name="qr-code-outline"
-                size={iconSize.sm}
-                color={
-                  mode === 'qr' ? colors.content.onBase.primary : colors.content.onBase.secondary
-                }
-              />
-              <Text
-                variant="bodySmStrong"
-                color={
-                  mode === 'qr' ? colors.content.onBase.primary : colors.content.onBase.secondary
-                }
-              >
-                Scan QR
-              </Text>
-            </Pressable>
-
-            <Pressable
-              style={[styles.segmentButton, mode === 'code' && styles.segmentButtonActive]}
-              onPress={() => handleModeChange('code')}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: mode === 'code' }}
-              accessibilityLabel="6-Digit Code"
-            >
-              <Ionicons
-                name="keypad-outline"
-                size={iconSize.sm}
-                color={
-                  mode === 'code' ? colors.content.onBase.primary : colors.content.onBase.secondary
-                }
-              />
-              <Text
-                variant="bodySmStrong"
-                color={
-                  mode === 'code' ? colors.content.onBase.primary : colors.content.onBase.secondary
-                }
-              >
-                Code
-              </Text>
-            </Pressable>
+          <View style={styles.segmentContainer} accessibilityRole="tablist">
+            {SEGMENT_TABS.map((tab) => {
+              const isSelected = mode === tab.key;
+              return (
+                <Pressable
+                  key={tab.key}
+                  style={[styles.segmentButton, isSelected && styles.segmentButtonActive]}
+                  onPress={() => handleModeChange(tab.key)}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: isSelected }}
+                  accessibilityLabel={tab.key === 'code' ? '6-Digit Code' : tab.label}
+                >
+                  <Ionicons
+                    name={tab.icon}
+                    size={iconSize.sm}
+                    color={
+                      isSelected ? colors.content.onBase.primary : colors.content.onBase.secondary
+                    }
+                  />
+                  <Text
+                    variant="bodySmStrong"
+                    color={
+                      isSelected ? colors.content.onBase.primary : colors.content.onBase.secondary
+                    }
+                  >
+                    {tab.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
 
-          {mode === 'code' ? (
-            <View style={styles.modalInputWrapper}>
-              <Text
-                variant="bodySm"
-                color={colors.content.onBase.secondary}
-                style={styles.codePromptText}
-              >
-                Enter the 6-digit code provided.
-              </Text>
-              <SixDigitInput
-                value={checkInCode}
-                onChangeText={(text) => {
-                  setCheckInCode(text);
-                  setCheckInError(null);
-                }}
-                onComplete={handleCheckInSubmit}
-                disabled={isSubmitting}
-              />
-              {Boolean(checkInError) && (
-                <Text
-                  variant="bodySm"
-                  color={colors.surface.danger.primary}
-                  style={styles.errorText}
-                >
-                  {checkInError}
-                </Text>
-              )}
-            </View>
-          ) : (
+          {mode === 'qr' ? (
             <View style={styles.scannerWrapper}>
               <Text
                 variant="bodySm"
@@ -288,16 +152,13 @@ export function EventCheckInModal({
                     >
                       Camera permission is required to scan QR codes.
                     </Text>
-                    <Pressable
-                      style={styles.permissionButton}
+                    <Button
+                      size="sm"
                       onPress={requestPermission}
-                      accessibilityRole="button"
                       accessibilityLabel="Enable Camera"
                     >
-                      <Text variant="bodySmStrong" color={colors.content.onSaseBlue.secondary}>
-                        Enable Camera
-                      </Text>
-                    </Pressable>
+                      Enable Camera
+                    </Button>
                   </View>
                 ) : (
                   <View style={styles.cameraViewport}>
@@ -327,42 +188,55 @@ export function EventCheckInModal({
                 )}
               </View>
             </View>
+          ) : (
+            <View style={styles.modalInputWrapper}>
+              <Text
+                variant="bodySm"
+                color={colors.content.onBase.secondary}
+                style={styles.codePromptText}
+              >
+                Enter the 6-digit code provided.
+              </Text>
+              <SixDigitInput
+                value={checkInCode}
+                onChangeText={(text) => {
+                  setCheckInCode(text);
+                  setCheckInError(null);
+                }}
+                onComplete={handleCheckInSubmit}
+                disabled={isSubmitting}
+              />
+              {isSubmitting && (
+                <View style={styles.submittingStatusRow}>
+                  <ActivityIndicator size="small" color={colors.surface.saseBlue.primary} />
+                  <Text variant="bodySmStrong" color={colors.content.onBase.secondary}>
+                    Checking in...
+                  </Text>
+                </View>
+              )}
+              {Boolean(checkInError) && (
+                <Text
+                  variant="bodySm"
+                  color={colors.surface.danger.primary}
+                  style={styles.errorText}
+                >
+                  {checkInError}
+                </Text>
+              )}
+            </View>
           )}
 
           <View style={styles.modalActions}>
-            <Pressable
-              style={[styles.modalButton, styles.modalCancelButton]}
+            <Button
+              variant="outline"
               onPress={handleClose}
               disabled={isSubmitting}
-              accessibilityRole="button"
+              style={styles.modalActionButton}
               accessibilityLabel="Cancel"
+              size="md"
             >
-              <Text variant="bodyStrong" color={colors.content.onBase.primary}>
-                Cancel
-              </Text>
-            </Pressable>
-
-            {mode === 'code' && (
-              <Pressable
-                style={[
-                  styles.modalButton,
-                  styles.modalSubmitButton,
-                  (checkInCode.length !== 6 || isSubmitting) && styles.modalSubmitButtonDisabled,
-                ]}
-                onPress={() => handleCheckInSubmit(checkInCode)}
-                disabled={checkInCode.length !== 6 || isSubmitting}
-                accessibilityRole="button"
-                accessibilityLabel="Submit code"
-              >
-                {isSubmitting ? (
-                  <ActivityIndicator size="small" color={colors.content.onSaseBlue.secondary} />
-                ) : (
-                  <Text variant="bodyStrong" color={colors.content.onSaseBlue.secondary}>
-                    Submit
-                  </Text>
-                )}
-              </Pressable>
-            )}
+              Cancel
+            </Button>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -403,7 +277,8 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       backgroundColor: colors.surface.base.secondary,
       borderRadius: radius.md,
-      padding: space['050'],
+      padding: space['100'],
+      gap: space['100'],
       marginTop: space['100'],
       width: '100%',
     },
@@ -412,16 +287,16 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: space['150'],
-      borderRadius: radius.sm,
+      paddingVertical: space['200'],
+      borderRadius: radius.md,
       gap: space['150'],
     },
     segmentButtonActive: {
       backgroundColor: colors.surface.base.primary,
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.15,
-      shadowRadius: 2,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
       elevation: 2,
     },
     codePromptText: {
@@ -430,11 +305,17 @@ const createStyles = (colors: Colors) =>
     modalInputWrapper: {
       width: '100%',
       maxWidth: 300,
-      height: 326,
+      paddingVertical: space['300'],
       marginVertical: space['150'],
       justifyContent: 'center',
       alignItems: 'center',
       gap: space['200'],
+    },
+    submittingStatusRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: space['150'],
     },
     scannerWrapper: {
       width: '100%',
@@ -492,13 +373,6 @@ const createStyles = (colors: Colors) =>
     permissionText: {
       textAlign: 'center',
     },
-    permissionButton: {
-      backgroundColor: colors.surface.saseBlue.primary,
-      paddingVertical: space['150'],
-      paddingHorizontal: space['300'],
-      borderRadius: radius.md,
-      marginTop: space['100'],
-    },
     errorText: {
       textAlign: 'center',
     },
@@ -508,22 +382,7 @@ const createStyles = (colors: Colors) =>
       marginTop: space['300'],
       width: '100%',
     },
-    modalButton: {
+    modalActionButton: {
       flex: 1,
-      paddingVertical: space['250'],
-      borderRadius: radius.md,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    modalCancelButton: {
-      backgroundColor: colors.surface.base.secondary,
-      borderWidth: borderWidth.sm,
-      borderColor: colors.border.base.subtle,
-    },
-    modalSubmitButton: {
-      backgroundColor: colors.surface.saseBlue.primary,
-    },
-    modalSubmitButtonDisabled: {
-      opacity: 0.5,
     },
   });

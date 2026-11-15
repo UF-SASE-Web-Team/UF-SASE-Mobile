@@ -1,7 +1,8 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { AccentIcon } from '@/components/ui/AccentIcon';
-import { useThemedStyles } from '@/context/ThemeContext';
+import { Text } from '@/components/ui/Text';
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { radius, space, type Colors } from '@/theme';
 import { FREE_SHIRT_POINTS } from '@/hooks/usePointsLog';
 
@@ -18,6 +19,7 @@ export function PointsProgressCard({
   entriesCount,
   onOpenInfo,
 }: PointsProgressCardProps) {
+  const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
   return (
@@ -25,9 +27,11 @@ export function PointsProgressCard({
       <View style={styles.totalCard}>
         <AccentIcon icon="gift-outline" tone="yellow" size="lg" />
         <View style={styles.totalInfo}>
-          <Text style={styles.totalTitle}>Total Points: {totalPoints}</Text>
+          <Text variant="title">Total Points: {totalPoints}</Text>
           {totalPoints >= FREE_SHIRT_POINTS && (
-            <Text style={styles.totalSubtitle}>Eligible for a free shirt!</Text>
+            <Text variant="bodySm" color={colors.content.onBase.secondary}>
+              Eligible for a free shirt!
+            </Text>
           )}
         </View>
       </View>
@@ -38,11 +42,18 @@ export function PointsProgressCard({
         onPress={onOpenInfo}
         style={({ pressed }) => [styles.infoButton, pressed && styles.pressed]}
       >
-        <Text style={styles.infoButtonText}>What Are Points?</Text>
+        <Text variant="bodySmStrong" color={colors.content.onSaseBlueSubtle.primary}>
+          What Are Points?
+        </Text>
       </Pressable>
       {/* Show refresh errors even when older points are still on screen */}
       {error && entriesCount > 0 && (
-        <Text style={styles.errorText} accessibilityRole="alert">
+        <Text
+          variant="bodySm"
+          color={colors.content.onDanger.primary}
+          style={styles.errorText}
+          accessibilityRole="alert"
+        >
           Could not refresh points. Pull down to try again.
         </Text>
       )}
@@ -61,25 +72,11 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       gap: space['300'],
       padding: space['400'],
-      borderRadius: 30,
+      borderRadius: radius.xl,
       backgroundColor: colors.surface.base.secondary,
-      shadowColor: '#000000',
-      shadowOpacity: 0.15,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 4,
     },
     totalInfo: {
       gap: space['050'],
-    },
-    totalTitle: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: colors.content.onBase.primary,
-    },
-    totalSubtitle: {
-      fontSize: 14,
-      color: colors.content.onBase.secondary,
     },
     infoButton: {
       alignSelf: 'center',
@@ -88,17 +85,10 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.surface.saseBlueSubtle.primary,
       borderRadius: radius.full,
     },
-    infoButtonText: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: colors.content.onSaseBlueSubtle.primary,
-    },
     pressed: {
       opacity: 0.7,
     },
     errorText: {
-      color: colors.content.onDanger.primary,
-      fontSize: 14,
       textAlign: 'center',
     },
   });
