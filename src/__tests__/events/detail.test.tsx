@@ -332,6 +332,45 @@ describe('EventDetailScreen', () => {
     });
   });
 
+  describe('Location item map redirection', () => {
+    it('redirects to map when location item is pressed for events with address', async () => {
+      const openURLSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue(true as any);
+
+      (eventsService.getEvent as jest.Mock).mockResolvedValue({
+        ...baseEvent,
+        location_name: 'NPB 1001',
+        address: 'Gainesville, FL',
+      });
+      const user = userEvent.setup();
+
+      await renderScreen();
+      await screen.findByText('GBM 2: SASE Story');
+
+      const locationLink = screen.getByRole('link', { name: /Location: NPB 1001/i });
+      expect(locationLink).toBeTruthy();
+
+      await user.press(locationLink);
+      expect(openURLSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/maps\.apple\.com|google\.com\/maps/),
+      );
+    });
+
+    it('does not make location item clickable when event has no address', async () => {
+      (eventsService.getEvent as jest.Mock).mockResolvedValue({
+        ...baseEvent,
+        location_name: 'TBD',
+        address: null,
+      });
+
+      await renderScreen();
+      await screen.findByText('GBM 2: SASE Story');
+
+      expect(screen.getByText('TBD')).toBeTruthy();
+      expect(screen.queryByRole('link', { name: /Location: TBD/i })).toBeNull();
+      expect(screen.getByTestId('event-detail-location-static')).toBeTruthy();
+    });
+  });
+
   describe('Back navigation', () => {
     it('calls router.back when router.canGoBack returns true', async () => {
       const mockRouter = {

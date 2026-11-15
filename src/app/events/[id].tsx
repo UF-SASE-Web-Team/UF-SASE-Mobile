@@ -46,6 +46,7 @@ export default function EventDetailScreen() {
     shouldShowExpandButton,
     handleAboutTextLayout,
     handleRsvpPress,
+    handleLocationPress,
     handleCheckInSuccess,
     handleBack,
     handleScrollEndDrag,
@@ -153,6 +154,8 @@ export default function EventDetailScreen() {
             formattedDate={formattedDate}
             formattedTimeWithDoors={formattedTimeWithDoors}
             locationName={event.location_name}
+            address={event.address}
+            onLocationPress={handleLocationPress}
           />
 
           <EventAboutSection

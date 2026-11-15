@@ -10,7 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { useOptionalEvents } from '@/context/EventsContext';
-import { openExternalLink } from '@/lib/links';
+import { openExternalLink, openMapLocation } from '@/lib/links';
 import { getEvent, toggleEventRsvp } from '@/services/events';
 import { radius } from '@/theme';
 import { EventWithDetails } from '@/types/events';
@@ -147,6 +147,11 @@ export function useEventDetail(id?: string) {
     await performRsvp();
   };
 
+  const handleLocationPress = useCallback(async () => {
+    if (!event?.address) return;
+    await openMapLocation(event.address);
+  }, [event]);
+
   const now = new Date();
   const startDate = event ? new Date(event.starts_at) : null;
   const endDate = event ? new Date(event.ends_at) : null;
@@ -249,6 +254,7 @@ export function useEventDetail(id?: string) {
     shouldShowExpandButton,
     handleAboutTextLayout,
     handleRsvpPress,
+    handleLocationPress,
     handleCheckInSuccess: () => {
       setHasCheckedIn(true);
       if (event?.id) {

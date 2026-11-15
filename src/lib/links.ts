@@ -1,4 +1,4 @@
-import { Alert, Linking } from 'react-native';
+import { Alert, Linking, Platform } from 'react-native';
 import { posthog } from '@/lib/posthog';
 
 /** Public legal pages, shown at sign-up and in account settings. */
@@ -42,5 +42,28 @@ export async function openExternalLink(rawUrl: string, label?: string): Promise<
     }
   } catch (err: any) {
     Alert.alert('Link error', err?.message || 'Failed to open link.');
+  }
+}
+
+/**
+ * Opens a map application searching for the given address.
+ * Uses Apple Maps on iOS and Google Maps on Android/Web.
+ */
+export async function openMapLocation(address: string): Promise<void> {
+  const trimmed = address.trim();
+  if (!trimmed) return;
+
+  const query = encodeURIComponent(trimmed);
+  const url =
+    Platform.OS === 'ios'
+      ? `https://maps.apple.com/?q=${query}`
+      : `https://www.google.com/maps/search/?api=1&query=${query}`;
+
+  posthog?.capture('outbound_map_clicked', { address: trimmed });
+
+  try {
+    await Linking.openURL(url);
+  } catch {
+    Alert.alert('Unable to open map', 'Could not open map application.');
   }
 }
