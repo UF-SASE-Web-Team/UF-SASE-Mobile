@@ -2,9 +2,9 @@ import React from 'react';
 import { ActivityIndicator, Pressable, type PressableProps, StyleSheet } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { useThemedStyles } from '@/context/ThemeContext';
-import { type Colors, radius, space } from '@/theme';
+import { type Colors, borderWidth, radius, space } from '@/theme';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
+export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends PressableProps {
@@ -87,20 +87,22 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      borderRadius: radius.full,
       gap: space['200'],
     },
     sizeSm: {
       paddingVertical: space['200'],
       paddingHorizontal: space['400'],
+      borderRadius: radius.md,
     },
     sizeMd: {
-      paddingVertical: space['400'],
+      paddingVertical: space['300'],
       paddingHorizontal: space['600'],
+      borderRadius: radius.md,
     },
     sizeLg: {
-      paddingVertical: space['500'],
-      paddingHorizontal: space['800'],
+      paddingVertical: space['400'],
+      paddingHorizontal: space['600'],
+      borderRadius: radius.full,
     },
     primary: {
       backgroundColor: colors.surface.saseBlue.primary,
@@ -115,6 +117,11 @@ const createStyles = (colors: Colors) =>
       backgroundColor: 'transparent',
       alignSelf: 'center',
     },
+    outline: {
+      backgroundColor: colors.surface.base.secondary,
+      borderWidth: borderWidth.sm,
+      borderColor: colors.border.base.subtle,
+    },
     primaryText: {
       color: colors.content.onSaseBlue.primary,
     },
@@ -126,6 +133,9 @@ const createStyles = (colors: Colors) =>
     },
     ghostText: {
       color: colors.content.onBase.secondary,
+    },
+    outlineText: {
+      color: colors.content.onBase.primary,
     },
     pressed: {
       opacity: 0.85,

@@ -183,6 +183,7 @@ export default function ResetPasswordScreen() {
           <View style={styles.buttonContainer}>
             <Button
               variant="primary"
+              size="lg"
               onPress={handleUpdatePassword}
               loading={loading}
               accessibilityLabel="Update password"

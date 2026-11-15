@@ -40,7 +40,7 @@ function ProfileEditor({ profile, ufid }: { profile: ProfileWithPrograms; ufid: 
               {error}
             </Text>
           )}
-          <Button onPress={saveChanges} loading={saving}>
+          <Button size="lg" onPress={saveChanges} loading={saving}>
             {saving ? 'Saving Changes...' : 'Save Changes'}
           </Button>
         </View>

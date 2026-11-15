@@ -48,7 +48,7 @@ Never use hardcoded hex colors (`#FFFFFF`), raw pixels (`padding: 13`), or inlin
   - Content: `colors.content.onBase.*`, `colors.content.onSaseBlue.*`, `colors.content.onAccentSubtle.*`, `colors.content.onMedia.primary`
   - Borders: `colors.border.base.*`
 - **Spacing**: `space['050']` (2px) through `space['1200']` (48px)
-- **Radii**: `radius.sm` (8), `radius.md` (12), `radius.lg` (24), `radius.xl` (32), `radius.full` (9999)
+- **Radii**: `radius.sm` (8), `radius.md` (16), `radius.lg` (24), `radius.xl` (32), `radius.full` (9999)
 - **Borders**: `borderWidth.sm` (1), `borderWidth.lg` (2)
 - **Icons**: `iconSize.sm` (16), `iconSize.md` (24), `iconSize.lg` (36)
 - **Typography**: Prefer `<Text variant="...">` (`display`, `title`, `bodyStrong`, `body`, `bodySmStrong`, `bodySm`)

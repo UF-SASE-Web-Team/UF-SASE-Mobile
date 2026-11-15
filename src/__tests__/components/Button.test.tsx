@@ -69,13 +69,14 @@ describe('Button', () => {
     expect(handlePress).not.toHaveBeenCalled();
   });
 
-  it('supports primary, secondary, danger, and ghost variants', async () => {
+  it('supports primary, secondary, danger, ghost, and outline variants', async () => {
     await render(
       <ThemeProvider>
         <Button variant="primary">Primary Action</Button>
         <Button variant="secondary">Secondary Action</Button>
         <Button variant="danger">Danger Action</Button>
         <Button variant="ghost">Ghost Action</Button>
+        <Button variant="outline">Outline Action</Button>
       </ThemeProvider>,
     );
 
@@ -83,6 +84,7 @@ describe('Button', () => {
     expect(screen.getByText('Secondary Action')).toBeTruthy();
     expect(screen.getByText('Danger Action')).toBeTruthy();
     expect(screen.getByText('Ghost Action')).toBeTruthy();
+    expect(screen.getByText('Outline Action')).toBeTruthy();
   });
 
   it('supports title prop as an alternative to children', async () => {

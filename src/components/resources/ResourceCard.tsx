@@ -95,7 +95,7 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       minHeight: 56,
       backgroundColor: colors.surface.base.secondary,
-      borderRadius: radius.lg,
+      borderRadius: radius.md,
       borderWidth: borderWidth.sm,
       borderColor: colors.border.base.strong,
       paddingHorizontal: space['250'],

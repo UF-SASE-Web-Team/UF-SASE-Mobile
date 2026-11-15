@@ -64,6 +64,7 @@ export default function ForgotPasswordScreen() {
         <View style={styles.buttonContainer}>
           <Button
             variant="primary"
+            size="lg"
             onPress={handleReset}
             loading={loading}
             accessibilityLabel="Continue"

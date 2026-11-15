@@ -12,7 +12,11 @@ export default function ProfilePage() {
   return (
     <ProfileScreen
       onEdit={() => router.push('/profile/edit')}
-      footer={<Button onPress={() => router.push('/profile/settings')}>Account Settings</Button>}
+      footer={
+        <Button size="lg" onPress={() => router.push('/profile/settings')}>
+          Account Settings
+        </Button>
+      }
     >
       <ProfileHero profile={profile} />
       <ProfileDetails profile={profile} />

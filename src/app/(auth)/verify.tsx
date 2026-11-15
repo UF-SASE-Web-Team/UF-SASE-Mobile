@@ -108,6 +108,7 @@ export default function VerifyScreen() {
       <View style={styles.buttonsContainer}>
         <Button
           variant="primary"
+          size="lg"
           onPress={() => handleVerify()}
           disabled={loading || token.length !== 6}
           loading={loading}
@@ -118,6 +119,7 @@ export default function VerifyScreen() {
 
         <Button
           variant="secondary"
+          size="lg"
           onPress={handleResend}
           disabled={cooldown > 0}
           accessibilityLabel="Resend code"

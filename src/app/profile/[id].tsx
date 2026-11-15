@@ -148,7 +148,9 @@ export default function PublicProfilePage() {
       onEdit={isOwnProfile ? () => router.push('/profile/edit') : undefined}
       footer={
         isOwnProfile ? (
-          <Button onPress={() => router.push('/profile/settings')}>Account Settings</Button>
+          <Button size="lg" onPress={() => router.push('/profile/settings')}>
+            Account Settings
+          </Button>
         ) : (
           moderationFooter
         )

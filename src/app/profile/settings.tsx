@@ -118,6 +118,7 @@ export default function AccountSettingsPage() {
           <Button
             onPress={resetEmail}
             variant="secondary"
+            size="lg"
             loading={busy === 'reset'}
             disabled={!!busy || accountDeleted}
           >
@@ -126,6 +127,7 @@ export default function AccountSettingsPage() {
           <Button
             onPress={confirmLogOut}
             variant="danger"
+            size="lg"
             loading={busy === 'logout'}
             disabled={!!busy}
           >
@@ -134,6 +136,7 @@ export default function AccountSettingsPage() {
           <Button
             onPress={confirmDelete}
             variant="ghost"
+            size="lg"
             loading={busy === 'delete'}
             disabled={!!busy}
           >

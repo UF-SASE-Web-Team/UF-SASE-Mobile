@@ -112,6 +112,7 @@ export default function LoginScreen() {
 
         <Button
           variant="primary"
+          size="lg"
           onPress={handleSignin}
           loading={loading}
           style={styles.loginButton}

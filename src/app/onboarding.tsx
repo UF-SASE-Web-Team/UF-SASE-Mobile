@@ -73,6 +73,7 @@ function Onboarding({ profile, ufid }: { profile: ProfileWithPrograms; ufid: str
             <Button
               onPress={() => finish('finish')}
               variant="secondary"
+              size="lg"
               loading={busy === 'finish'}
               disabled={!!busy}
             >
@@ -167,6 +168,7 @@ function Onboarding({ profile, ufid }: { profile: ProfileWithPrograms; ufid: str
             )}
             <Button
               variant="primary"
+              size="lg"
               onPress={continueToPersonalize}
               loading={busy === 'continue'}
               disabled={!!busy}

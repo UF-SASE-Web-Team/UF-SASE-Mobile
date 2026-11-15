@@ -257,6 +257,7 @@ export function SignupForm({
       <View style={styles.buttonContainer}>
         <Button
           variant="primary"
+          size="lg"
           onPress={handleSignup}
           loading={loading}
           accessibilityLabel="Create account"
