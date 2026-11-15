@@ -140,7 +140,7 @@ export function ProfileSelect({
                 maxLength={100}
                 style={styles.input}
               />
-              <Button onPress={addOther} variant="secondary" disabled={!other.trim()}>
+              <Button size="md" onPress={addOther} variant="secondary" disabled={!other.trim()}>
                 Add
               </Button>
             </View>
@@ -149,7 +149,9 @@ export function ProfileSelect({
       />
       {multiple && (
         <View style={styles.done}>
-          <Button onPress={onClose}>Done</Button>
+          <Button size="md" onPress={onClose}>
+            Done
+          </Button>
         </View>
       )}
     </ModalSheet>

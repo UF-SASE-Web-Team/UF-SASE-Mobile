@@ -92,10 +92,10 @@ export function PasswordResetSheet({ email, onClose }: { email: string; onClose:
           <>
             <Text variant="body">Enter the 6-digit password reset code sent to {email}.</Text>
             <SixDigitInput value={token} onChangeText={setToken} disabled={busy} />
-            <Button onPress={verify} disabled={token.length !== 6} loading={busy}>
+            <Button size="md" onPress={verify} disabled={token.length !== 6} loading={busy}>
               {busy ? 'Verifying...' : 'Verify Code'}
             </Button>
-            <Button onPress={resend} variant="secondary" disabled={cooldown > 0 || busy}>
+            <Button size="md" onPress={resend} variant="secondary" disabled={cooldown > 0 || busy}>
               {cooldown > 0 ? `Resend Code (${cooldown}s)` : 'Resend Code'}
             </Button>
           </>
@@ -132,7 +132,7 @@ export function PasswordResetSheet({ email, onClose }: { email: string; onClose:
                 style={styles.input}
               />
             </View>
-            <Button onPress={submit} loading={busy}>
+            <Button size="md" onPress={submit} loading={busy}>
               {busy ? 'Updating Password...' : 'Update Password'}
             </Button>
           </>

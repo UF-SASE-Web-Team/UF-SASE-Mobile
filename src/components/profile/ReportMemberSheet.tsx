@@ -102,7 +102,7 @@ export function ReportMemberSheet({
               {error}
             </Text>
           )}
-          <Button onPress={submit} loading={busy} disabled={!reason}>
+          <Button size="md" onPress={submit} loading={busy} disabled={!reason}>
             {busy ? 'Sending Report...' : 'Send Report'}
           </Button>
         </View>

@@ -32,6 +32,7 @@ export function PointsInfoModal({ visible, onClose }: PointsInfoModalProps) {
         </Text>
         <Button
           variant="secondary"
+          size="md"
           onPress={onClose}
           accessibilityLabel="Back to Attendance"
           testID="points-info-close"

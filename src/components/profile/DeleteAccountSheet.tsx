@@ -89,7 +89,7 @@ export function DeleteAccountSheet({ visible, onClose }: DeleteAccountSheetProps
           <View style={styles.actions}>
             <Button
               variant="danger"
-              size="lg"
+              size="md"
               onPress={handleDelete}
               loading={busy}
               disabled={!isConfirmed || busy}
@@ -100,10 +100,11 @@ export function DeleteAccountSheet({ visible, onClose }: DeleteAccountSheetProps
             </Button>
             <Button
               variant="ghost"
-              size="lg"
+              size="md"
               onPress={handleClose}
               disabled={busy}
               accessibilityLabel="Cancel"
+              style={styles.cancelButton}
             >
               Cancel
             </Button>
@@ -134,7 +135,9 @@ const createStyles = (colors: Colors) =>
       textAlign: 'center',
     },
     actions: {
-      gap: space['200'],
-      marginTop: space['200'],
+      gap: space['150'],
+    },
+    cancelButton: {
+      paddingVertical: space['150'],
     },
   });

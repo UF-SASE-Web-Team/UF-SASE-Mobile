@@ -231,7 +231,7 @@ export function ChangeUsernameSheet({
 
           <Button
             variant="primary"
-            size="lg"
+            size="md"
             onPress={handleSave}
             disabled={usernameStatus !== 'available' || saving}
             loading={saving}

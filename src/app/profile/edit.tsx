@@ -1,6 +1,5 @@
 import { useCallback, useRef } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { AvatarPicker } from '@/components/profile/AvatarPicker';
 import { Button } from '@/components/ui/Button';
 import { ProfileForm } from '@/components/profile/ProfileForm';
@@ -13,15 +12,7 @@ import {
 import { Text } from '@/components/ui/Text';
 import { useProfile } from '@/context/ProfileContext';
 import { useProfileForm } from '@/hooks/useProfileForm';
-import {
-  type Colors,
-  borderWidth,
-  iconSize,
-  radius,
-  space,
-  useTheme,
-  useThemedStyles,
-} from '@/theme';
+import { type Colors, borderWidth, radius, space, useThemedStyles } from '@/theme';
 import type { ProfileWithPrograms } from '@/types/profiles';
 
 export default function EditProfilePage() {
@@ -42,7 +33,6 @@ function ProfileEditor({ profile, ufid }: { profile: ProfileWithPrograms; ufid: 
     goBack,
   } = useProfileForm({ profile, ufid });
   const styles = useThemedStyles(createStyles);
-  const { colors } = useTheme();
   const scrollViewRef = useRef<ScrollView>(null);
 
   const handleBioFocus = useCallback(() => {
@@ -72,7 +62,6 @@ function ProfileEditor({ profile, ufid }: { profile: ProfileWithPrograms; ufid: 
     >
       {error && (
         <View style={styles.errorBanner}>
-          <Ionicons name="alert-circle" size={iconSize.md} color={colors.surface.danger.primary} />
           <Text variant="bodySmStrong" accessibilityRole="alert" style={styles.errorText}>
             {error}
           </Text>
@@ -111,7 +100,7 @@ const createStyles = (colors: Colors) =>
       marginBottom: space['300'],
     },
     errorText: {
-      color: colors.surface.danger.primary,
+      color: colors.border.danger.primary,
       flex: 1,
     },
   });
