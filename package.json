@@ -1,7 +1,7 @@
 {
   "name": "uf-sase-mobile",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "dependencies": {
     "@expo-google-fonts/oswald": "^0.4.2",
     "@expo-google-fonts/red-hat-text": "^0.4.1",
