@@ -12,6 +12,9 @@ const FLASK_ASPECT_RATIO = 858 / 626;
 const LOGO_ASPECT_RATIO = 2251 / 511;
 const LOGO_WIDTH_RATIO = 3.5;
 
+// Neutral resting pocket (in px) around y = 0 to absorb iOS bounce overshoot and eliminate recoil jitter.
+const RECOIL_CUSHION_DEADBAND = 12;
+
 interface EventBackdropHeroProps {
   flyerUrl?: string | null;
   heroHeight: number;
@@ -33,13 +36,31 @@ export function EventBackdropHero({
   const styles = useThemedStyles(createStyles);
 
   const heroScale = scrollY.interpolate({
-    inputRange: [-heroHeight, 0],
-    outputRange: [2, 1],
+    inputRange: [-heroHeight, -heroHeight * 0.5, -heroHeight * 0.2, -RECOIL_CUSHION_DEADBAND, 0],
+    outputRange: [1.5, 1.32, 1.08, 1, 1],
     extrapolateRight: 'clamp',
   });
   const heroTranslateY = scrollY.interpolate({
-    inputRange: [-heroHeight, 0, heroHeight],
-    outputRange: [heroHeight / 2, 0, -heroHeight / 2],
+    inputRange: [
+      -heroHeight,
+      -heroHeight * 0.5,
+      -heroHeight * 0.2,
+      -RECOIL_CUSHION_DEADBAND,
+      0,
+      RECOIL_CUSHION_DEADBAND,
+      heroHeight * 0.4,
+      heroHeight,
+    ],
+    outputRange: [
+      heroHeight / 4,
+      heroHeight * 0.16,
+      heroHeight * 0.04,
+      0,
+      0,
+      0,
+      -heroHeight * 0.08,
+      -heroHeight / 4,
+    ],
   });
 
   if (flyerUrl) {

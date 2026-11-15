@@ -22,6 +22,7 @@ export function EventAboutSection({
 }: EventAboutSectionProps) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const cleanedDescription = description?.replace(/\n{3,}/g, '\n\n').trim();
 
   return (
     <View style={styles.section}>
@@ -36,16 +37,16 @@ export function EventAboutSection({
         numberOfLines={isExpanded ? undefined : 5}
         onTextLayout={onTextLayout}
       >
-        {description || 'No description provided.'}
+        {cleanedDescription || 'No description provided.'}
       </Text>
-      {Boolean(description) && !shouldShowExpandButton && (
+      {Boolean(cleanedDescription) && !shouldShowExpandButton && (
         <Text
           variant="body"
           style={[styles.aboutText, styles.hiddenAboutMeasure]}
           onTextLayout={onTextLayout}
           aria-hidden
         >
-          {description}
+          {cleanedDescription}
         </Text>
       )}
       {shouldShowExpandButton && (
@@ -77,7 +78,6 @@ export function EventAboutSection({
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     section: {
-      marginTop: space['300'],
       gap: space['150'],
     },
     sectionTitle: {

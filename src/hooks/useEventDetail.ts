@@ -181,7 +181,7 @@ export function useEventDetail(id?: string) {
   const handleScrollEndDrag = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const pullDistance = -e.nativeEvent.contentOffset.y;
     if (flyerUrl && pullDistance >= PULL_TO_EXPAND_DISTANCE) {
-      setFlyerViewerOrigin({ scale: 1 + pullDistance / heroHeight });
+      setFlyerViewerOrigin({ scale: 1 + pullDistance / (2 * heroHeight) });
     }
   };
 

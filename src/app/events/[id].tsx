@@ -227,8 +227,9 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.surface.base.primary,
       borderTopLeftRadius: radius.xl,
       borderTopRightRadius: radius.xl,
-      paddingHorizontal: space['400'],
-      paddingTop: space['400'],
+      paddingHorizontal: space['500'],
+      paddingTop: space['600'],
+      gap: space['300'],
     },
     loadingCardContainer: {
       flex: 1,
