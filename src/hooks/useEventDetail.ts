@@ -10,7 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { useOptionalEvents } from '@/context/EventsContext';
-import { openExternalLink } from '@/lib/links';
+import { openExternalLink, openMapLocation } from '@/lib/links';
 import { getEvent, toggleEventRsvp } from '@/services/events';
 import { radius } from '@/theme';
 import { EventWithDetails } from '@/types/events';
@@ -100,22 +100,57 @@ export function useEventDetail(id?: string) {
     }
     if (!event) return;
 
-    const previousStatus = isRsvped;
-    const nextStatus = !previousStatus;
-    setIsRsvped(nextStatus);
+    const rsvpUrl = event.rsvp_link?.url;
 
-    try {
-      const serverStatus = await toggleEventRsvp(event.id);
-      setIsRsvped(serverStatus);
-      // Send the user to the RSVP form when they RSVP, not when they cancel.
-      if (serverStatus && event.rsvp_link?.url) {
-        await openExternalLink(event.rsvp_link.url, `${event.title} RSVP`);
+    // Canceling existing RSVP
+    if (isRsvped) {
+      const previousStatus = isRsvped;
+      setIsRsvped(false);
+      try {
+        const serverStatus = await toggleEventRsvp(event.id);
+        setIsRsvped(serverStatus);
+      } catch (err: any) {
+        setIsRsvped(previousStatus);
+        Alert.alert('RSVP Error', err.message || 'Could not update RSVP status.');
       }
-    } catch (err: any) {
-      setIsRsvped(previousStatus);
-      Alert.alert('RSVP Error', err.message || 'Could not update RSVP status.');
+      return;
     }
+
+    const performRsvp = async () => {
+      setIsRsvped(true);
+      try {
+        const serverStatus = await toggleEventRsvp(event.id);
+        setIsRsvped(serverStatus);
+        // Send the user to the RSVP form when they RSVP, not when they cancel.
+        if (serverStatus && rsvpUrl) {
+          await openExternalLink(rsvpUrl, `${event.title} RSVP`);
+        }
+      } catch (err: any) {
+        setIsRsvped(false);
+        Alert.alert('RSVP Error', err.message || 'Could not update RSVP status.');
+      }
+    };
+
+    if (rsvpUrl) {
+      Alert.alert('Continue RSVP', 'You will be redirected to the RSVP form.', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'RSVP',
+          onPress: () => {
+            void performRsvp();
+          },
+        },
+      ]);
+      return;
+    }
+
+    await performRsvp();
   };
+
+  const handleLocationPress = useCallback(async () => {
+    if (!event?.address) return;
+    await openMapLocation(event.address);
+  }, [event]);
 
   const now = new Date();
   const startDate = event ? new Date(event.starts_at) : null;
@@ -123,8 +158,20 @@ export function useEventDetail(id?: string) {
   const isValidStartDate = Boolean(startDate && !Number.isNaN(startDate.getTime()));
   const isValidEndDate = Boolean(endDate && !Number.isNaN(endDate.getTime()));
 
-  const checkinOpensAt = event ? new Date(event.checkin_opens_at ?? event.starts_at) : null;
-  const checkinClosesAt = event ? new Date(event.checkin_closes_at ?? event.ends_at) : null;
+  const checkinOpensAt = event
+    ? event.checkin_opens_at
+      ? new Date(event.checkin_opens_at)
+      : isValidStartDate && startDate
+        ? new Date(startDate.getTime() - 30 * 60 * 1000)
+        : null
+    : null;
+  const checkinClosesAt = event
+    ? event.checkin_closes_at
+      ? new Date(event.checkin_closes_at)
+      : isValidEndDate && endDate
+        ? new Date(endDate.getTime() + 30 * 60 * 1000)
+        : null
+    : null;
   const isCheckinStarted = Boolean(
     checkinOpensAt && !Number.isNaN(checkinOpensAt.getTime()) && now >= checkinOpensAt,
   );
@@ -207,6 +254,7 @@ export function useEventDetail(id?: string) {
     shouldShowExpandButton,
     handleAboutTextLayout,
     handleRsvpPress,
+    handleLocationPress,
     handleCheckInSuccess: () => {
       setHasCheckedIn(true);
       if (event?.id) {

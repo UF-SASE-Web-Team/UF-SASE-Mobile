@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { useEvents } from '@/context/EventsContext';
 import { useProfile } from '@/context/ProfileContext';
+import { openExternalLink } from '@/lib/links';
 import { getProfileAvatarSource, profileAvatars } from '@/lib/profileAvatars';
 import { getPointsLog } from '@/services/points';
 import { getOpenApplicationPrograms, getPrograms } from '@/services/programs';
@@ -104,11 +105,40 @@ export function useHomeFeed() {
       return;
     }
 
-    try {
-      await toggleRsvp(event.id);
-    } catch (err: any) {
-      Alert.alert('RSVP Error', err.message || 'Could not update RSVP status.');
+    const eventWithRsvp = events.find((e) => e.id === event.id) ?? (event as EventWithRsvp);
+    const isCurrentlyRsvped = Boolean(eventWithRsvp?.is_rsvped);
+    const rsvpUrl = eventWithRsvp?.rsvp_link?.url ?? (event as EventWithRsvp).rsvp_link?.url;
+
+    const performRsvp = async () => {
+      try {
+        const isGoing = await toggleRsvp(event.id);
+        if (isGoing && rsvpUrl) {
+          await openExternalLink(rsvpUrl, `${event.title} RSVP`);
+        }
+      } catch (err: any) {
+        Alert.alert('RSVP Error', err.message || 'Could not update RSVP status.');
+      }
+    };
+
+    if (isCurrentlyRsvped) {
+      await performRsvp();
+      return;
     }
+
+    if (rsvpUrl) {
+      Alert.alert('Continue RSVP', 'You will be redirected to the RSVP form.', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'RSVP',
+          onPress: () => {
+            void performRsvp();
+          },
+        },
+      ]);
+      return;
+    }
+
+    await performRsvp();
   };
 
   const handleProgramPress = (program: ProgramWithPoCs) => {

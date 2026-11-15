@@ -18,11 +18,11 @@ INSERT INTO public.events (
 
 Will you reach Paradise… or stay in the Inferno?  🏝️❤️‍🔥
 
-If you have any questions, please contact Sarah Zhang (@sarah21312) on Discord.', 'other', '2026-07-18T15:00:00.000Z'::timestamptz, '2026-07-18T20:30:00.000Z'::timestamptz, 'Vilano Beach', 'Vilano Beach, St. Augustine, FL 32084', 29.9175, -81.2987, 1),
-  ('c41d33c9-e3d6-49d9-ac91-1e7c22c11d1e', 'SASE x HEAL Adopt-A-Street', NULL, 'other', '2026-07-25T13:00:00.000Z'::timestamptz, '2026-07-25T15:00:00.000Z'::timestamptz, 'TBD', NULL, NULL, NULL, 1),
-  ('d3f89b51-5cb8-414f-a69b-d92dd63944f9', 'Project Captain Info Zoom', NULL, 'other', '2026-08-08T15:00:00.000Z'::timestamptz, '2026-08-08T16:00:00.000Z'::timestamptz, 'Discord', 'SASE Discord', NULL, NULL, 1),
-  ('0053cce1-362f-4d8b-a863-aff47c5762d4', 'SASE x HEAL Adopt-A-Street', 'If you have any questions, please contact Maryanne Anderson Lee (@Maryanne | Community Outreach) on Discord!', 'other', '2026-08-14T04:00:00.000Z'::timestamptz, '2026-08-15T04:00:00.000Z'::timestamptz, 'Adopt-A-Street', '4501 SW 20th Ave, Gainesville, FL 32607', 29.6268, -82.3882, 1),
-  ('2deee3b6-2777-42c9-a125-35cf0e07b1ca', 'FES Field Day', NULL, 'social', '2026-08-22T15:00:00.000Z'::timestamptz, '2026-08-22T17:00:00.000Z'::timestamptz, 'Flavet Field', 'Flavet Field, Woodlawn Dr, Gainesville, FL 32603', 29.6468, -82.3551, 1),
+If you have any questions, please contact Sarah Zhang (@sarah21312) on Discord.', 'social', '2026-07-18T15:00:00.000Z'::timestamptz, '2026-07-18T20:30:00.000Z'::timestamptz, 'Vilano Beach', 'Vilano Beach, St. Augustine, FL 32084', 29.9175, -81.2987, 1),
+  ('c41d33c9-e3d6-49d9-ac91-1e7c22c11d1e', 'SASE x HEAL Adopt-A-Street', NULL, 'service', '2026-07-25T13:00:00.000Z'::timestamptz, '2026-07-25T15:00:00.000Z'::timestamptz, 'TBD', NULL, NULL, NULL, 1),
+  ('d3f89b51-5cb8-414f-a69b-d92dd63944f9', 'Project Captain Info Zoom', NULL, 'career', '2026-08-08T15:00:00.000Z'::timestamptz, '2026-08-08T16:00:00.000Z'::timestamptz, 'Discord', 'SASE Discord', NULL, NULL, 1),
+  ('0053cce1-362f-4d8b-a863-aff47c5762d4', 'SASE x HEAL Adopt-A-Street', 'If you have any questions, please contact Maryanne Anderson Lee (@Maryanne | Community Outreach) on Discord!', 'service', '2026-08-14T04:00:00.000Z'::timestamptz, '2026-08-15T04:00:00.000Z'::timestamptz, 'Adopt-A-Street', '4501 SW 20th Ave, Gainesville, FL 32607', 29.6268, -82.3882, 1),
+  ('2deee3b6-2777-42c9-a125-35cf0e07b1ca', 'FES Field Day', NULL, 'sports', '2026-08-22T15:00:00.000Z'::timestamptz, '2026-08-22T17:00:00.000Z'::timestamptz, 'Flavet Field', 'Flavet Field, Woodlawn Dr, Gainesville, FL 32603', 29.6468, -82.3551, 1),
   ('0d43b217-cf3c-4f72-a383-2750dc2b1af1', 'SASE Midtown Munch & Mingle', 'Ready for good food and great vibes? Join SASE for our Midtown Munch + Mingle! 😋 We''ll be gathering at Plaza of the Americas and walking over to Midtown together as a group to grab delicious food from Tea Moment 🧋, Vietnamese Grille 🍜, Pokébowl Station 🥗, and The Spot 🌯.It''s the perfect way to kick off the semester, meet new people, and grab a bite! 🤝🎉
 
 If you have any questions, please contact Sarah Zhang at (954) 544-0136.', 'social', '2026-08-31T21:30:00.000Z'::timestamptz, '2026-08-31T23:30:00.000Z'::timestamptz, 'Plaza of the Americas', 'Plaza of the Americas, Gainesville, FL 32611', 29.6504, -82.3429, 1),
@@ -81,7 +81,7 @@ If you have any questions, please contact Khanh Pham (@Khanh Pham | Member Invol
 
 Start working on your serve 🏓 , because SASE''s Pickleball Social is coming in hot ‼️Make the most of the long weekend and join us on Sunday, September 6th from 5-7 PM at the Flavet Field Pickleball Courts ☀️! Professional pickleball skills not necessary, just be ready for an afternoon of fun games and meeting new people 🧑‍🤝‍🧑 !
 
-If you have any questions, please contact Andrew Lo (@Andrew Lo | Sports Coordinator ) or Carol Shang (@Carol Shang | Sports Coordinator ) on Discord!Graphic Credits: @Kaylee Renna | Multimedia', 'social', '2026-09-06T21:00:00.000Z'::timestamptz, '2026-09-06T23:00:00.000Z'::timestamptz, 'Flavet Field', 'Flavet Field, Woodlawn Dr, Gainesville, FL 32603', 29.6468, -82.3551, 1),
+If you have any questions, please contact Andrew Lo (@Andrew Lo | Sports Coordinator ) or Carol Shang (@Carol Shang | Sports Coordinator ) on Discord!Graphic Credits: @Kaylee Renna | Multimedia', 'sports', '2026-09-06T21:00:00.000Z'::timestamptz, '2026-09-06T23:00:00.000Z'::timestamptz, 'Flavet Field', 'Flavet Field, Woodlawn Dr, Gainesville, FL 32603', 29.6468, -82.3551, 1),
   ('97e24db3-5df3-4bfa-aca9-a0a683c86f71', 'Professional Headshot Fundraiser', '📸  Professional Headshot sign-ups are OPEN
 
 Want to add the finishing touches to your professional profile before career week? SASE has you covered with our annual Professional Headshot Fundraiser!
@@ -93,7 +93,7 @@ You can also DM our historian, Sarah Mann (@Sarah Mann | Historian), for questio
 
 Warm up your arms, because SASE is teaming up with UF Men’s Ultimate Frisbee Club for a social you won’t want to miss ‼️Whether you are here to compete or here for the vibes, come join us for a night of scores and sprints while making some new friends! No experience needed, just bring your energy and a water bottle!
 
-Please contact Carol Shang (@Carol Shang | Sports Coordinator ) or Andrew Lo (@poy.o ) on Discord!', 'social', '2026-09-09T00:00:00.000Z'::timestamptz, '2026-09-09T02:00:00.000Z'::timestamptz, 'Lake Alice Field', 'Lake Alice Field, Museum Rd, Gainesville, FL 32611', 29.6429, -82.3582, 1),
+Please contact Carol Shang (@Carol Shang | Sports Coordinator ) or Andrew Lo (@poy.o ) on Discord!', 'sports', '2026-09-09T00:00:00.000Z'::timestamptz, '2026-09-09T02:00:00.000Z'::timestamptz, 'Lake Alice Field', 'Lake Alice Field, Museum Rd, Gainesville, FL 32611', 29.6429, -82.3582, 1),
   ('71bce0b5-671a-4dca-af83-c34e900f47ba', 'SASE Research 101 Workshop', '🥼 🌟 COURSE CODE: RESEARCH 101! 🌟
 
 ☀️ 🎶 There''s 104 days of summer vacation... but figuring out research at UF doesn''t have to take that long! 🔬
@@ -139,7 +139,7 @@ M&M Speed Friending Day 2: Major Specific Speed Friending
 If you have any questions, please contact Logan Thompson @Logan | Internal VP  on Discord.', 'social', '2026-09-11T22:00:00.000Z'::timestamptz, '2026-09-11T23:00:00.000Z'::timestamptz, 'LIT 0121', 'Little Hall, 1400 Stadium Rd, Gainesville, FL 32611', 29.6487, -82.3406, 1),
   ('ef628fd0-d8f5-4a16-a5a0-1860a76efb97', 'Apply-A-Thon', 'Happy internship application season ‼️
 
-Join your fellow SASE members at our annual Apply-a-thon to mass apply to internships, research positions or one of our signature SASE programs together. 🫣 Applications get us so much closer to getting that offer. Come on out to take advantage of as many opportunities as possible with your fellow SASEers! Hope to see you there! 💙 💚', 'team', '2026-09-12T17:00:00.000Z'::timestamptz, '2026-09-12T22:00:00.000Z'::timestamptz, 'TUR 2319', 'Turlington Hall, 330 Newell Dr, Gainesville, FL 32611', 29.6499, -82.3439, 1),
+Join your fellow SASE members at our annual Apply-a-thon to mass apply to internships, research positions or one of our signature SASE programs together. 🫣 Applications get us so much closer to getting that offer. Come on out to take advantage of as many opportunities as possible with your fellow SASEers! Hope to see you there! 💙 💚', 'career', '2026-09-12T17:00:00.000Z'::timestamptz, '2026-09-12T22:00:00.000Z'::timestamptz, 'TUR 2319', 'Turlington Hall, 330 Newell Dr, Gainesville, FL 32611', 29.6499, -82.3439, 1),
   ('3dc18f5b-9e2a-42da-a372-9612a0ae6ca1', 'Texas Instruments Resume & Elevator Pitch Workshop', 'Texas Instruments Resume & Elevator Pitch Workshop
 
 Texas Instruments is collaborating with UF SASE to host a Resume & Elevator Pitch Workshop! 📄💼Come learn how to perfect your resume, sharpen your elevator pitch, and connect with TI representatives to get career-fair ready. ⚡🍕 Food will be provided for attendees
@@ -238,7 +238,7 @@ Whether you''re looking for internships, exploring different industries, or just
 The zoom link will be sent out to people who submit the form for registration.
 
 If you have any questions, please contact Mia Fu (@Mia) , Joyce Chen (@joyce), or Kayla Chen (@kayla) on Discord', 'career', '2026-09-24T23:00:00.000Z'::timestamptz, '2026-09-25T00:00:00.000Z'::timestamptz, 'Zoom', 'Virtual via Zoom', NULL, NULL, 1),
-  ('1b2c0049-df61-43b5-abf7-bc9c9c89ecf2', 'JSA x SASE x CASA Volleyball Workshop', NULL, 'career', '2026-09-26T18:00:00.000Z'::timestamptz, '2026-09-26T19:00:00.000Z'::timestamptz, 'TBD', NULL, NULL, NULL, 1),
+  ('1b2c0049-df61-43b5-abf7-bc9c9c89ecf2', 'JSA x SASE x CASA Volleyball Workshop', NULL, 'sports', '2026-09-26T18:00:00.000Z'::timestamptz, '2026-09-26T19:00:00.000Z'::timestamptz, 'TBD', NULL, NULL, NULL, 1),
   ('e14a4833-84be-4089-ad39-9cd09e853488', 'Stem Connect: Conference and Career Fair', 'Join us at STEM Connect ''26 (SC), a national conference and career fair happening October 1st to 3rd at the Seattle Convention Center in Seattle, Washington!
 
 With 50+ companies and partners, the convention is great for all majors looking for internship, full-time, or graduate positions! It is an amazing opportunity to receive expert career & resume advice, attend workshops & panels, present at a research symposium, gain access to the SASE National Job Board, network with professionals, explore Seattle with UF SASE, and maybe even ring the gong when you get a job offer
@@ -277,7 +277,7 @@ Not sure what classes to take next semester? Come plan your schedule with upperc
 
 Ever curious about what goes on inside UF''s top research facilities? Join SASE Science for an exclusive tour of the  Interdisciplinary Center for Biotechnology Research (ICBR)! 🧬Come and explore the facility, learn about cutting-edge biotech equipment, and see high-level research in action!
 
-If you have any questions, feel free to reach out to @Minh Pham | Science  or @Saee | Science  on Discord! 💬', 'other', '2026-10-15T18:00:00.000Z'::timestamptz, '2026-10-15T19:00:00.000Z'::timestamptz, 'ICBR 189', 'ICBR Room 189, 2033 Mowry Rd, Gainesville, FL 32608', 29.6405, -82.3533, 1),
+If you have any questions, feel free to reach out to @Minh Pham | Science  or @Saee | Science  on Discord! 💬', 'career', '2026-10-15T18:00:00.000Z'::timestamptz, '2026-10-15T19:00:00.000Z'::timestamptz, 'ICBR 189', 'ICBR Room 189, 2033 Mowry Rd, Gainesville, FL 32608', 29.6405, -82.3533, 1),
   ('5e2f5226-b5c7-4ae8-a4d5-0f86e97c2dcf', 'SASE x CURBS Research in Computer Science Workshop', 'SASE x CURBS Research in Computer Science Worshop
 
 Interested in research in computer science? 🤔💡 Come join SASE and CURBS for an exciting Research in Computer Science workshop! 🎓💻
@@ -300,7 +300,7 @@ Get ready to drop your textbooks, clear your mind, and catch some sun! ☀️�
 ---📝 FORMS & SIGN-UPS
 
 If you have any questions, please contact @Khoa Ho  or @Sarah Zhang | Social on Discord.', 'social', '2026-10-17T14:00:00.000Z'::timestamptz, '2026-10-17T19:00:00.000Z'::timestamptz, 'Lake Wauburg', 'Lake Wauburg, 133 Wave Rd, Micanopy, FL 32667', 29.5297, -82.3023, 1),
-  ('f1e891cf-f28d-4ac0-aab8-5e8012d76615', 'SASE x HEAL Adopt-A-Street', NULL, 'other', '2026-10-24T04:00:00.000Z'::timestamptz, '2026-10-25T04:00:00.000Z'::timestamptz, 'TBD', NULL, NULL, NULL, 1),
+  ('f1e891cf-f28d-4ac0-aab8-5e8012d76615', 'SASE x HEAL Adopt-A-Street', NULL, 'service', '2026-10-24T04:00:00.000Z'::timestamptz, '2026-10-25T04:00:00.000Z'::timestamptz, 'TBD', NULL, NULL, NULL, 1),
   ('451a98cb-2a79-4820-a20a-ba406406ef70', 'Pickleball Social', 'SASE Pickleball Social 🏃‍♀️ 🔥
 
 Do we all miss pickleball🏏? Don’t worry, SASEsports got you! Come out to our pickleball social at SWRC on October 25th at 3 PM ⏰  We have reserved courts for everyone to have so much fun! 🤩
@@ -311,7 +311,7 @@ Do we all miss pickleball🏏? Don’t worry, SASEsports got you! Come out to ou
 
 ⏰ 3:00 PM
 
-If you have ANY questions, reach out to SASE Sports Coords @Carol Shang | Sports Coordinator  @Andrew Lo | Sports Coordinator', 'social', '2026-10-25T19:00:00.000Z'::timestamptz, '2026-10-25T21:00:00.000Z'::timestamptz, 'TBD', NULL, NULL, NULL, 1),
+If you have ANY questions, reach out to SASE Sports Coords @Carol Shang | Sports Coordinator  @Andrew Lo | Sports Coordinator', 'sports', '2026-10-25T19:00:00.000Z'::timestamptz, '2026-10-25T21:00:00.000Z'::timestamptz, 'TBD', NULL, NULL, NULL, 1),
   ('eaae625a-e55b-4c80-a4bb-e25ea43931e7', 'SASE GBM 3 w/ J&J', 'GBM 3 ft. Johnson & Johnson
 
 Join us for our third GBM of the semester, Cooking Mama: SASE Appétit!, featuring Johnson & Johnson (J&J)! 👨‍🍳The J&J recruitment team is coming to meet YOU! 🫵
@@ -344,7 +344,7 @@ If you have any questions, please contact Sriya Boggavarapu (@Sriya Boggavarapu 
 
 Represent your country and go for the gold! 🏅 Join SASE for our Asian Games-themed Field Day! 🌏🔥 Bring your competitive spirit and represent your country team as we battle it out in high-stakes games: 🥏 Ultimate Frisbee 🤾 Dodgeball 💪 Tug of War 🏃 Relay Races ⚽ Casual Sports & Lawn GamesTop performers and standout teams will bring home MVP awards, SASE merch, and most importantly, the right to punish a board member!🎯🥧 Wear comfortable athletic clothes and bring your game face!🥇🥈🥉
 
-If you have any questions, please contact Andrew Lo (@Andrew Lo | Sports Coordinator poy.o) or Timothy Wang (@Tim) on Discord.', 'social', '2026-11-08T19:00:00.000Z'::timestamptz, '2026-11-08T21:00:00.000Z'::timestamptz, 'Flavet Field', 'Flavet Field, Woodlawn Dr, Gainesville, FL 32603', 29.6468, -82.3551, 1),
+If you have any questions, please contact Andrew Lo (@Andrew Lo | Sports Coordinator poy.o) or Timothy Wang (@Tim) on Discord.', 'sports', '2026-11-08T19:00:00.000Z'::timestamptz, '2026-11-08T21:00:00.000Z'::timestamptz, 'Flavet Field', 'Flavet Field, Woodlawn Dr, Gainesville, FL 32603', 29.6468, -82.3551, 1),
   ('a11fb0b8-63f7-4a16-a16c-372f0ae55590', 'Evening With Professors', 'EVENING WITH PROFESSORS 📚
 
 Have you ever wanted to connect with professors outside of the classroom? Interested in getting involved in research 🔬, becoming a TA 👩‍🏫, or learning more about career opportunities in STEM?💡Join SASE for Evening with Professors, a casual dinner with UF faculty members where you can ask questions, make connections, and gain insight into research, internships, career paths, and more!
@@ -369,12 +369,12 @@ We''re so excited to see everyone again, to catch up and see what everyone''s be
 
 We will meet at Devil''s Millhopper at 11:00AM and start walking down at 11:30AM. Please note there is an entry fee of $4 per vehicle, and $2 for pedestrians/bicyclists.
 
-If you have any questions, feel free to reach out to Pryanna, @Pryanna | Treasurer on discord! We can''t wait to see everyone again! 🤩', 'team', '2026-11-11T16:00:00.000Z'::timestamptz, '2026-11-11T18:00:00.000Z'::timestamptz, '4732 Millhopper Rd, Gainesville, FL 32653', NULL, NULL, NULL, 1),
+If you have any questions, feel free to reach out to Pryanna, @Pryanna | Treasurer on discord! We can''t wait to see everyone again! 🤩', 'social', '2026-11-11T16:00:00.000Z'::timestamptz, '2026-11-11T18:00:00.000Z'::timestamptz, '4732 Millhopper Rd, Gainesville, FL 32653', NULL, NULL, NULL, 1),
   ('94bed2f8-19e9-4e95-a216-92c783cc0404', 'Gimbap Making Workshop', 'Gimbap Making Workshop
 
 Have YOU 🫵 ever thought that you might be a master chef? 🧑‍🍳 Do you think you have what it takes to blend culture and finesse into one savory and delectable dish?? 🤤 Find out at our GIMBAP WORKSHOP on November 12th!! 😱 We will be locking in on how to make gimbap, a staple from Korean culture! 🇰🇷 Make sure to come out and try your hand at making some delicious foods 🔥 We only have a limited amount of seats available, so sign up while spots are still open! We can’t wait to see you there! 😝
 
-If you have any questions, please contact Dylan Huh (@/dylanhuh48) or Daniel John (@/revealtus) on Discord.', 'career', '2026-11-12T23:00:00.000Z'::timestamptz, '2026-11-13T00:30:00.000Z'::timestamptz, 'TUR 2319', 'Turlington Hall, 330 Newell Dr, Gainesville, FL 32611', 29.6499, -82.3439, 1),
+If you have any questions, please contact Dylan Huh (@/dylanhuh48) or Daniel John (@/revealtus) on Discord.', 'social', '2026-11-12T23:00:00.000Z'::timestamptz, '2026-11-13T00:30:00.000Z'::timestamptz, 'TUR 2319', 'Turlington Hall, 330 Newell Dr, Gainesville, FL 32611', 29.6499, -82.3439, 1),
   ('a0152430-7bf3-4b29-a0fa-d145f7058d34', 'Volleyball Workshop & Tourney', 'Volleyball workshop + Tournament 🏐
 
 Get ready to bump, set, and spike! Join us for an action-packed day of volleyball featuring a skill-building workshop followed by an exciting tournament. 🏐😎🥳
@@ -383,14 +383,14 @@ We will have a few experienced mentors on hand to help guide players through the
 
 Have Questions?
 
-If you have any questions or need more info, please reach out to Carol Shang @Carol Shang | Sports Coordinator, or Andrew Lo @Andrew Lo | Sports Coordinator.', 'career', '2026-11-13T19:30:00.000Z'::timestamptz, '2026-11-13T21:00:00.000Z'::timestamptz, 'Southwest Recreation Center    Have Questions?', NULL, NULL, NULL, 1),
+If you have any questions or need more info, please reach out to Carol Shang @Carol Shang | Sports Coordinator, or Andrew Lo @Andrew Lo | Sports Coordinator.', 'sports', '2026-11-13T19:30:00.000Z'::timestamptz, '2026-11-13T21:00:00.000Z'::timestamptz, 'Southwest Recreation Center    Have Questions?', NULL, NULL, NULL, 1),
   ('f2b7222f-c4e5-4c5b-aad2-e3e3a7b800b4', 'SASE Blood Drive', 'SASE Blood Drive
 
 What if you had the power to save three lives in just one hour? 🤔 Well here is your chance! 🫵 Service Committee is partnering with LifeSouth to host a blood drive on Friday, November 13th. (ooh spooky!)
 
 There will be a social beforehand where we will be hosting arts and crafts/board game activities! Come out to support your local blood drive! All donations will be made to local hospitals and healthcare facilities around Gainesville. 💖 Hope to see everyone there!
 
-If you have any questions, please contact Isabelle Gomez (@/izzy.gmz) on Discord.', 'social', '2026-11-13T22:00:00.000Z'::timestamptz, '2026-11-14T02:30:00.000Z'::timestamptz, 'Reitz (Food Court)', 'J. Wayne Reitz Union, 655 Reitz Union Drive, Gainesville, FL 32611', 29.6465, -82.3477, 1),
+If you have any questions, please contact Isabelle Gomez (@/izzy.gmz) on Discord.', 'service', '2026-11-13T22:00:00.000Z'::timestamptz, '2026-11-14T02:30:00.000Z'::timestamptz, 'Reitz (Food Court)', 'J. Wayne Reitz Union, 655 Reitz Union Drive, Gainesville, FL 32611', 29.6465, -82.3477, 1),
   ('2fca48e0-aaef-42fc-a492-87ca930410c4', 'SASEgiving', '🦃 SASEGIVING 🦃
 
 Fall is here, and so is SASEGIVING! 🍂 Come hang out with us as we reflect on what we''re grateful for through our variety of activities and potluck. 🍽️ Bring a dish, bring your friends, and come celebrate the season with us! 🍁
@@ -413,7 +413,7 @@ If you have any questions, please contact Joyce Chen (@Joyce | Networking) or An
 
 Join us for the SASE Research & Project Poster Symposium - an evening dedicated to highlighting academic research, capstone designs, and hands-on engineering projects crafted by our members! 💡✨ Whether you want to present your own work or drop by to network, learn something new, and support your peers, this event is open to everyone! 🙌
 
-If you have any questions, please contact me (@Minh Pham | Science mihn0369) or Saee Joshi (@Saee | Science ) on Discord. 💬', 'other', '2026-11-19T22:00:00.000Z'::timestamptz, '2026-11-20T02:00:00.000Z'::timestamptz, 'Reitz', 'J. Wayne Reitz Union, 655 Reitz Union Drive, Gainesville, FL 32611', 29.6465, -82.3477, 1),
+If you have any questions, please contact me (@Minh Pham | Science mihn0369) or Saee Joshi (@Saee | Science ) on Discord. 💬', 'career', '2026-11-19T22:00:00.000Z'::timestamptz, '2026-11-20T02:00:00.000Z'::timestamptz, 'Reitz', 'J. Wayne Reitz Union, 655 Reitz Union Drive, Gainesville, FL 32611', 29.6465, -82.3477, 1),
   ('4ca7c91a-2442-469c-a41f-064472a84dc2', 'SASE Winter Banquet', NULL, 'social', '2026-12-04T05:00:00.000Z'::timestamptz, '2026-12-05T05:00:00.000Z'::timestamptz, 'TBD', NULL, NULL, NULL, 1)
 ON CONFLICT (id) DO UPDATE SET
   title = EXCLUDED.title,

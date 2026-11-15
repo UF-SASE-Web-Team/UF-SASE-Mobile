@@ -34,11 +34,11 @@ export function PointsInfoModal({ visible, onClose }: PointsInfoModalProps) {
           variant="secondary"
           size="md"
           onPress={onClose}
-          accessibilityLabel="Back to Attendance"
+          accessibilityLabel="Back to Points Log"
           testID="points-info-close"
           style={styles.button}
         >
-          Back to Attendance
+          Back to Points
         </Button>
       </View>
     </ModalSheet>

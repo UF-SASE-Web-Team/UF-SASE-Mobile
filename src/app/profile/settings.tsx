@@ -108,7 +108,7 @@ export default function AccountSettingsPage() {
       footer={
         <Button
           onPress={confirmLogOut}
-          variant="danger"
+          variant="secondary"
           size="lg"
           loading={busy === 'logout'}
           disabled={!!busy}

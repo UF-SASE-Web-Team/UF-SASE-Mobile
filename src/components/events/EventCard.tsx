@@ -38,7 +38,9 @@ export function EventCard({
   const isEnded = isValidEndDate ? now > endDate : false;
   const isStarted = isValidStartDate ? now >= startDate : false;
 
-  const month = isValidStartDate ? startDate.toLocaleDateString(undefined, { month: 'short' }) : '';
+  const weekday = isValidStartDate
+    ? startDate.toLocaleDateString(undefined, { weekday: 'short' })
+    : '';
   const day = isValidStartDate ? startDate.getDate() : '';
   const time = isValidStartDate
     ? startDate.toLocaleTimeString(undefined, {
@@ -63,12 +65,12 @@ export function EventCard({
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       onPress={handleCardPress}
       accessibilityRole="button"
-      accessibilityLabel={`${event.title}, on ${month} ${day}`}
+      accessibilityLabel={`${event.title}, on ${weekday} ${day}`}
     >
       {/* Date Column */}
       <View style={styles.dateColumn}>
         <Text variant="bodySm" color={colors.content.onBase.secondary}>
-          {month}
+          {weekday}
         </Text>
         <Text variant="title" color={colors.content.onBase.secondary}>
           {day}
@@ -167,14 +169,16 @@ const createStyles = (colors: Colors) =>
       flex: 1,
     },
     rsvpButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: space['100'],
       borderWidth: borderWidth.sm,
       borderColor: colors.border.base.subtle,
       borderRadius: radius.md,
       backgroundColor: colors.surface.base.primary,
       paddingHorizontal: space['150'],
       paddingVertical: space['150'],
-      alignItems: 'center',
-      justifyContent: 'center',
       minWidth: 65,
     },
     rsvpButtonIdle: {

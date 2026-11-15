@@ -61,7 +61,7 @@ export const lightColors: Colors = {
     },
     success: { primary: p.green[500] },
     warning: { primary: p.yellow[400] },
-    danger: { primary: p.red[600] },
+    danger: { primary: p.red[500] },
     media: { scrim: p.black[600], backdrop: p.black[1000] },
   },
   content: {
@@ -84,7 +84,7 @@ export const lightColors: Colors = {
     },
     onSuccess: { primary: p.green[800] },
     onWarning: { primary: p.yellow[800] },
-    onDanger: { primary: p.red[100] },
+    onDanger: { primary: p.white[900] },
     onMedia: { primary: p.white[1000] },
   },
   border: {
@@ -121,7 +121,7 @@ export const darkColors: Colors = {
     },
     success: { primary: p.green[800] },
     warning: { primary: p.yellow[400] },
-    danger: { primary: p.red[600] },
+    danger: { primary: p.red[500] },
     media: { scrim: p.black[600], backdrop: p.black[1000] },
   },
   content: {
@@ -144,7 +144,7 @@ export const darkColors: Colors = {
     },
     onSuccess: { primary: p.white[1000] },
     onWarning: { primary: p.yellow[800] },
-    onDanger: { primary: p.red[100] },
+    onDanger: { primary: p.white[900] },
     onMedia: { primary: p.white[1000] },
   },
   border: {
