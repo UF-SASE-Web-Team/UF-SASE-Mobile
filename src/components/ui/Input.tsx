@@ -78,6 +78,7 @@ export function Input({
           multiline ? styles.containerMultiline : null,
           Boolean(error) ? styles.containerError : null,
           containerStyle,
+          Boolean(rightIcon) ? styles.containerWithRightIcon : null,
         ]}
         onPress={() => localInputRef.current?.focus()}
         accessible={false}
@@ -131,6 +132,9 @@ const createStyles = (colors: Colors) =>
       paddingVertical: space['200'],
       gap: space['300'],
       minHeight: 56,
+    },
+    containerWithRightIcon: {
+      paddingRight: space['400'],
     },
     containerMultiline: {
       borderRadius: radius.lg,

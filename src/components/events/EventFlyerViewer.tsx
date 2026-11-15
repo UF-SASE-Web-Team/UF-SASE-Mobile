@@ -5,7 +5,6 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   PanResponder,
-  Pressable,
   ScrollView,
   StyleSheet,
   useAnimatedValue,
@@ -13,9 +12,9 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { type Colors, iconSize, radius, space } from '@/theme';
+import { CloseButton } from '@/components/ui/CloseButton';
+import { useThemedStyles } from '@/context/ThemeContext';
+import { type Colors, space } from '@/theme';
 
 const OPEN_DURATION_MS = 280;
 const CLOSE_DURATION_MS = 200;
@@ -51,7 +50,6 @@ export function EventFlyerViewer({
 }: EventFlyerViewerProps) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
   // 0 = aligned with the hero, 1 = centered full-screen.
@@ -246,15 +244,7 @@ export function EventFlyerViewer({
           { top: insets.top + space['200'], opacity: backdropOpacity },
         ]}
       >
-        <Pressable
-          onPress={handleClose}
-          hitSlop={space['200']}
-          style={({ pressed }) => [styles.closeButton, pressed && styles.closeButtonPressed]}
-          accessibilityRole="button"
-          accessibilityLabel="Close flyer"
-        >
-          <Ionicons name="close" size={iconSize.md} color={colors.content.onMedia.primary} />
-        </Pressable>
+        <CloseButton variant="onMedia" onClose={handleClose} accessibilityLabel="Close flyer" />
       </Animated.View>
     </Modal>
   );
@@ -275,16 +265,5 @@ const createStyles = (colors: Colors) =>
     closeButtonContainer: {
       position: 'absolute',
       left: space['400'],
-    },
-    closeButton: {
-      width: space['1000'],
-      height: space['1000'],
-      borderRadius: radius.full,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.surface.media.scrim,
-    },
-    closeButtonPressed: {
-      opacity: 0.7,
     },
   });

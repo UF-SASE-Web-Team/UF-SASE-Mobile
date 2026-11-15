@@ -2,9 +2,9 @@ import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { CloseButton } from '@/components/ui/CloseButton';
 import { Text } from '@/components/ui/Text';
-import { useTheme, useThemedStyles, type Colors, iconSize, radius, space } from '@/theme';
+import { useThemedStyles, type Colors, radius, space } from '@/theme';
 
 export interface ModalSheetProps {
   title: string;
@@ -24,7 +24,6 @@ export function ModalSheet({
   testID,
 }: ModalSheetProps) {
   const styles = useThemedStyles(createStyles);
-  const { colors } = useTheme();
   const { bottom } = useSafeAreaInsets();
   const insetStyle = useMemo(() => ({ paddingBottom: bottom + space['400'] }), [bottom]);
 
@@ -55,15 +54,7 @@ export function ModalSheet({
         <View style={[styles.sheet, insetStyle]} accessibilityViewIsModal>
           <View style={styles.grabber} />
           <View style={styles.header}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Close ${title}`}
-              disabled={busy}
-              onPress={onClose}
-              style={styles.closeButton}
-            >
-              <Ionicons name="close" size={iconSize.md} color={colors.content.onBase.primary} />
-            </Pressable>
+            <CloseButton accessibilityLabel={`Close ${title}`} disabled={busy} onClose={onClose} />
             <Text variant="bodyStrong" accessibilityRole="header" style={styles.title}>
               {title}
             </Text>
@@ -103,14 +94,6 @@ const createStyles = (colors: Colors) =>
       marginBottom: space['200'],
     },
     header: { flexDirection: 'row', alignItems: 'center', marginBottom: space['400'] },
-    closeButton: {
-      width: 44,
-      height: 44,
-      borderRadius: radius.full,
-      backgroundColor: colors.surface.base.secondary,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
     title: { flex: 1, textAlign: 'center' },
-    placeholder: { width: 44 },
+    placeholder: { width: 40 },
   });

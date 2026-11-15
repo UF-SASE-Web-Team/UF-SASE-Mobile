@@ -26,6 +26,10 @@ export interface BackButtonProps {
    */
   accessibilityLabel?: string;
   /**
+   * Whether the button is disabled.
+   */
+  disabled?: boolean;
+  /**
    * Optional custom style for layout or positioning.
    */
   style?: StyleProp<ViewStyle>;
@@ -39,6 +43,7 @@ export function BackButton({
   variant = 'default',
   onPress,
   fallbackRoute,
+  disabled = false,
   accessibilityLabel = 'Go back',
   style,
   testID,
@@ -48,6 +53,7 @@ export function BackButton({
   const styles = useThemedStyles(createStyles);
 
   const handlePress = () => {
+    if (disabled) return;
     if (onPress) {
       onPress();
       return;
@@ -70,12 +76,15 @@ export function BackButton({
       testID={testID}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPress={handlePress}
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       style={({ pressed }) => [
         styles.base,
         isOnMedia ? styles.onMedia : styles.default,
-        pressed && styles.pressed,
+        pressed && !disabled && styles.pressed,
+        disabled && styles.disabled,
         style,
       ]}
     >
@@ -104,5 +113,8 @@ const createStyles = (colors: Colors) =>
     },
     pressed: {
       opacity: 0.7,
+    },
+    disabled: {
+      opacity: 0.5,
     },
   });
