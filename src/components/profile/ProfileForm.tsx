@@ -4,6 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
 import { academicFields, socialFields, ProfileCard } from './ProfileDetails';
+import { ProfileModalSlot } from './ProfileScreen';
 import { ProfileSelect } from './ProfileSelect';
 import {
   useTheme,
@@ -16,10 +17,11 @@ import {
   borderWidth,
 } from '@/theme';
 import { UFID_LENGTH, sanitizeUfid } from '@/lib/ufid';
+import { INVALID_GRAD_YEAR_MESSAGE, isValidGradYear, sanitizeGradYear } from '@/lib/gradYear';
 import type { ProfileChanges } from '@/types/profiles';
 
 type ListKey = 'majors' | 'minors';
-type SelectKey = ListKey | 'grad_time';
+type SelectKey = ListKey;
 
 export type ProfileDraft = {
   [K in Exclude<keyof Required<ProfileChanges>, ListKey>]: string;
@@ -36,25 +38,28 @@ type ProfileField =
   (typeof academicFields)[number] | (typeof socialFields)[number] | (typeof privateFields)[number];
 
 const subjects = [
+  'Aerospace Engineering',
+  'Agricultural and Biological Engineering',
+  'Animal Sciences',
+  'Biology',
+  'Biomedical Engineering',
+  'Business Administration',
+  'Chemical Engineering',
+  'Chemistry',
+  'Civil Engineering',
+  'Computer Engineering',
   'Computer Science',
   'Digital Arts and Sciences',
-  'Mechanical Engineering',
   'Electrical Engineering',
-  'Computer Engineering',
-  'Biomedical Engineering',
-  'Civil Engineering',
-  'Chemical Engineering',
+  'Food Science',
+  'Health Science',
   'Industrial and Systems Engineering',
-  'Aerospace Engineering',
-  'Biology',
-  'Chemistry',
+  'Marine Sciences',
+  'Materials Science and Engineering',
   'Mathematics',
+  'Mechanical Engineering',
   'Psychology',
-  'Business Administration',
 ] as const;
-const graduationYears = Array.from({ length: 17 }, (_, index) =>
-  String(new Date().getFullYear() - 6 + index),
-);
 
 interface ProfileFormProps {
   draft: ProfileDraft;
@@ -62,135 +67,207 @@ interface ProfileFormProps {
   disabled: boolean;
   /** `optional` leaves out the required fields (full name and UFID). */
   variant?: 'full' | 'optional';
+  onBioFocus?: () => void;
 }
 
-export function ProfileForm({ draft, onChange, disabled, variant = 'full' }: ProfileFormProps) {
+export function ProfileForm({
+  draft,
+  onChange,
+  disabled,
+  variant = 'full',
+  onBioFocus,
+}: ProfileFormProps) {
   const [selection, setSelection] = useState<SelectKey | null>(null);
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
-  const renderRow = (field: ProfileField) => {
+
+  const renderField = (field: ProfileField) => {
     const { key } = field;
+    const isSelect = key === 'majors' || key === 'minors';
+    const selectValues = [draft[key]].flat().filter(Boolean);
+    const selectDisplayText = selectValues.join(', ');
+
     return (
-      <View
-        key={key}
-        style={[
-          styles.row,
-          (key === 'discord_handle' || key === 'instagram_handle' || key === 'linkedin_url') &&
-            styles.socialRow,
-        ]}
-      >
-        <Ionicons
-          name={field.icon}
-          size={iconSize.sm}
-          color={colors.content.onBase.secondary}
-          style={styles.fieldIcon}
-        />
-        <Text variant="body" style={styles.label}>
-          {field.label}:
-        </Text>
-        {key === 'majors' || key === 'minors' || key === 'grad_time' ? (
+      <View key={key} style={styles.fieldItem}>
+        <View style={styles.fieldHeader}>
+          <Ionicons name={field.icon} size={iconSize.sm} color={colors.content.onBase.secondary} />
+          <Text variant="bodyStrong" style={styles.fieldLabel}>
+            {field.label}
+          </Text>
+        </View>
+
+        {isSelect ? (
           <Pressable
             accessibilityLabel={field.label}
             accessibilityRole="button"
             accessibilityValue={{ text: [draft[key]].flat().join(', ') }}
             disabled={disabled}
-            hitSlop={space['150']}
+            hitSlop={space['100']}
             onPress={() => setSelection(key)}
-            style={styles.select}
+            style={({ pressed }) => [
+              styles.selectContainer,
+              pressed && !disabled && styles.selectPressed,
+            ]}
           >
-            <Text variant="body" style={styles.selectText}>
-              {[draft[key]].flat().join(', ')}
+            <Text
+              variant="body"
+              style={[styles.selectText, !selectDisplayText && styles.placeholderText]}
+              numberOfLines={1}
+            >
+              {selectDisplayText ||
+                (key === 'majors' ? 'Tap to select major(s)' : 'Tap to select minor(s)')}
             </Text>
             <Ionicons
               name="chevron-down"
               size={iconSize.sm}
-              color={colors.content.onBase.primary}
+              color={colors.content.onBase.secondary}
             />
           </Pressable>
         ) : (
-          <View style={styles.inputWrapper}>
-            <Input
-              accessibilityLabel={field.label}
-              value={draft[key]}
-              onChangeText={(text) => onChange(key, key === 'ufid' ? sanitizeUfid(text) : text)}
-              editable={!disabled}
-              maxLength={key === 'ufid' ? UFID_LENGTH : key === 'linkedin_url' ? 300 : 100}
-              autoCapitalize={key === 'full_name' ? 'words' : 'none'}
-              autoCorrect={key === 'full_name'}
-              keyboardType={
-                key === 'ufid' ? 'number-pad' : key === 'linkedin_url' ? 'url' : 'default'
-              }
-              placeholder={key === 'full_name' ? 'Full name' : undefined}
-              containerStyle={styles.inputContainer}
-              inputStyle={styles.input}
-              rightIcon={
-                !disabled && Boolean(draft[key]?.length) ? (
-                  <Pressable
-                    onPress={() => onChange(key, '')}
-                    hitSlop={space['200']}
-                    accessibilityLabel={`Clear ${field.label.toLowerCase()}`}
-                    accessibilityRole="button"
-                    style={styles.clearButton}
-                  >
-                    <Ionicons
-                      name="close-outline"
-                      size={iconSize.md}
-                      color={colors.content.onBase.secondary}
-                    />
-                  </Pressable>
-                ) : null
-              }
-            />
-          </View>
+          <Input
+            accessibilityLabel={field.label}
+            value={draft[key]}
+            onChangeText={(text) =>
+              onChange(
+                key,
+                key === 'ufid'
+                  ? sanitizeUfid(text)
+                  : key === 'grad_time'
+                    ? sanitizeGradYear(text)
+                    : text,
+              )
+            }
+            editable={!disabled}
+            maxLength={
+              key === 'ufid'
+                ? UFID_LENGTH
+                : key === 'grad_time'
+                  ? 4
+                  : key === 'linkedin_url'
+                    ? 300
+                    : 100
+            }
+            autoCapitalize={key === 'full_name' ? 'words' : 'none'}
+            autoCorrect={key === 'full_name'}
+            keyboardType={
+              key === 'ufid' || key === 'grad_time'
+                ? 'number-pad'
+                : key === 'linkedin_url'
+                  ? 'url'
+                  : 'default'
+            }
+            placeholder={
+              key === 'full_name'
+                ? 'Full name'
+                : key === 'ufid'
+                  ? `${UFID_LENGTH}-digit UFID`
+                  : key === 'grad_time'
+                    ? 'e.g. 2028'
+                    : key === 'discord_handle'
+                      ? 'Discord handle'
+                      : key === 'instagram_handle'
+                        ? 'Instagram handle'
+                        : key === 'linkedin_url'
+                          ? 'linkedin.com/in/username'
+                          : undefined
+            }
+            error={
+              key === 'grad_time' &&
+              draft.grad_time.trim().length === 4 &&
+              !isValidGradYear(draft.grad_time)
+                ? INVALID_GRAD_YEAR_MESSAGE
+                : undefined
+            }
+            containerStyle={styles.inputContainer}
+            inputStyle={styles.input}
+            rightIcon={
+              Boolean(draft[key]?.length) ? (
+                <Pressable
+                  onPress={() => onChange(key, '')}
+                  disabled={disabled}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  accessibilityLabel={`Clear ${field.label.toLowerCase()}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ disabled }}
+                  style={({ pressed }) => [
+                    styles.iconButton,
+                    pressed && !disabled && styles.iconButtonPressed,
+                  ]}
+                >
+                  <Ionicons
+                    name="close-outline"
+                    size={iconSize.md}
+                    color={colors.content.onBase.secondary}
+                  />
+                </Pressable>
+              ) : null
+            }
+          />
         )}
       </View>
     );
   };
+
   return (
     <View style={styles.form}>
-      <ProfileCard editing>
+      <ProfileCard editing style={styles.card}>
         {academicFields
           .filter((field) => variant === 'full' || field.key !== 'full_name')
-          .map(renderRow)}
+          .map(renderField)}
+      </ProfileCard>
+      <ProfileCard editing style={styles.card}>
+        <View style={styles.fieldItem}>
+          <View style={styles.fieldHeader}>
+            <Ionicons
+              name="create-outline"
+              size={iconSize.sm}
+              color={colors.content.onBase.secondary}
+            />
+            <Text variant="bodyStrong" style={styles.fieldLabel}>
+              About Me
+            </Text>
+          </View>
+          <Input
+            accessibilityLabel="Bio"
+            placeholder="Tell us a little about yourself, your interests, or what you're working on..."
+            value={draft.bio}
+            onChangeText={(text) => onChange('bio', text)}
+            multiline
+            maxLength={300}
+            editable={!disabled}
+            scrollEnabled={false}
+            containerStyle={styles.bioContainer}
+            inputStyle={styles.bioInput}
+            onFocus={onBioFocus}
+          />
+          <View style={styles.bioFooter}>
+            <Text variant="bodySm" style={styles.charCount}>
+              {(draft.bio || '').length}/300
+            </Text>
+          </View>
+        </View>
+      </ProfileCard>
+      <ProfileCard editing style={styles.card}>
+        {socialFields.map(renderField)}
       </ProfileCard>
       {variant === 'full' && (
-        <ProfileCard editing>
-          {privateFields.map(renderRow)}
-          <Text variant="bodySm" style={styles.privateNote}>
-            Only you can see your UFID.
-          </Text>
+        <ProfileCard editing style={styles.card}>
+          {privateFields.map(renderField)}
         </ProfileCard>
       )}
-      <ProfileCard editing>{socialFields.map(renderRow)}</ProfileCard>
-      <ProfileCard editing>
-        <Input
-          accessibilityLabel="Bio"
-          placeholder="Tell us a little about yourself..."
-          value={draft.bio}
-          onChangeText={(text) => onChange('bio', text)}
-          multiline
-          maxLength={500}
-          editable={!disabled}
-          inputStyle={styles.bio}
-        />
-      </ProfileCard>
       {selection && (
-        <ProfileSelect
-          key={selection}
-          visible
-          label={
-            selection === 'grad_time' ? 'Grad Year' : selection === 'majors' ? 'Major' : 'Minor'
-          }
-          values={[draft[selection]].flat().filter(Boolean)}
-          options={selection === 'grad_time' ? graduationYears : subjects}
-          max={selection === 'grad_time' ? 1 : MAX_SUBJECTS}
-          onClose={() => setSelection(null)}
-          onChange={(values) =>
-            selection === 'grad_time'
-              ? onChange('grad_time', values[0] ?? '')
-              : onChange(selection, values)
-          }
-        />
+        <ProfileModalSlot>
+          <ProfileSelect
+            key={selection}
+            visible
+            label={selection === 'majors' ? 'Major' : 'Minor'}
+            values={draft[selection]}
+            options={subjects}
+            max={MAX_SUBJECTS}
+            onClose={() => setSelection(null)}
+            onChange={(values) => onChange(selection, values)}
+          />
+        </ProfileModalSlot>
       )}
     </View>
   );
@@ -198,49 +275,96 @@ export function ProfileForm({ draft, onChange, disabled, variant = 'full' }: Pro
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    form: { gap: space['200'] },
-    row: {
+    form: { gap: space['300'] },
+    card: {
+      padding: space['400'],
+      // borderColor: colors.border.base.subtle,
+      // borderWidth: borderWidth.sm,
+      gap: space['400'],
+    },
+    fieldItem: {
+      gap: space['150'],
+    },
+    fieldHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      minHeight: 42,
-      gap: space['100'],
+      gap: space['150'],
+      paddingHorizontal: space['050'],
     },
-    socialRow: { minHeight: 38 },
-    privateNote: { color: colors.content.onBase.secondary, paddingHorizontal: space['100'] },
-    fieldIcon: { marginRight: space['150'] },
-    label: { width: '26%', color: colors.content.onBase.primary, lineHeight: space['500'] },
-    inputWrapper: {
-      flex: 1,
+    fieldLabel: {
+      color: colors.content.onBase.primary,
     },
-    clearButton: {
-      height: space['500'],
-      width: space['500'],
+    inputContainer: {
+      backgroundColor: colors.surface.base.primary,
+      borderColor: colors.border.base.subtle,
+      borderWidth: borderWidth.sm,
+      borderRadius: radius.full,
+      minHeight: 52,
+      paddingLeft: space['600'],
+      paddingVertical: space['150'],
+    },
+    input: {
+      color: colors.content.onBase.primary,
+    },
+    iconButton: {
+      paddingHorizontal: space['100'],
       justifyContent: 'center',
       alignItems: 'center',
     },
-    inputContainer: {
-      borderColor: colors.border.base.subtle,
-      borderWidth: borderWidth.lg,
+    iconButtonPressed: {
+      opacity: 0.6,
     },
-    input: {},
-    select: {
-      flex: 1,
+    selectContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.surface.base.tertiary,
+      justifyContent: 'space-between',
+      backgroundColor: colors.surface.base.primary,
+      borderColor: colors.border.base.subtle,
+      borderWidth: borderWidth.sm,
       borderRadius: radius.full,
-      minHeight: 32,
-      paddingHorizontal: space['200'],
-      paddingVertical: space['100'],
-      gap: space['100'],
+      minHeight: 52,
+      paddingHorizontal: space['600'],
+      paddingVertical: space['200'],
+      gap: space['200'],
     },
-    selectText: { color: colors.content.onBase.primary, flex: 1, lineHeight: space['500'] },
-    bio: {
+    selectText: {
+      flex: 1,
+      color: colors.content.onBase.primary,
+    },
+    placeholderText: {
+      color: colors.content.onBase.secondary,
+      opacity: 0.7,
+    },
+    selectPressed: {
+      opacity: 0.7,
+    },
+    bioContainer: {
+      backgroundColor: colors.surface.base.primary,
+      borderColor: colors.border.base.subtle,
+      borderWidth: borderWidth.sm,
+      borderRadius: radius.md,
+      minHeight: 120,
+      paddingHorizontal: space['400'],
+      paddingTop: space['300'],
+      paddingBottom: space['300'],
+      alignItems: 'flex-start',
+    },
+    bioInput: {
       ...textStyles.body,
       color: colors.content.onBase.primary,
-      lineHeight: space['500'],
+      lineHeight: space['600'],
       minHeight: 100,
+      width: '100%',
       padding: 0,
-      paddingTop: space['100'],
+    },
+    bioFooter: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      paddingHorizontal: space['050'],
+      marginTop: space['100'],
+    },
+    charCount: {
+      color: colors.content.onBase.secondary,
     },
   });

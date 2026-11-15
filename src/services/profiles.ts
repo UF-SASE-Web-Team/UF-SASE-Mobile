@@ -43,6 +43,15 @@ export async function updateProfile(userId: string, changes: ProfileChanges): Pr
   return data;
 }
 
+export async function updateUsername(userId: string, username: string): Promise<void> {
+  const cleanUsername = username.trim().toLowerCase();
+  const { error } = await supabase
+    .from('profiles')
+    .update({ username: cleanUsername })
+    .eq('id', userId);
+  if (error) throw error;
+}
+
 /** The signed-in member's own UFID. Other members' UFIDs are never readable. */
 export async function getUfid(userId: string): Promise<string | null> {
   const { data, error } = await supabase

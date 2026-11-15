@@ -22,9 +22,10 @@ import {
 interface ProfileHeroProps {
   profile: ProfileWithPrograms;
   onEditAvatar?: () => void;
+  disabledAvatar?: boolean;
 }
 
-export function ProfileHero({ profile, onEditAvatar }: ProfileHeroProps) {
+export function ProfileHero({ profile, onEditAvatar, disabledAvatar }: ProfileHeroProps) {
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
   const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>();
@@ -50,9 +51,14 @@ export function ProfileHero({ profile, onEditAvatar }: ProfileHeroProps) {
           <Pressable
             accessibilityLabel="Change profile picture"
             accessibilityRole="button"
+            accessibilityState={{ disabled: Boolean(disabledAvatar) }}
+            disabled={disabledAvatar}
             onPress={onEditAvatar}
             hitSlop={space['100']}
-            style={({ pressed }) => [styles.editAvatar, pressed && styles.pressed]}
+            style={({ pressed }) => [
+              styles.editAvatar,
+              pressed && !disabledAvatar && styles.pressed,
+            ]}
           >
             <Ionicons name="pencil" size={iconSize.md} color={colors.content.onBase.primary} />
           </Pressable>
@@ -73,7 +79,7 @@ export function ProfileHero({ profile, onEditAvatar }: ProfileHeroProps) {
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    hero: { alignItems: 'center', paddingBottom: space['200'], marginTop: -space['200'] },
+    hero: { alignItems: 'center', paddingBottom: space['200'], marginTop: space['200'] },
     avatarContainer: { width: 140, height: 140 },
     avatarRing: {
       width: '100%',
@@ -90,12 +96,12 @@ const createStyles = (colors: Colors) =>
     avatarCover: { width: '100%', height: '100%' },
     editAvatar: {
       position: 'absolute',
-      top: -space['100'],
-      right: -space['100'],
+      top: space['100'],
+      right: space['100'],
       width: iconSize.lg,
       height: iconSize.lg,
       borderRadius: radius.full,
-      backgroundColor: colors.surface.base.quaternary,
+      backgroundColor: colors.surface.base.tertiary,
       alignItems: 'center',
       justifyContent: 'center',
     },

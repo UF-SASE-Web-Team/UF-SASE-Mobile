@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, userEvent } from '@testing-library/react-native';
-import { TextInput } from 'react-native';
+import { Pressable, Text, TextInput } from 'react-native';
 import { Input } from '@/components/ui/Input';
 import { ThemeProvider } from '@/context/ThemeContext';
 
@@ -78,5 +78,33 @@ describe('Input', () => {
     const input = screen.getByPlaceholderText('Bio');
     expect(input.props.multiline).toBe(true);
     expect(input.props.textAlignVertical).toBe('top');
+  });
+
+  it('renders rightIcon when provided and responds to interaction', async () => {
+    const handlePress = jest.fn();
+    const user = userEvent.setup();
+
+    await render(
+      <ThemeProvider>
+        <Input
+          placeholder="Search"
+          testID="search-input"
+          rightIcon={
+            <Pressable
+              accessibilityLabel="Clear search"
+              accessibilityRole="button"
+              onPress={handlePress}
+            >
+              <Text>Clear</Text>
+            </Pressable>
+          }
+        />
+      </ThemeProvider>,
+    );
+
+    const clearButton = screen.getByLabelText('Clear search');
+    expect(clearButton).toBeTruthy();
+    await user.press(clearButton);
+    expect(handlePress).toHaveBeenCalledTimes(1);
   });
 });

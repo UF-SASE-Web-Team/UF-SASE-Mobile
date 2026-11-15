@@ -125,7 +125,7 @@ const createStyles = (colors: Colors) =>
     },
     segmentTabActive: {
       backgroundColor: colors.surface.base.primary,
-      shadowColor: '#000000',
+      shadowColor: colors.surface.media.backdrop,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 3,

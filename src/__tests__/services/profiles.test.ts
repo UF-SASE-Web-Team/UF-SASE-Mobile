@@ -4,6 +4,7 @@ import {
   getUfid,
   saveUfid,
   updateProfile,
+  updateUsername,
 } from '@/services/profiles';
 import { supabase } from '@/lib/supabase';
 import type { ProfileWithPrograms } from '@/types/profiles';
@@ -67,6 +68,23 @@ describe('Profile service', () => {
     );
     expect(update.mock.calls[0][0]).not.toHaveProperty('role');
     expect(result.full_name).toBe('Alice Updated');
+  });
+
+  it('updates the username with cleaned lowercase input', async () => {
+    const eq = jest.fn().mockResolvedValue({ error: null });
+    const update = jest.fn().mockReturnValue({ eq });
+    (supabase.from as jest.Mock) = jest.fn().mockReturnValue({ update });
+    await updateUsername(mockProfile.id, '  Alice_New  ');
+    expect(supabase.from).toHaveBeenCalledWith('profiles');
+    expect(update).toHaveBeenCalledWith({ username: 'alice_new' });
+    expect(eq).toHaveBeenCalledWith('id', mockProfile.id);
+  });
+
+  it('throws when updateUsername encounters an error', async () => {
+    const eq = jest.fn().mockResolvedValue({ error: new Error('Duplicate username') });
+    const update = jest.fn().mockReturnValue({ eq });
+    (supabase.from as jest.Mock) = jest.fn().mockReturnValue({ update });
+    await expect(updateUsername(mockProfile.id, 'alice_new')).rejects.toThrow('Duplicate username');
   });
 
   it('reports failed saves', async () => {

@@ -35,7 +35,6 @@ export function ProfileSelect({
   onClose,
   onChange,
 }: ProfileSelectProps) {
-  const [search, setSearch] = useState('');
   // `null` while the "Other" entry is collapsed.
   const [other, setOther] = useState<string | null>(null);
   const { colors } = useTheme();
@@ -44,9 +43,7 @@ export function ProfileSelect({
   const full = multiple && values.length >= max;
   const name = label.toLowerCase();
   // Selected values lead the list so entries typed under "Other" stay visible.
-  const matches = [...new Set([...values, ...options])].filter((option) =>
-    option.toLowerCase().includes(search.trim().toLowerCase()),
-  );
+  const matches = [...new Set([...values, ...options])];
 
   const choose = (option: string) => {
     if (!multiple) {
@@ -75,30 +72,19 @@ export function ProfileSelect({
         data={matches}
         keyExtractor={(item) => item}
         keyboardShouldPersistTaps="handled"
+        initialNumToRender={50}
         ListHeaderComponent={
-          <View style={styles.search}>
-            <Input
-              accessibilityLabel={`Search ${name}`}
-              placeholder={`Search ${name}`}
-              value={search}
-              onChangeText={setSearch}
-              maxLength={100}
-              style={styles.input}
-            />
-            {multiple ? (
+          multiple ? (
+            <View style={styles.header}>
               <Text variant="bodySm" style={styles.hint}>
-                Choose up to {max}.
+                Select up to {max}.
               </Text>
-            ) : (
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => choose('')}
-                style={styles.option}
-              >
-                <Text variant="body">Not set</Text>
-              </Pressable>
-            )}
-          </View>
+            </View>
+          ) : (
+            <Pressable accessibilityRole="button" onPress={() => choose('')} style={styles.option}>
+              <Text variant="body">Not set</Text>
+            </Pressable>
+          )
         }
         renderItem={({ item }) => {
           const checked = values.includes(item);
@@ -154,7 +140,7 @@ export function ProfileSelect({
                 maxLength={100}
                 style={styles.input}
               />
-              <Button onPress={addOther} variant="secondary" disabled={!other.trim()}>
+              <Button size="md" onPress={addOther} variant="secondary" disabled={!other.trim()}>
                 Add
               </Button>
             </View>
@@ -163,7 +149,9 @@ export function ProfileSelect({
       />
       {multiple && (
         <View style={styles.done}>
-          <Button onPress={onClose}>Done</Button>
+          <Button size="md" onPress={onClose}>
+            Done
+          </Button>
         </View>
       )}
     </ModalSheet>
@@ -172,7 +160,7 @@ export function ProfileSelect({
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    search: { gap: space['200'] },
+    header: { paddingBottom: space['200'] },
     hint: { color: colors.content.onBase.secondary, paddingHorizontal: space['300'] },
     input: {
       ...textStyles.body,

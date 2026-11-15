@@ -32,13 +32,15 @@ export async function openExternalLink(rawUrl: string, label?: string): Promise<
   posthog?.capture('outbound_link_clicked', { url, ...(label ? { label } : {}) });
 
   try {
-    const supported = await Linking.canOpenURL(url);
+    const supported = await Linking.canOpenURL(url).catch(() => true);
     if (supported) {
+      await Linking.openURL(url);
+    } else if (/^https?:\/\//i.test(url)) {
       await Linking.openURL(url);
     } else {
       Alert.alert('Unable to open link', 'Could not open this URL.');
     }
   } catch (err: any) {
-    Alert.alert('Link error', err.message || 'Failed to open link.');
+    Alert.alert('Link error', err?.message || 'Failed to open link.');
   }
 }

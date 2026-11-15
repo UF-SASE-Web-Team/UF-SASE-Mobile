@@ -264,7 +264,7 @@ const createStyles = (colors: Colors) =>
       padding: space['400'],
       alignItems: 'center',
       gap: space['200'],
-      shadowColor: '#000',
+      shadowColor: colors.surface.media.backdrop,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.25,
       shadowRadius: 12,
@@ -293,7 +293,7 @@ const createStyles = (colors: Colors) =>
     },
     segmentButtonActive: {
       backgroundColor: colors.surface.base.primary,
-      shadowColor: '#000',
+      shadowColor: colors.surface.media.backdrop,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 3,
