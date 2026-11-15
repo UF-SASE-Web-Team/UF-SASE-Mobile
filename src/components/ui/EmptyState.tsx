@@ -45,7 +45,7 @@ export function EmptyState({
         </Text>
       </View>
       {actionLabel && onAction ? (
-        <Button onPress={onAction} style={styles.action}>
+        <Button size="md" onPress={onAction} style={styles.action}>
           {actionLabel}
         </Button>
       ) : null}

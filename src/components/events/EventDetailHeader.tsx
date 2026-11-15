@@ -1,10 +1,10 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { CheckedInBadge } from '@/components/events/CheckedInBadge';
 import { EventTag } from '@/components/events/EventTag';
 import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { borderWidth, iconSize, radius, space, type Colors } from '@/theme';
+import { borderWidth, radius, space, type Colors } from '@/theme';
 import { EventType } from '@/types/events';
 
 interface EventDetailHeaderProps {
@@ -29,6 +29,9 @@ export function EventDetailHeader({
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
+  const hasTag = Boolean(type && type !== 'other');
+  const hasPills = hasTag || hasCheckedIn;
+
   return (
     <>
       <View style={styles.headerRow}>
@@ -36,18 +39,7 @@ export function EventDetailHeader({
           {title}
         </Text>
 
-        {hasCheckedIn ? (
-          <View style={styles.checkedInBadge} accessibilityLabel="Checked in">
-            <Ionicons
-              name="checkmark"
-              size={iconSize.md}
-              color={colors.content.onSuccess.primary}
-            />
-            <Text variant="bodySmStrong" color={colors.content.onSuccess.primary}>
-              Checked in
-            </Text>
-          </View>
-        ) : isCheckinStarted || !rsvpEnabled ? null : (
+        {!hasCheckedIn && !isCheckinStarted && rsvpEnabled && (
           <Pressable
             style={({ pressed }) => [
               styles.rsvpButton,
@@ -72,9 +64,10 @@ export function EventDetailHeader({
         )}
       </View>
 
-      {type && type !== 'other' && (
+      {hasPills && (
         <View style={styles.tagRow}>
-          <EventTag type={type} />
+          {hasTag && <EventTag type={type!} variant="subtle" />}
+          {hasCheckedIn && <CheckedInBadge variant="subtle" />}
         </View>
       )}
     </>
@@ -93,14 +86,16 @@ const createStyles = (colors: Colors) =>
       flex: 1,
     },
     rsvpButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: space['100'],
       borderWidth: borderWidth.sm,
       borderColor: colors.border.base.subtle,
       borderRadius: radius.md,
       backgroundColor: colors.surface.base.secondary,
       paddingHorizontal: space['150'],
       paddingVertical: space['150'],
-      alignItems: 'center',
-      justifyContent: 'center',
       minWidth: 72,
     },
     rsvpButtonIdle: {
@@ -114,17 +109,10 @@ const createStyles = (colors: Colors) =>
     rsvpButtonPressed: {
       opacity: 0.75,
     },
-    checkedInBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: space['100'],
-      backgroundColor: colors.surface.success.primary,
-      borderRadius: radius.md,
-      paddingHorizontal: space['250'],
-      paddingVertical: space['150'],
-    },
     tagRow: {
       flexDirection: 'row',
       alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: space['200'],
     },
   });

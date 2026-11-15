@@ -1,7 +1,7 @@
 import React from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ApplicationProgramCard } from '@/components/programs/ProgramCards';
+import { ApplicationCard } from '@/components/programs/ApplicationCard';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { space } from '@/theme';
 import { ProgramWithPoCs } from '@/types/programs';
@@ -33,9 +33,7 @@ export function HomeApplicationsSection({
         keyExtractor={(item) => item.id}
         style={styles.horizontalListOuter}
         contentContainerStyle={styles.programsList}
-        renderItem={({ item }) => (
-          <ApplicationProgramCard program={item} onPress={onProgramPress} />
-        )}
+        renderItem={({ item }) => <ApplicationCard program={item} onPress={onProgramPress} />}
       />
     </View>
   );

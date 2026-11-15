@@ -132,4 +132,23 @@ describe('EventCard', () => {
       expect(handlePress).toHaveBeenCalledWith(baseEvent);
     });
   });
+
+  describe('Date display', () => {
+    it('shows the day of the week and day of the month', async () => {
+      const fixedEvent: EventWithRsvp = {
+        ...baseEvent,
+        starts_at: '2026-10-14T18:00:00.000Z',
+        ends_at: '2026-10-14T20:00:00.000Z',
+      };
+
+      await renderEventCard({ event: fixedEvent });
+
+      const startDate = new Date(fixedEvent.starts_at);
+      const expectedWeekday = startDate.toLocaleDateString(undefined, { weekday: 'short' });
+      const expectedDay = String(startDate.getDate());
+
+      expect(screen.getByText(expectedWeekday)).toBeTruthy();
+      expect(screen.getByText(expectedDay)).toBeTruthy();
+    });
+  });
 });

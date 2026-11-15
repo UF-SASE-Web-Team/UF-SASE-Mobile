@@ -2,6 +2,7 @@ import React from 'react';
 import { GestureResponderEvent, Pressable, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { CheckedInBadge } from '@/components/events/CheckedInBadge';
 import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { type Colors, radius, iconSize, space } from '@/theme';
@@ -81,6 +82,9 @@ export function HappeningNowCard({
           <Text variant="bodySmStrong" color={colors.content.onMedia.primary}>
             Happening Now
           </Text>
+          {isCheckedIn && (
+            <CheckedInBadge variant="onMedia" testID="happening-now-checked-in-badge" />
+          )}
         </View>
 
         <Text
@@ -97,28 +101,13 @@ export function HappeningNowCard({
             variant="bodySm"
             color="rgba(255, 255, 255, 0.85)"
             numberOfLines={1}
-            style={styles.subtitle}
+            style={[styles.subtitle, !isCheckedIn && styles.subtitleWithButton]}
           >
             {subtitle}
           </Text>
         )}
 
-        {isCheckedIn ? (
-          <View
-            style={styles.checkedInContainer}
-            accessibilityLabel="Checked in"
-            testID="happening-now-checked-in-badge"
-          >
-            <Ionicons
-              name="checkmark-circle"
-              size={iconSize.md}
-              color={colors.content.onMedia.primary}
-            />
-            <Text variant="bodyStrong" color={colors.content.onMedia.primary}>
-              Checked in
-            </Text>
-          </View>
-        ) : (
+        {!isCheckedIn && (
           <Pressable
             style={({ pressed }) => [styles.checkInButton, pressed && styles.checkInButtonPressed]}
             onPress={handleCheckInPress}
@@ -155,12 +144,18 @@ const createStyles = (colors: Colors) => {
       paddingVertical: space['300'],
     },
     headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
       marginBottom: space['100'],
     },
     title: {
       marginBottom: space['100'],
     },
     subtitle: {
+      marginBottom: 0,
+    },
+    subtitleWithButton: {
       marginBottom: space['400'],
     },
     checkInButton: {
@@ -174,15 +169,6 @@ const createStyles = (colors: Colors) => {
     },
     checkInButtonPressed: {
       opacity: 0.85,
-    },
-    checkedInContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.surface.media.scrim,
-      borderRadius: radius.md,
-      paddingVertical: space['300'],
-      gap: space['200'],
     },
   });
 };

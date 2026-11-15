@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SaseFlask } from '@/components/ui/SaseFlask';
 import { SaseLogo } from '@/components/ui/SaseLogo';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { iconSize, radius, space, type Colors } from '@/theme';
+import { radius, space, type Colors } from '@/theme';
 
 interface HomeHeaderProps {
   totalPoints: number | null;
@@ -64,11 +64,7 @@ export function HomeHeader({
           onPress={() => router.push('/points')}
           style={({ pressed }) => [styles.pointsBadge, pressed && styles.profileButtonPressed]}
         >
-          <Ionicons
-            name="star"
-            size={iconSize.sm}
-            color={colors.content.onSaseBlueSubtle.primary}
-          />
+          <Ionicons name="star" size={20} color={colors.content.onSaseBlueSubtle.primary} />
           <Text style={styles.pointsBadgeText}>{totalPoints ?? '–'}</Text>
         </Pressable>
 
@@ -119,15 +115,15 @@ const createStyles = (colors: Colors) =>
     pointsBadge: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: space['100'],
+      gap: space['150'],
       backgroundColor: colors.surface.saseBlueSubtle.primary,
-      paddingHorizontal: space['250'],
+      paddingHorizontal: space['300'],
       paddingVertical: space['150'],
       borderRadius: radius.full,
     },
     pointsBadgeText: {
       color: colors.content.onSaseBlueSubtle.primary,
-      fontSize: 14,
+      fontSize: 16,
       fontWeight: '600',
     },
     profileButton: {

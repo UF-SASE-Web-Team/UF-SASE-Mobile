@@ -9,7 +9,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { ApplicationProgramCard, StandardProgramCard } from '@/components/programs/ProgramCards';
+import { ApplicationCard } from '@/components/programs/ApplicationCard';
+import { ProgramCard } from '@/components/programs/ProgramCard';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
@@ -79,7 +80,7 @@ export default function ProgramsPage() {
               keyExtractor={(item) => `app-${item.id}`}
               contentContainerStyle={styles.horizontalList}
               renderItem={({ item }) => (
-                <ApplicationProgramCard program={item} onPress={handleCardPress} />
+                <ApplicationCard program={item} onPress={handleCardPress} />
               )}
             />
           </View>
@@ -98,9 +99,7 @@ export default function ProgramsPage() {
               data={section.programs}
               keyExtractor={(item) => `${section.key}-${item.id}`}
               contentContainerStyle={styles.horizontalList}
-              renderItem={({ item }) => (
-                <StandardProgramCard program={item} onPress={handleCardPress} />
-              )}
+              renderItem={({ item }) => <ProgramCard program={item} onPress={handleCardPress} />}
             />
           </View>
         ))}

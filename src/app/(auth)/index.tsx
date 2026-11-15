@@ -39,7 +39,7 @@ export default function LandingScreen() {
           University of Florida
         </Text>
         <Text variant="body" style={styles.tagline}>
-          {'Empowering Asian heritage in\nSTEM since 2009.'}
+          {'Empowering Asian heritage in\nSTEM since 2010.'}
         </Text>
       </View>
 
