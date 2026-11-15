@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AvatarPicker } from '@/components/profile/AvatarPicker';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { ProfileHero } from '@/components/profile/ProfileHero';
-import { ProfileScreen } from '@/components/profile/ProfileScreen';
+import { ProfileModalSlot, ProfileScreen } from '@/components/profile/ProfileScreen';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
@@ -98,15 +98,18 @@ function Onboarding({ profile, ufid }: { profile: ProfileWithPrograms; ufid: str
         </View>
         <ProfileHero
           profile={{ ...profile, avatar_url: draft.avatar_url || null }}
-          onEditAvatar={busy ? undefined : () => setAvatarPickerOpen(true)}
+          onEditAvatar={() => setAvatarPickerOpen(true)}
+          disabledAvatar={!!busy}
         />
         <ProfileForm draft={draft} onChange={change} disabled={!!busy} variant="optional" />
-        <AvatarPicker
-          visible={avatarPickerOpen}
-          selected={draft.avatar_url || null}
-          onSelect={(value) => change('avatar_url', value)}
-          onClose={() => setAvatarPickerOpen(false)}
-        />
+        <ProfileModalSlot>
+          <AvatarPicker
+            visible={avatarPickerOpen}
+            selected={draft.avatar_url || null}
+            onSelect={(value) => change('avatar_url', value)}
+            onClose={() => setAvatarPickerOpen(false)}
+          />
+        </ProfileModalSlot>
       </ProfileScreen>
     );
   }

@@ -68,4 +68,17 @@ describe('ProfileHero', () => {
       );
     });
   });
+
+  it('keeps edit avatar button mounted but disabled when disabledAvatar is true', async () => {
+    const onEdit = jest.fn();
+    await render(
+      <ThemeProvider initialMode="light">
+        <ProfileHero profile={mockProfile} onEditAvatar={onEdit} disabledAvatar={true} />
+      </ThemeProvider>,
+    );
+    const button = screen.getByRole('button', { name: 'Change profile picture' });
+    expect(button).toBeDisabled();
+    fireEvent.press(button);
+    expect(onEdit).not.toHaveBeenCalled();
+  });
 });

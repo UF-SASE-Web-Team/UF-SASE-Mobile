@@ -5,6 +5,8 @@ import { usePreventRemove } from 'expo-router/react-navigation';
 import type { ProfileDraft } from '@/components/profile/ProfileForm';
 import { getProfileError, useProfile } from '@/context/ProfileContext';
 import { isValidUfid } from '@/lib/ufid';
+import { INVALID_GRAD_YEAR_MESSAGE, isValidGradYear } from '@/lib/gradYear';
+import { normalizeLinkedInUrl } from '@/lib/linkedin';
 import type { ProfileEdits, ProfileWithPrograms } from '@/types/profiles';
 
 export interface UseProfileFormProps {
@@ -70,16 +72,17 @@ export function useProfileForm({ profile, ufid }: UseProfileFormProps) {
       setError('Enter your 8-digit UFID.');
       return;
     }
+    if (draft.grad_time.trim()) {
+      if (!isValidGradYear(draft.grad_time)) {
+        setError(INVALID_GRAD_YEAR_MESSAGE);
+        return;
+      }
+    }
+    let normalizedLinkedIn: string | null = null;
     if (draft.linkedin_url.trim()) {
-      try {
-        const url = new URL(draft.linkedin_url.trim());
-        if (
-          url.protocol !== 'https:' ||
-          !(url.hostname === 'linkedin.com' || url.hostname.endsWith('.linkedin.com'))
-        )
-          throw new Error();
-      } catch {
-        setError('Enter a valid LinkedIn URL beginning with https://.');
+      normalizedLinkedIn = normalizeLinkedInUrl(draft.linkedin_url);
+      if (!normalizedLinkedIn) {
+        setError('Enter a valid LinkedIn URL or username.');
         return;
       }
     }
@@ -93,6 +96,9 @@ export function useProfileForm({ profile, ufid }: UseProfileFormProps) {
       ]),
     );
     changes.full_name = draft.full_name.trim();
+    if (draft.linkedin_url.trim()) {
+      changes.linkedin_url = normalizedLinkedIn;
+    }
     if (draftUfid !== initialDraft.ufid) changes.ufid = draftUfid;
     try {
       await save(changes);

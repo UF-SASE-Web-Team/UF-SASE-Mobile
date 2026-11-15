@@ -109,6 +109,19 @@ describe('Onboarding', () => {
     expect(save).not.toHaveBeenCalled();
   });
 
+  it('rejects an invalid graduation year on finish', async () => {
+    const user = userEvent.setup();
+    await renderOnboarding();
+    await completeRequiredStep(user);
+    await user.clear(screen.getByLabelText('Grad Year'));
+    await user.type(screen.getByLabelText('Grad Year'), '2045');
+    await user.press(screen.getByRole('button', { name: 'Finish' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Enter a valid 4-digit graduation year.',
+    );
+    expect(save).not.toHaveBeenCalled();
+  });
+
   it('saves the required and optional details on finish', async () => {
     const user = userEvent.setup();
     await renderOnboarding();

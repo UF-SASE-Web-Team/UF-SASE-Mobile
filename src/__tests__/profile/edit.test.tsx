@@ -98,6 +98,28 @@ describe('Edit profile', () => {
     );
   });
 
+  it('selects newly added sorted subjects such as Health Science and Food Science without search bar', async () => {
+    const user = userEvent.setup();
+    await renderEditor();
+    await user.press(screen.getByRole('button', { name: 'Major' }));
+    expect(screen.queryByPlaceholderText(/search/i)).toBeNull();
+    await user.press(
+      screen.getByRole('checkbox', { name: 'Agricultural and Biological Engineering' }),
+    );
+    await user.press(screen.getByRole('button', { name: 'Done' }));
+    await user.press(screen.getByRole('button', { name: 'Minor' }));
+    expect(screen.queryByPlaceholderText(/search/i)).toBeNull();
+    await user.press(screen.getByRole('checkbox', { name: 'Animal Sciences' }));
+    await user.press(screen.getByRole('button', { name: 'Done' }));
+    await user.press(screen.getByRole('button', { name: 'Save Changes' }));
+    expect(save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        majors: ['Computer Science', 'Agricultural and Biological Engineering'],
+        minors: ['Digital Arts and Sciences', 'Animal Sciences'],
+      }),
+    );
+  });
+
   it('removes a selected minor and adds a custom one through Other', async () => {
     const user = userEvent.setup();
     await renderEditor();
@@ -121,6 +143,19 @@ describe('Edit profile', () => {
     expect(screen.getByRole('checkbox', { name: 'Computer Engineering' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Other' })).toBeDisabled();
     expect(screen.getByRole('checkbox', { name: 'Electrical Engineering' })).toBeEnabled();
+  });
+
+  it('normalizes bare LinkedIn usernames or query-param URLs into canonical links on save', async () => {
+    const user = userEvent.setup();
+    await renderEditor();
+    await user.clear(screen.getByLabelText('LinkedIn'));
+    await user.type(screen.getByLabelText('LinkedIn'), 'alice-new-slug');
+    await user.press(screen.getByRole('button', { name: 'Save Changes' }));
+    expect(save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        linkedin_url: 'https://www.linkedin.com/in/alice-new-slug',
+      }),
+    );
   });
 
   it('rejects blank names and invalid LinkedIn URLs', async () => {
@@ -158,6 +193,21 @@ describe('Edit profile', () => {
     await user.press(screen.getByRole('button', { name: 'Save Changes' }));
     expect(screen.getByRole('alert')).toBeTruthy();
     expect(save).not.toHaveBeenCalled();
+  });
+
+  it('validates graduation year and rejects out-of-range years', async () => {
+    const user = userEvent.setup();
+    await renderEditor();
+    await user.clear(screen.getByLabelText('Grad Year'));
+    await user.type(screen.getByLabelText('Grad Year'), '1975');
+    await user.press(screen.getByRole('button', { name: 'Save Changes' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('Enter a valid 4-digit graduation year.');
+    expect(save).not.toHaveBeenCalled();
+
+    await user.clear(screen.getByLabelText('Grad Year'));
+    await user.type(screen.getByLabelText('Grad Year'), '2027');
+    await user.press(screen.getByRole('button', { name: 'Save Changes' }));
+    expect(save).toHaveBeenCalledWith(expect.objectContaining({ grad_time: '2027' }));
   });
 
   it('preserves entered changes if saving fails', async () => {
