@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 // Types
-export type EventType = 'gbm' | 'career' | 'social' | 'team' | 'other';
+export type EventType = 'gbm' | 'career' | 'social' | 'service' | 'sports' | 'team' | 'other';
 
 export interface StandardLocation {
   location_name: string;
@@ -682,65 +682,103 @@ function resolveStandardLocation(
   return { location_name: 'TBD', address: null, lat: null, lng: null };
 }
 
-function classifyEventType(title: string, desc: string | null = ''): EventType {
+export function classifyEventType(title: string, desc: string | null = ''): EventType {
   const combined = `${title} ${desc || ''}`.toLowerCase();
-  if (combined.includes('gbm') || combined.includes('general body meeting')) {
+  const cleanTitle = (title || '').toLowerCase();
+
+  // Strip contact lines so organizer roles (e.g. "@Maryanne | Community Outreach") do not misclassify events
+  const descWithoutContacts = (desc || '')
+    .replace(/If you have any questions[\s\S]*$/i, '')
+    .toLowerCase();
+  const bodyCombined = `${title} ${descWithoutContacts}`.toLowerCase();
+
+  // 1. GBM (highest priority)
+  if (
+    /\bgbm\b/i.test(combined) ||
+    /general body meeting/i.test(combined) ||
+    /\bgbm\s*\d+/i.test(combined)
+  ) {
     return 'gbm';
   }
+
+  // 2. Service (volunteer, community service, cleanups, blood drives)
   if (
-    [
-      'resume',
-      'career',
-      'interview',
-      'elevator pitch',
-      'pitch',
-      'networking',
-      'sponsor',
-      'build night',
-      'workshop',
-      'tech talk',
-      'company info',
-      'info session',
-      'industry',
-    ].some((k) => combined.includes(k))
+    /adopt-a-street|adopt a street/i.test(combined) ||
+    /blood drive/i.test(combined) ||
+    /\bservice committee\b/i.test(descWithoutContacts) ||
+    /\bcommunity service\b/i.test(bodyCombined) ||
+    /\b(?:volunteer|volunteering|volunteer\s+with)\b/i.test(cleanTitle) ||
+    /\bclean-?up\b/i.test(bodyCombined) ||
+    /\b(?:donation|food|clothing|toy)\s+drive\b/i.test(bodyCombined)
+  ) {
+    return 'service';
+  }
+
+  // 3. Sports (athletics, intramural, tournaments, athletic field games)
+  // Evaluated before career (so e.g. "Volleyball Workshop" is sports) and before generic social ("Pickleball Social")
+  if (
+    /\b(?:sports coordinator|sasesports|sase sports)\b/i.test(combined) ||
+    /\bpickleball\b/i.test(combined) ||
+    /\bvolleyball\b/i.test(combined) ||
+    /\b(?:ultimate frisbee|frisbee)\b/i.test(combined) ||
+    /\bfield day\b/i.test(combined) ||
+    /\bsase-?ian games\b/i.test(combined) ||
+    /\b(?:dodgeball|soccer|basketball|tennis|intramurals?)\b/i.test(combined) ||
+    (/\btournament\b/i.test(combined) && /\b(?:bump|set|spike|court|ball|team)\b/i.test(combined))
+  ) {
+    return 'sports';
+  }
+
+  // 4. Cultural food / cooking workshops are social, not career
+  if (/\b(?:gimbap|kimbap|cooking|baking|culinary)\b/i.test(combined)) {
+    return 'social';
+  }
+
+  // 5. Welcome orientation / socials
+  if (/\bwelcome\b/i.test(cleanTitle)) {
+    return 'social';
+  }
+
+  // 6. Career / Professional / Academic Development
+  if (
+    /\b(?:resume|career|interview|elevator pitch|pitch|networking|sponsor|build night|tech talk)\b/i.test(
+      combined,
+    ) ||
+    /\b(?:info session|company info|info zoom|information session)\b/i.test(combined) ||
+    /\b(?:industry|internship|internships|internshpe|apply-a-thon)\b/i.test(combined) ||
+    /\b(?:headshot|professional headshot)\b/i.test(combined) ||
+    /\b(?:research|symposium|poster symposium|lab tour|curbs)\b/i.test(combined) ||
+    /\b(?:grad school|graduate school|phd|masters|4\+1)\b/i.test(combined) ||
+    /\b(?:class scheduling|degree audit)\b/i.test(combined) ||
+    /\b(?:evening with professors|professors|faculty)\b/i.test(combined) ||
+    /\bworkshop\b/i.test(combined) ||
+    /\bconference\b/i.test(combined)
   ) {
     return 'career';
   }
+
+  // 7. Social
   if (
-    [
-      'social',
-      'hunt',
-      'scavenger',
-      'game',
-      'games',
-      'banquet',
-      'volleyball',
-      'gimbap',
-      'ball run',
-      'picnic',
-      'retreat',
-      'party',
-      'dinner',
-      'lunch',
-      'ice cream',
-      'karaoke',
-      'potluck',
-      'field day',
-      'speed friending',
-      'pickleball',
-      'munch & mingle',
-      'ultimate frisbee',
-    ].some((k) => combined.includes(k))
+    /\b(?:social|hunt|scavenger|game|games|banquet|ball run|picnic|retreat|party|dinner|lunch|ice cream|karaoke|potluck)\b/i.test(
+      combined,
+    ) ||
+    /\b(?:speed friending|munch [&+]\s*mingle|beach trip|single\x27s inferno|reunion|welcome|sasegiving|showdown)\b/i.test(
+      combined,
+    ) ||
+    /\b(?:mentor-mentee|mentor mentee|m&m)\b/i.test(combined)
   ) {
     return 'social';
   }
+
+  // 8. Team (internal officer/committee/board meetings)
   if (
-    ['team', 'committee', 'sweet', 'set', 'interns', 'board', 'leads'].some((k) =>
-      combined.includes(k),
+    /\b(?:committee meeting|board meeting|general board|executive board|officer meeting)\b/i.test(
+      combined,
     )
   ) {
     return 'team';
   }
+
   return 'other';
 }
 
@@ -1066,10 +1104,11 @@ export async function main(overrideArgs?: string[]) {
     const seedPathLegacy = path.resolve('supabase/seeds/events.sql');
     fs.mkdirSync(path.dirname(seedPath06), { recursive: true });
     fs.writeFileSync(seedPath06, sql, 'utf-8');
-    fs.writeFileSync(seedPathLegacy, sql, 'utf-8');
+    if (fs.existsSync(seedPathLegacy)) {
+      fs.writeFileSync(seedPathLegacy, sql, 'utf-8');
+    }
     console.log(`\n✨ Successfully generated SQL seeds:`);
     console.log(`   • ${seedPath06}`);
-    console.log(`   • ${seedPathLegacy}`);
     console.log(`\nTo deploy events to production, run: node scripts/seed.ts --prod --only=events`);
   }
 }

@@ -1,4 +1,9 @@
-import { parseLinkTitle, processDescription, toTitleCase } from '../../../scripts/sync-events';
+import {
+  classifyEventType,
+  parseLinkTitle,
+  processDescription,
+  toTitleCase,
+} from '../../../scripts/sync-events';
 
 describe('sync-events link & description processing', () => {
   describe('toTitleCase', () => {
@@ -175,6 +180,247 @@ See you there!`;
           url: 'https://docs.google.com/spreadsheets/d/1DN07D2VX/edit',
         },
       ]);
+    });
+  });
+
+  describe('classifyEventType', () => {
+    describe('gbm', () => {
+      it('categorizes general body meetings as gbm even with sponsors or aftersocials', () => {
+        expect(
+          classifyEventType(
+            'SASE GBM 1: Avatar the Last SASEBender',
+            "Come to GBM1: Avatar the Last SASEbender and get ready to master all the elements of SASE... FREE food: dumplings and fried rice. Aftersocial: Huey Magoo's",
+          ),
+        ).toBe('gbm');
+
+        expect(
+          classifyEventType(
+            'SASE GBM 3 w/ J&J',
+            'GBM 3 ft. Johnson & Johnson. Join us for our third GBM of the semester, Cooking Mama: SASE Appétit!, featuring Johnson & Johnson (J&J)! Hear about career opportunities...',
+          ),
+        ).toBe('gbm');
+
+        expect(
+          classifyEventType(
+            'SASE GBM 4',
+            'GBM4: SASE#2026 has invited you to SASEcraft! How Did We Get Here? One block at a time...',
+          ),
+        ).toBe('gbm');
+
+        expect(classifyEventType('General Body Meeting #2', null)).toBe('gbm');
+      });
+    });
+
+    describe('service', () => {
+      it('categorizes community service, blood drives, and cleanups as service', () => {
+        expect(classifyEventType('SASE x HEAL Adopt-A-Street', null)).toBe('service');
+
+        expect(
+          classifyEventType(
+            'SASE x HEAL Adopt-A-Street',
+            'If you have any questions, please contact Maryanne Anderson Lee (@Maryanne | Community Outreach) on Discord!',
+          ),
+        ).toBe('service');
+
+        expect(
+          classifyEventType(
+            'SASE Blood Drive',
+            'What if you had the power to save three lives in just one hour? Service Committee is partnering with LifeSouth to host a blood drive... There will be a social beforehand... All donations will be made to local hospitals...',
+          ),
+        ).toBe('service');
+
+        expect(
+          classifyEventType(
+            'Campus Cleanup & Tree Planting',
+            'Volunteer with SASE to clean up the campus grounds!',
+          ),
+        ).toBe('service');
+      });
+    });
+
+    describe('sports', () => {
+      it('categorizes sports events even when titled with social or workshop', () => {
+        expect(
+          classifyEventType(
+            'SASE Pickleball Social',
+            "🎾 Pickleball Social 🎾 Start working on your serve, because SASE's Pickleball Social is coming in hot at Flavet Field Pickleball Courts! Contact Andrew Lo (@Andrew Lo | Sports Coordinator)",
+          ),
+        ).toBe('sports');
+
+        expect(
+          classifyEventType('Pickleball Social', 'Do we all miss pickleball? SASEsports got you!'),
+        ).toBe('sports');
+
+        expect(
+          classifyEventType(
+            'Mens Ultimate Frisbee x SASE',
+            '🥏Ultimate Frisbee Social🥏 SASE is teaming up with UF Men’s Ultimate Frisbee Club for scores and sprints! Contact Carol Shang (@Carol Shang | Sports Coordinator)',
+          ),
+        ).toBe('sports');
+
+        expect(
+          classifyEventType(
+            'Volleyball Workshop & Tourney',
+            'Volleyball workshop + Tournament 🏐 Get ready to bump, set, and spike! Join us for an action-packed day of volleyball featuring a skill-building workshop followed by an exciting tournament.',
+          ),
+        ).toBe('sports');
+
+        expect(classifyEventType('JSA x SASE x CASA Volleyball Workshop', null)).toBe('sports');
+        expect(classifyEventType('FES Field Day', null)).toBe('sports');
+
+        expect(
+          classifyEventType(
+            'SASE-ian Games',
+            'Asian Games-themed Field Day! High-stakes games: Ultimate Frisbee, Dodgeball, Tug of War, Relay Races, Casual Sports & Lawn Games. Contact Andrew Lo (@Andrew Lo | Sports Coordinator)',
+          ),
+        ).toBe('sports');
+      });
+    });
+
+    describe('career', () => {
+      it('categorizes career fairs, workshops, research, info sessions, and internship prep as career', () => {
+        expect(
+          classifyEventType(
+            'ExxonMobil Info Session',
+            'Interested in starting your career with one of the world’s largest energy companies? Connect directly with ExxonMobil representatives!',
+          ),
+        ).toBe('career');
+
+        expect(
+          classifyEventType(
+            'Resume/Career Fair Workshop',
+            '🚀 Resume & Career Fair Prep Workshop 📄💼 Career Week is coming up! A strong resume is one of the most important tools...',
+          ),
+        ).toBe('career');
+
+        expect(
+          classifyEventType(
+            'Apply-A-Thon',
+            'Happy internship application season! Join your fellow SASE members at our annual Apply-a-thon to mass apply to internships, research positions...',
+          ),
+        ).toBe('career');
+
+        expect(
+          classifyEventType(
+            'ICBR Lab Tour',
+            'Join SASE Science for an exclusive tour of the Interdisciplinary Center for Biotechnology Research (ICBR)! Explore cutting-edge biotech equipment and see high-level research in action!',
+          ),
+        ).toBe('career');
+
+        expect(
+          classifyEventType(
+            'SASE Research & Project Poster Symposium',
+            'An evening dedicated to highlighting academic research, capstone designs, and hands-on engineering projects crafted by our members!',
+          ),
+        ).toBe('career');
+
+        expect(
+          classifyEventType(
+            'Class Scheduling Workshop',
+            'Not sure what classes to take next semester? Come plan your schedule with upperclassmen from a wide range of majors!',
+          ),
+        ).toBe('career');
+
+        expect(
+          classifyEventType(
+            'Professional Headshot Fundraiser',
+            'Want to add the finishing touches to your professional profile before career week? SASE has you covered with our annual Professional Headshot Fundraiser!',
+          ),
+        ).toBe('career');
+
+        expect(
+          classifyEventType(
+            'SpaceXAI Grok Student Build Night',
+            'Come experiment, build, and connect with other students while exploring what you can create with artificial intelligence.',
+          ),
+        ).toBe('career');
+
+        expect(classifyEventType('Project Captain Info Zoom', null)).toBe('career');
+        expect(classifyEventType('Resume Review/Mock Interview Week', null)).toBe('career');
+        expect(classifyEventType('P&G Info Session', null)).toBe('career');
+      });
+    });
+
+    describe('social', () => {
+      it('categorizes socials, trips, banquets, and cultural food workshops as social', () => {
+        expect(
+          classifyEventType(
+            'CASA x HEAL x SASE x KUSA Beach Trip',
+            "Join CASA, HEAL, SASE, and KUSA for Single's Inferno: Summer Beach Trip! 🏖️ Take on exciting beach challenges, compete for prizes, make new connections...",
+          ),
+        ).toBe('social');
+
+        expect(
+          classifyEventType(
+            'Gimbap Making Workshop',
+            'Have YOU ever thought that you might be a master chef? Find out at our GIMBAP WORKSHOP! We will be locking in on how to make gimbap, a staple from Korean culture!',
+          ),
+        ).toBe('social');
+
+        expect(
+          classifyEventType(
+            'New Member Welcome',
+            "Trying to get involved on campus? Wondering what SASE is all about? Come explore all of SASE's programs... Afterwards, we'll walk together to Tea Moment for our aftersocial!",
+          ),
+        ).toBe('social');
+
+        expect(
+          classifyEventType(
+            'SASE Midtown Munch & Mingle',
+            "Ready for good food and great vibes? Join SASE for our Midtown Munch + Mingle! We'll be gathering at Plaza of the Americas and walking over to Midtown together...",
+          ),
+        ).toBe('social');
+
+        expect(
+          classifyEventType(
+            "SASE's Ultimate Game Night",
+            'An evening of high energy, epic board games, and nonstop competition!',
+          ),
+        ).toBe('social');
+
+        expect(
+          classifyEventType(
+            'CASA x VSO x SASE x FLP Potluck',
+            'Grab your chef hats and get ready for good food, great vibes, and zero kitchen fires. Bring a dish to share...',
+          ),
+        ).toBe('social');
+
+        expect(
+          classifyEventType(
+            'Plants Vs. Zombies: Mentor-Mentee Showdown',
+            'Gather your M&M groups and prepare to go head-to-head in a series of minigames and challenges to defend your garden... EARN POINTS TOWARD THE M&M CUP!!',
+          ),
+        ).toBe('social');
+
+        expect(
+          classifyEventType(
+            "'24-'25 Interns Reunion",
+            'Were you an SASE Intern in the 2024 - 2025 school year? Come out to our exclusive reunion event, exploring Devils Millhopper and then 4th Ave for food.',
+          ),
+        ).toBe('social');
+
+        expect(
+          classifyEventType(
+            'SASEGIVING',
+            'Fall is here, and so is SASEGIVING! Reflect on what we are grateful for through our variety of activities and potluck.',
+          ),
+        ).toBe('social');
+
+        expect(classifyEventType('M&M Scavenger Hunt', null)).toBe('social');
+        expect(classifyEventType('M&M Picnic', null)).toBe('social');
+        expect(classifyEventType('SASE Winter Banquet', null)).toBe('social');
+      });
+    });
+
+    describe('organizer contact footer resilience', () => {
+      it('does not misclassify networking panels as service when contact is Community Outreach coordinator', () => {
+        expect(
+          classifyEventType(
+            'SASE X InternSHPE Panel',
+            'SASE x SHPE Intern Speed Networking Event. Curious about what it is like to work in different industries? If you have any questions, please contact Kayla Chen (@Kayla | External VP) or Maryanne Anderson Lee (@Maryanne | Community Outreach) on Discord.',
+          ),
+        ).toBe('career');
+      });
     });
   });
 });
