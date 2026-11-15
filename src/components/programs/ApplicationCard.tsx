@@ -62,7 +62,7 @@ export function ApplicationCard({ program, onPress }: ApplicationCardProps) {
           />
         ) : (
           <View style={styles.placeholderContainer}>
-            <Ionicons name="sparkles-outline" size={32} color={colors.content.onBase.secondary} />
+            <Ionicons name="sparkles-outline" color={colors.content.onBase.secondary} />
           </View>
         )}
 
@@ -90,7 +90,7 @@ export function ApplicationCard({ program, onPress }: ApplicationCardProps) {
             </Text>
             <Ionicons
               name="open-outline"
-              size={iconSize.sm}
+              size={20}
               color={colors.content.onSaseBlue.secondary}
             />
           </Pressable>

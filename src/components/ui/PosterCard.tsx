@@ -10,6 +10,10 @@ import { borderWidth, iconSize, radius, space, type Colors } from '@/theme';
 export interface PosterCardProps {
   /** Title text displayed at the bottom of the poster card */
   title: string;
+  /** Optional overline text or node displayed above the title */
+  overline?: React.ReactNode;
+  /** Optional color override for the overline text (defaults to onMedia.primary) */
+  overlineColor?: string;
   /** Image URL for full-bleed background */
   imageUrl?: string | null;
   /** Accessible label for the background image (default: `${title} banner`) */
@@ -20,6 +24,8 @@ export interface PosterCardProps {
   renderPlaceholder?: () => React.ReactNode;
   /** Optional badge/tag rendered in the top-left corner */
   topLeftBadge?: React.ReactNode;
+  /** Optional badge/tag rendered in the top-right corner */
+  topRightBadge?: React.ReactNode;
   /** Optional action accessory rendered to the right of the title (e.g. custom button) */
   rightAccessory?: React.ReactNode;
   /** If true, renders a circular action button with a forward chevron to the right of the title */
@@ -38,11 +44,14 @@ export interface PosterCardProps {
 
 export function PosterCard({
   title,
+  overline,
+  overlineColor,
   imageUrl,
   imageAccessibilityLabel,
   fallbackIcon = 'sparkles-outline',
   renderPlaceholder,
   topLeftBadge,
+  topRightBadge,
   rightAccessory,
   showChevron = false,
   onPress,
@@ -97,10 +106,29 @@ export function PosterCard({
       />
 
       {topLeftBadge ? <View style={styles.topLeftBadge}>{topLeftBadge}</View> : null}
+      {topRightBadge ? <View style={styles.topRightBadge}>{topRightBadge}</View> : null}
 
       <View style={styles.contentContainer}>
         <View style={styles.titleWrapper}>
-          <Text variant="bodyStrong" color={colors.content.onMedia.primary} numberOfLines={2}>
+          {Boolean(overline) &&
+            (typeof overline === 'string' ? (
+              <Text
+                variant="bodySmStrong"
+                color={overlineColor ?? colors.content.onMedia.primary}
+                numberOfLines={1}
+                style={styles.overline}
+              >
+                {overline}
+              </Text>
+            ) : (
+              overline
+            ))}
+          <Text
+            variant="bodyStrong"
+            color={colors.content.onMedia.primary}
+            numberOfLines={2}
+            style={styles.title}
+          >
             {title}
           </Text>
         </View>
@@ -160,6 +188,12 @@ const createStyles = (colors: Colors) =>
       left: space['300'],
       zIndex: 2,
     },
+    topRightBadge: {
+      position: 'absolute',
+      top: space['300'],
+      right: space['300'],
+      zIndex: 2,
+    },
     contentContainer: {
       flexDirection: 'row',
       alignItems: 'flex-end',
@@ -172,6 +206,16 @@ const createStyles = (colors: Colors) =>
     titleWrapper: {
       flex: 1,
       justifyContent: 'flex-end',
+      gap: space['050'],
+    },
+    overline: {
+      fontSize: 12,
+      lineHeight: 16,
+      letterSpacing: 0.5,
+      textTransform: 'uppercase',
+    },
+    title: {
+      lineHeight: 22,
     },
     actionCircle: {
       width: 34,
