@@ -1,6 +1,6 @@
 import React from 'react';
 import { Alert, Linking } from 'react-native';
-import { render, screen, waitFor, fireEvent, userEvent } from '@testing-library/react-native';
+import { render, screen, waitFor, fireEvent, userEvent, act } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import EventsPage from '@/app/(tabs)/events';
@@ -58,6 +58,7 @@ describe('EventsPage', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     mockTimeSelection = 'past';
     (useAuth as jest.Mock).mockReturnValue({ user: mockUser });
     (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
@@ -109,7 +110,7 @@ describe('EventsPage', () => {
     expect(screen.queryByText('Recent Past Event')).toBeNull();
   });
 
-  it('marks the user as going and opens the RSVP link when RSVP is pressed on a card', async () => {
+  it('marks the user as going and opens the RSVP link after confirming in the alert', async () => {
     const openURLSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue(true as any);
     jest.spyOn(Linking, 'canOpenURL').mockResolvedValue(true);
     (eventsService.getEvents as jest.Mock).mockResolvedValue([
@@ -130,6 +131,14 @@ describe('EventsPage', () => {
     await renderScreen();
 
     await user.press(await screen.findByRole('button', { name: 'RSVP to event' }));
+
+    expect(Alert.alert).toHaveBeenCalled();
+
+    const buttons = (Alert.alert as jest.Mock).mock.calls[0][2];
+    const confirmButton = buttons.find((b: any) => b.style !== 'cancel');
+    await act(async () => {
+      await confirmButton.onPress();
+    });
 
     expect(eventsService.toggleEventRsvp).toHaveBeenCalledWith('upcoming-1');
     expect(await screen.findByRole('button', { name: 'Cancel RSVP' })).toBeTruthy();

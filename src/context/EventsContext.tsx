@@ -104,12 +104,16 @@ export function EventsProvider({ children }: { children: ReactNode }) {
     [events],
   );
 
-  // Active events within checkin_opens_at/starts_at and checkin_closes_at/ends_at
+  // Active events within check-in window (defaults to 30 min before starts_at and 30 min after ends_at)
   const activeEvents = useMemo(() => {
     const now = new Date();
     return events.filter((e) => {
-      const opensAt = new Date(e.checkin_opens_at ?? e.starts_at);
-      const closesAt = new Date(e.checkin_closes_at ?? e.ends_at);
+      const opensAt = e.checkin_opens_at
+        ? new Date(e.checkin_opens_at)
+        : new Date(new Date(e.starts_at).getTime() - 30 * 60 * 1000);
+      const closesAt = e.checkin_closes_at
+        ? new Date(e.checkin_closes_at)
+        : new Date(new Date(e.ends_at).getTime() + 30 * 60 * 1000);
 
       if (Number.isNaN(opensAt.getTime()) || Number.isNaN(closesAt.getTime())) {
         return false;

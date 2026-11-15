@@ -92,6 +92,69 @@ describe('EventsContext', () => {
     expect(screen.getByTestId('active-id').props.children).toBe('event-1');
   });
 
+  it('includes events within 30 min before starts_at and 30 min after ends_at when check-in times are null', async () => {
+    const earlyEvent = {
+      id: 'early-1',
+      title: 'Starts in 15 mins',
+      starts_at: new Date(now + 15 * 60 * 1000).toISOString(),
+      ends_at: new Date(now + 75 * 60 * 1000).toISOString(),
+      checkin_opens_at: null,
+      checkin_closes_at: null,
+      is_rsvped: false,
+      has_attended: false,
+    };
+    const lateEvent = {
+      id: 'late-1',
+      title: 'Ended 15 mins ago',
+      starts_at: new Date(now - 75 * 60 * 1000).toISOString(),
+      ends_at: new Date(now - 15 * 60 * 1000).toISOString(),
+      checkin_opens_at: null,
+      checkin_closes_at: null,
+      is_rsvped: false,
+      has_attended: false,
+    };
+    const tooEarlyEvent = {
+      id: 'too-early-1',
+      title: 'Starts in 45 mins',
+      starts_at: new Date(now + 45 * 60 * 1000).toISOString(),
+      ends_at: new Date(now + 105 * 60 * 1000).toISOString(),
+      checkin_opens_at: null,
+      checkin_closes_at: null,
+      is_rsvped: false,
+      has_attended: false,
+    };
+
+    (eventsService.getEvents as jest.Mock).mockResolvedValue([
+      earlyEvent,
+      lateEvent,
+      tooEarlyEvent,
+    ]);
+
+    const Consumer = () => {
+      const { activeEvents, loading } = useEvents();
+      return (
+        <>
+          <Text testID="loading">{String(loading)}</Text>
+          <Text testID="active-count">{activeEvents.length}</Text>
+          <Text testID="active-ids">{activeEvents.map((e) => e.id).join(',')}</Text>
+        </>
+      );
+    };
+
+    render(
+      <EventsProvider>
+        <Consumer />
+      </EventsProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('loading').props.children).toBe('false');
+    });
+
+    expect(screen.getByTestId('active-count').props.children).toBe(2);
+    expect(screen.getByTestId('active-ids').props.children).toBe('early-1,late-1');
+  });
+
   it('marks an event as attended in memory via markEventAttended', async () => {
     const Consumer = () => {
       const { events, activeEvents, markEventAttended, loading } = useEvents();

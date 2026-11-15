@@ -60,16 +60,42 @@ export function useEventsFeed() {
       return;
     }
 
-    try {
-      const isGoing = await toggleRsvp(event.id);
-      const rsvpUrl = (event as EventWithRsvp).rsvp_link?.url;
-      // Send the user to the RSVP form when they RSVP, not when they cancel.
-      if (isGoing && rsvpUrl) {
-        await openExternalLink(rsvpUrl, `${event.title} RSVP`);
+    const eventWithRsvp = events.find((e) => e.id === event.id) ?? (event as EventWithRsvp);
+    const isCurrentlyRsvped = Boolean(eventWithRsvp?.is_rsvped);
+    const rsvpUrl = eventWithRsvp?.rsvp_link?.url ?? (event as EventWithRsvp).rsvp_link?.url;
+
+    const performRsvp = async () => {
+      try {
+        const isGoing = await toggleRsvp(event.id);
+        if (isGoing && rsvpUrl) {
+          await openExternalLink(rsvpUrl, `${event.title} RSVP`);
+        }
+      } catch (err: any) {
+        Alert.alert('RSVP Error', err.message || 'Could not update RSVP status.');
       }
-    } catch (err: any) {
-      Alert.alert('RSVP Error', err.message || 'Could not update RSVP status.');
+    };
+
+    // If user is canceling existing RSVP
+    if (isCurrentlyRsvped) {
+      await performRsvp();
+      return;
     }
+
+    // New RSVP: prompt to confirm and complete external form
+    if (rsvpUrl) {
+      Alert.alert('Continue RSVP', 'You will be redirected to the RSVP form.', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'RSVP',
+          onPress: () => {
+            void performRsvp();
+          },
+        },
+      ]);
+      return;
+    }
+
+    await performRsvp();
   };
 
   // Filter events based on timeFilter and typeFilter

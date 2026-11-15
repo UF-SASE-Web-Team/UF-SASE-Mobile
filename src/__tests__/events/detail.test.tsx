@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking } from 'react-native';
+import { Alert, Linking } from 'react-native';
 import {
   render,
   screen,
@@ -7,6 +7,7 @@ import {
   cleanup,
   waitFor,
   fireEvent,
+  act,
 } from '@testing-library/react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -37,6 +38,7 @@ describe('EventDetailScreen', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     (useAuth as jest.Mock).mockReturnValue({ user: mockUser });
     (useLocalSearchParams as jest.Mock).mockReturnValue({ id: 'event-1' });
   });
@@ -116,7 +118,7 @@ describe('EventDetailScreen', () => {
       expect(screen.queryByRole('button', { name: 'Cancel RSVP' })).toBeNull();
     });
 
-    it('marks the user as going and opens the RSVP link when RSVP is pressed', async () => {
+    it('marks the user as going and opens the RSVP link after confirming in the alert', async () => {
       const openURLSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue(true as any);
       jest.spyOn(Linking, 'canOpenURL').mockResolvedValue(true);
       (eventsService.getEvent as jest.Mock).mockResolvedValue(baseEvent);
@@ -127,9 +129,31 @@ describe('EventDetailScreen', () => {
 
       await user.press(await screen.findByRole('button', { name: 'RSVP to event' }));
 
+      expect(Alert.alert).toHaveBeenCalled();
+
+      const buttons = (Alert.alert as jest.Mock).mock.calls[0][2];
+      const confirmButton = buttons.find((b: any) => b.style !== 'cancel');
+      await act(async () => {
+        await confirmButton.onPress();
+      });
+
       expect(eventsService.toggleEventRsvp).toHaveBeenCalledWith('event-1');
       expect(await screen.findByRole('button', { name: 'Cancel RSVP' })).toBeTruthy();
       await waitFor(() => expect(openURLSpy).toHaveBeenCalledWith('https://forms.gle/rsvp'));
+    });
+
+    it('does not toggle RSVP or open the link when RSVP is cancelled in the alert', async () => {
+      const openURLSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue(true as any);
+      (eventsService.getEvent as jest.Mock).mockResolvedValue(baseEvent);
+      const user = userEvent.setup();
+
+      await renderScreen();
+
+      await user.press(await screen.findByRole('button', { name: 'RSVP to event' }));
+
+      expect(Alert.alert).toHaveBeenCalled();
+      expect(eventsService.toggleEventRsvp).not.toHaveBeenCalled();
+      expect(openURLSpy).not.toHaveBeenCalled();
     });
 
     it('does not open the RSVP link when the RSVP is cancelled', async () => {
@@ -178,6 +202,44 @@ describe('EventDetailScreen', () => {
       expect(screen.getByTestId('bottom-fade-gradient')).toBeTruthy();
     });
 
+    it('opens check-in 15 min before starts_at when checkin_opens_at is null (default window)', async () => {
+      const earlyWindowNullCheckinEvent = {
+        ...baseEvent,
+        starts_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+        ends_at: new Date(Date.now() + 75 * 60 * 1000).toISOString(),
+        checkin_opens_at: null,
+        checkin_closes_at: null,
+        is_rsvped: true,
+        has_attended: false,
+      };
+
+      (eventsService.getEvent as jest.Mock).mockResolvedValue(earlyWindowNullCheckinEvent);
+
+      await renderScreen();
+      await screen.findByText('GBM 2: SASE Story');
+
+      expect(screen.getByText('Check-in')).toBeTruthy();
+    });
+
+    it('keeps check-in open 15 min after ends_at when checkin_closes_at is null (default window)', async () => {
+      const lateWindowNullCheckinEvent = {
+        ...baseEvent,
+        starts_at: new Date(Date.now() - 75 * 60 * 1000).toISOString(),
+        ends_at: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+        checkin_opens_at: null,
+        checkin_closes_at: null,
+        is_rsvped: true,
+        has_attended: false,
+      };
+
+      (eventsService.getEvent as jest.Mock).mockResolvedValue(lateWindowNullCheckinEvent);
+
+      await renderScreen();
+      await screen.findByText('GBM 2: SASE Story');
+
+      expect(screen.getByText('Check-in')).toBeTruthy();
+    });
+
     it('opens check-in modal when bottom Check-in button is pressed and completes check-in', async () => {
       (eventsService.getEvent as jest.Mock).mockResolvedValue(openCheckInEvent);
       (eventsService.checkInToEvent as jest.Mock).mockResolvedValue(true);
@@ -202,7 +264,7 @@ describe('EventDetailScreen', () => {
         expect(eventsService.checkInToEvent).toHaveBeenCalledWith('event-1', '123456');
       });
 
-      // After checked in: Top right shows "Checked in", bottom Check-in button is gone
+      // After checked in: Pill list shows "Checked in", bottom Check-in button is gone
       expect(await screen.findByText('Checked in')).toBeTruthy();
       expect(screen.queryByText('Check-in')).toBeNull();
     });
@@ -217,14 +279,14 @@ describe('EventDetailScreen', () => {
       has_attended: true,
     };
 
-    it('shows Checked in badge at top right and no bottom check-in button', async () => {
+    it('shows Checked in badge in pill list and no bottom check-in button', async () => {
       (eventsService.getEvent as jest.Mock).mockResolvedValue(checkedInEvent);
 
       await renderScreen();
 
       await screen.findByText('GBM 2: SASE Story');
 
-      // Top-right Checked in badge
+      // Checked in badge in pill list
       expect(screen.getByText('Checked in')).toBeTruthy();
       expect(screen.getByLabelText('Checked in')).toBeTruthy();
 

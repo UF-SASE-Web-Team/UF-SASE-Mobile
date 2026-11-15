@@ -100,21 +100,51 @@ export function useEventDetail(id?: string) {
     }
     if (!event) return;
 
-    const previousStatus = isRsvped;
-    const nextStatus = !previousStatus;
-    setIsRsvped(nextStatus);
+    const rsvpUrl = event.rsvp_link?.url;
 
-    try {
-      const serverStatus = await toggleEventRsvp(event.id);
-      setIsRsvped(serverStatus);
-      // Send the user to the RSVP form when they RSVP, not when they cancel.
-      if (serverStatus && event.rsvp_link?.url) {
-        await openExternalLink(event.rsvp_link.url, `${event.title} RSVP`);
+    // Canceling existing RSVP
+    if (isRsvped) {
+      const previousStatus = isRsvped;
+      setIsRsvped(false);
+      try {
+        const serverStatus = await toggleEventRsvp(event.id);
+        setIsRsvped(serverStatus);
+      } catch (err: any) {
+        setIsRsvped(previousStatus);
+        Alert.alert('RSVP Error', err.message || 'Could not update RSVP status.');
       }
-    } catch (err: any) {
-      setIsRsvped(previousStatus);
-      Alert.alert('RSVP Error', err.message || 'Could not update RSVP status.');
+      return;
     }
+
+    const performRsvp = async () => {
+      setIsRsvped(true);
+      try {
+        const serverStatus = await toggleEventRsvp(event.id);
+        setIsRsvped(serverStatus);
+        // Send the user to the RSVP form when they RSVP, not when they cancel.
+        if (serverStatus && rsvpUrl) {
+          await openExternalLink(rsvpUrl, `${event.title} RSVP`);
+        }
+      } catch (err: any) {
+        setIsRsvped(false);
+        Alert.alert('RSVP Error', err.message || 'Could not update RSVP status.');
+      }
+    };
+
+    if (rsvpUrl) {
+      Alert.alert('Continue RSVP', 'You will be redirected to the RSVP form.', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'RSVP',
+          onPress: () => {
+            void performRsvp();
+          },
+        },
+      ]);
+      return;
+    }
+
+    await performRsvp();
   };
 
   const now = new Date();
@@ -123,8 +153,20 @@ export function useEventDetail(id?: string) {
   const isValidStartDate = Boolean(startDate && !Number.isNaN(startDate.getTime()));
   const isValidEndDate = Boolean(endDate && !Number.isNaN(endDate.getTime()));
 
-  const checkinOpensAt = event ? new Date(event.checkin_opens_at ?? event.starts_at) : null;
-  const checkinClosesAt = event ? new Date(event.checkin_closes_at ?? event.ends_at) : null;
+  const checkinOpensAt = event
+    ? event.checkin_opens_at
+      ? new Date(event.checkin_opens_at)
+      : isValidStartDate && startDate
+        ? new Date(startDate.getTime() - 30 * 60 * 1000)
+        : null
+    : null;
+  const checkinClosesAt = event
+    ? event.checkin_closes_at
+      ? new Date(event.checkin_closes_at)
+      : isValidEndDate && endDate
+        ? new Date(endDate.getTime() + 30 * 60 * 1000)
+        : null
+    : null;
   const isCheckinStarted = Boolean(
     checkinOpensAt && !Number.isNaN(checkinOpensAt.getTime()) && now >= checkinOpensAt,
   );
