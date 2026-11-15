@@ -69,15 +69,60 @@ describe('Button', () => {
     expect(handlePress).not.toHaveBeenCalled();
   });
 
-  it('supports primary and secondary variants', async () => {
+  it('supports primary, secondary, danger, and ghost variants', async () => {
     await render(
       <ThemeProvider>
         <Button variant="primary">Primary Action</Button>
         <Button variant="secondary">Secondary Action</Button>
+        <Button variant="danger">Danger Action</Button>
+        <Button variant="ghost">Ghost Action</Button>
       </ThemeProvider>,
     );
 
     expect(screen.getByText('Primary Action')).toBeTruthy();
     expect(screen.getByText('Secondary Action')).toBeTruthy();
+    expect(screen.getByText('Danger Action')).toBeTruthy();
+    expect(screen.getByText('Ghost Action')).toBeTruthy();
+  });
+
+  it('supports title prop as an alternative to children', async () => {
+    await render(
+      <ThemeProvider>
+        <Button title="Title Button" />
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByRole('button', { name: 'Title Button' })).toBeTruthy();
+    expect(screen.getByText('Title Button')).toBeTruthy();
+  });
+
+  it('renders left and right icons when provided', async () => {
+    await render(
+      <ThemeProvider>
+        <Button
+          leftIcon={<Button testID="left-icon">L</Button>}
+          rightIcon={<Button testID="right-icon">R</Button>}
+        >
+          Icon Button
+        </Button>
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByTestId('left-icon')).toBeTruthy();
+    expect(screen.getByTestId('right-icon')).toBeTruthy();
+  });
+
+  it('supports sm, md, and lg sizes', async () => {
+    await render(
+      <ThemeProvider>
+        <Button size="sm">Small</Button>
+        <Button size="md">Medium</Button>
+        <Button size="lg">Large</Button>
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByText('Small')).toBeTruthy();
+    expect(screen.getByText('Medium')).toBeTruthy();
+    expect(screen.getByText('Large')).toBeTruthy();
   });
 });

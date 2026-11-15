@@ -82,19 +82,19 @@ const createStyles = (colors: Colors) =>
       flex: 1,
       backgroundColor: colors.surface.base.primary,
       paddingHorizontal: space['600'],
-      paddingVertical: space['400'],
-      gap: space['300'],
+      paddingTop: space['300'],
+      paddingBottom: space['600'],
     },
     backButton: {
       alignSelf: 'flex-start',
-      marginBottom: space['100'],
+      marginBottom: space['400'],
     },
     title: {
-      marginBottom: space['100'],
+      marginBottom: space['200'],
     },
     subtitle: {
       color: colors.content.onBase.secondary,
-      marginBottom: space['300'],
+      marginBottom: space['600'],
     },
     form: {
       gap: space['400'],

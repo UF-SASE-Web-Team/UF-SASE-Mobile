@@ -108,6 +108,7 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.surface.base.primary,
     },
     scrollContent: {
+      paddingTop: space['300'],
       paddingHorizontal: space['400'],
       paddingBottom: space['800'],
       gap: space['400'],

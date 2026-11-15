@@ -68,6 +68,7 @@ export function HomeUpcomingEventsSection({
 const createStyles = (_colors: Colors) =>
   StyleSheet.create({
     section: {
+      // paddingTop: space['100'],
       gap: space['200'],
     },
     horizontalListOuter: {

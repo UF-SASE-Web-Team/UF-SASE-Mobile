@@ -148,7 +148,7 @@ const createStyles = (colors: Colors) =>
       paddingHorizontal: space['300'],
     },
     forgotPasswordText: {
-      color: colors.surface.saseBlue.primary,
+      color: colors.content.onBase.brand,
     },
     loginButton: {
       marginTop: space['200'],

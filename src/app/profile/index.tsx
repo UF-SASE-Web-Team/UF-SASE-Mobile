@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { ProfileScreen, ProfileLoadingState } from '@/components/profile/ProfileScreen';
 import { ProfileHero } from '@/components/profile/ProfileHero';
 import { ProfileDetails } from '@/components/profile/ProfileDetails';
-import { ProfileButton } from '@/components/profile/ProfileButton';
+import { Button } from '@/components/ui/Button';
 import { useProfile } from '@/context/ProfileContext';
 
 export default function ProfilePage() {
@@ -12,9 +12,7 @@ export default function ProfilePage() {
   return (
     <ProfileScreen
       onEdit={() => router.push('/profile/edit')}
-      footer={
-        <ProfileButton title="Account Settings" onPress={() => router.push('/profile/settings')} />
-      }
+      footer={<Button onPress={() => router.push('/profile/settings')}>Account Settings</Button>}
     >
       <ProfileHero profile={profile} />
       <ProfileDetails profile={profile} />

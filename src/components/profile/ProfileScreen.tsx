@@ -13,7 +13,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BackButton } from '@/components/ui/BackButton';
 import { Text } from '@/components/ui/Text';
-import { ProfileButton } from './ProfileButton';
+import { Button } from '@/components/ui/Button';
 import { useProfile } from '@/context/ProfileContext';
 import { useThemedStyles, useTheme, type Colors, iconSize, space } from '@/theme';
 
@@ -110,7 +110,7 @@ export function ProfileLoadingState() {
             <Text variant="body" accessibilityRole="alert">
               {error ?? 'Please sign in to view your profile.'}
             </Text>
-            <ProfileButton title="Try again" onPress={reload} />
+            <Button onPress={reload}>Try again</Button>
           </>
         )}
       </View>
@@ -142,6 +142,8 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+      marginTop: space['300'],
+      marginBottom: space['200'],
     },
     editButton: {
       width: 44,

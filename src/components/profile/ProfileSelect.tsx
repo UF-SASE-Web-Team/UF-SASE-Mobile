@@ -3,7 +3,7 @@ import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
-import { ProfileButton } from './ProfileButton';
+import { Button } from '@/components/ui/Button';
 import { ProfileSheet } from './ProfileSheet';
 import {
   useTheme,
@@ -154,19 +154,16 @@ export function ProfileSelect({
                 maxLength={100}
                 style={styles.input}
               />
-              <ProfileButton
-                title="Add"
-                onPress={addOther}
-                variant="secondary"
-                disabled={!other.trim()}
-              />
+              <Button onPress={addOther} variant="secondary" disabled={!other.trim()}>
+                Add
+              </Button>
             </View>
           )
         }
       />
       {multiple && (
         <View style={styles.done}>
-          <ProfileButton title="Done" onPress={onClose} />
+          <Button onPress={onClose}>Done</Button>
         </View>
       )}
     </ProfileSheet>

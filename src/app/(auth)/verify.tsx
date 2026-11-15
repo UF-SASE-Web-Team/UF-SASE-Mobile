@@ -135,26 +135,25 @@ const createStyles = (colors: Colors) =>
       flex: 1,
       backgroundColor: colors.surface.base.primary,
       paddingHorizontal: space['600'],
-      paddingVertical: space['400'],
-      gap: space['300'],
+      paddingTop: space['300'],
+      paddingBottom: space['600'],
     },
     backButton: {
       alignSelf: 'flex-start',
-      marginBottom: space['100'],
+      marginBottom: space['400'],
     },
     title: {
-      marginBottom: space['100'],
+      marginBottom: space['200'],
     },
     instructions: {
       color: colors.content.onBase.secondary,
-      marginBottom: space['300'],
+      marginBottom: space['600'],
     },
     codeContainer: {
       alignItems: 'center',
-      marginVertical: space['300'],
+      marginBottom: space['600'],
     },
     buttonsContainer: {
-      marginTop: space['200'],
       gap: space['300'],
     },
   });
