@@ -1,5 +1,13 @@
-import { act, cleanup, render, screen, userEvent, waitFor } from '@testing-library/react-native';
-import { Alert } from 'react-native';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  userEvent,
+  waitFor,
+} from '@testing-library/react-native';
+import { Alert, ScrollView } from 'react-native';
 import { useRouter, useNavigation } from 'expo-router';
 import { usePreventRemove } from 'expo-router/react-navigation';
 import EditProfilePage from '@/app/profile/edit';
@@ -235,5 +243,34 @@ describe('Edit profile', () => {
     await act(() => buttons?.find((button) => button.text === 'Discard')?.onPress?.());
     expect(dispatch).toHaveBeenCalledWith(action);
     expect(save).not.toHaveBeenCalled();
+  });
+
+  it('scrolls the view when focusing fields such as bio and bottom social/UFID inputs', async () => {
+    const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo').mockImplementation(() => {});
+    await renderEditor();
+
+    // Focus Bio
+    fireEvent(screen.getByLabelText('Bio'), 'focus');
+    await waitFor(() => {
+      expect(scrollToSpy).toHaveBeenCalledWith(expect.objectContaining({ animated: true }));
+    });
+
+    scrollToSpy.mockClear();
+
+    // Focus Discord
+    fireEvent(screen.getByLabelText('Discord'), 'focus');
+    await waitFor(() => {
+      expect(scrollToSpy).toHaveBeenCalledWith(expect.objectContaining({ animated: true }));
+    });
+
+    scrollToSpy.mockClear();
+
+    // Focus UFID
+    fireEvent(screen.getByLabelText('UFID'), 'focus');
+    await waitFor(() => {
+      expect(scrollToSpy).toHaveBeenCalledWith(expect.objectContaining({ animated: true }));
+    });
+
+    scrollToSpy.mockRestore();
   });
 });

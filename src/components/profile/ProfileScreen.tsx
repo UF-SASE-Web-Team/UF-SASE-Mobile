@@ -40,6 +40,7 @@ interface ProfileScreenProps {
   backLabel?: string;
   footer?: ReactNode;
   scrollViewRef?: React.RefObject<ScrollView | null>;
+  keyboardDismissMode?: 'none' | 'on-drag' | 'interactive';
 }
 
 export type ProfileModalContextType = {
@@ -75,6 +76,7 @@ export function ProfileScreen({
   backLabel = 'Back',
   footer,
   scrollViewRef,
+  keyboardDismissMode,
 }: ProfileScreenProps) {
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
@@ -179,7 +181,9 @@ export function ProfileScreen({
             ref={scrollViewRef}
             contentContainerStyle={[styles.scrollContent, { paddingBottom: scrollPaddingBottom }]}
             keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
+            keyboardDismissMode={
+              keyboardDismissMode ?? (Platform.OS === 'ios' ? 'interactive' : 'on-drag')
+            }
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.content}>{children}</View>

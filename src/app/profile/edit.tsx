@@ -1,5 +1,5 @@
-import { useCallback, useRef } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useRef } from 'react';
+import { Keyboard, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { AvatarPicker } from '@/components/profile/AvatarPicker';
 import { Button } from '@/components/ui/Button';
 import { ProfileForm } from '@/components/profile/ProfileForm';
@@ -34,11 +34,37 @@ function ProfileEditor({ profile, ufid }: { profile: ProfileWithPrograms; ufid: 
   } = useProfileForm({ profile, ufid });
   const styles = useThemedStyles(createStyles);
   const scrollViewRef = useRef<ScrollView>(null);
+  const formOffsetYRef = useRef<number>(0);
+  const activeFieldYRef = useRef<number | null>(null);
 
-  const handleBioFocus = useCallback(() => {
-    setTimeout(() => {
-      scrollViewRef.current?.scrollTo({ y: 240, animated: true });
-    }, 120);
+  const scrollToField = useCallback((absoluteY: number) => {
+    // Settle the focused field comfortably in view above the keyboard rather than snapping to the top header
+    const targetY = Math.max(0, absoluteY - space['1200'] * 4);
+    scrollViewRef.current?.scrollTo({ y: targetY, animated: true });
+  }, []);
+
+  const handleFieldFocus = useCallback(
+    (_key: string, relativeY: number) => {
+      const absoluteY = formOffsetYRef.current + relativeY;
+      activeFieldYRef.current = absoluteY;
+      // Slight delay ensures keyboard animation and dynamic padding have begun applying
+      setTimeout(() => {
+        if (activeFieldYRef.current === absoluteY) {
+          scrollToField(absoluteY);
+        }
+      }, 100);
+    },
+    [scrollToField],
+  );
+
+  useEffect(() => {
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        activeFieldYRef.current = null;
+      },
+    );
+    return () => hideSub.remove();
   }, []);
 
   return (
@@ -72,7 +98,18 @@ function ProfileEditor({ profile, ufid }: { profile: ProfileWithPrograms; ufid: 
         onEditAvatar={() => setAvatarPickerOpen(true)}
         disabledAvatar={saving}
       />
-      <ProfileForm draft={draft} onChange={change} disabled={saving} onBioFocus={handleBioFocus} />
+      <View
+        onLayout={(e) => {
+          formOffsetYRef.current = e.nativeEvent.layout.y;
+        }}
+      >
+        <ProfileForm
+          draft={draft}
+          onChange={change}
+          disabled={saving}
+          onFieldFocus={handleFieldFocus}
+        />
+      </View>
       <ProfileModalSlot>
         <AvatarPicker
           visible={avatarPickerOpen}
