@@ -7,7 +7,7 @@ import { isJoinLink } from '@/services/programs';
 import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { openExternalLink } from '@/lib/links';
-import { type Colors, space, radius, iconSize, borderWidth } from '@/theme';
+import { type Colors, space, radius, borderWidth } from '@/theme';
 
 export interface ApplicationCardProps {
   program: ProgramWithPoCs;
@@ -62,7 +62,7 @@ export function ApplicationCard({ program, onPress }: ApplicationCardProps) {
           />
         ) : (
           <View style={styles.placeholderContainer}>
-            <Ionicons name="sparkles-outline" size={32} color={colors.content.onBase.secondary} />
+            <Ionicons name="sparkles-outline" color={colors.content.onBase.secondary} />
           </View>
         )}
 
@@ -88,11 +88,7 @@ export function ApplicationCard({ program, onPress }: ApplicationCardProps) {
             >
               {actionLabel}
             </Text>
-            <Ionicons
-              name="open-outline"
-              size={iconSize.sm}
-              color={colors.content.onSaseBlue.secondary}
-            />
+            <Ionicons name="open-outline" size={20} color={colors.content.onSaseBlue.secondary} />
           </Pressable>
         )}
       </View>

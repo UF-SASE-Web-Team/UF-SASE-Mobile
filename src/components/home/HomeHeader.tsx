@@ -6,7 +6,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { SaseFlask } from '@/components/ui/SaseFlask';
 import { SaseLogo } from '@/components/ui/SaseLogo';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { radius, space, type Colors } from '@/theme';
+import { borderWidth, radius, space, type Colors } from '@/theme';
+
+const AVATAR_SIZE = 40;
 
 interface HomeHeaderProps {
   totalPoints: number | null;
@@ -128,14 +130,17 @@ const createStyles = (colors: Colors) =>
     },
     profileButton: {
       borderRadius: radius.full,
+      borderWidth: borderWidth.sm,
+      borderColor: colors.border.base.subtle,
+      backgroundColor: colors.surface.base.primary,
       overflow: 'hidden',
     },
     profileButtonPressed: {
       opacity: 0.7,
     },
     profileAvatar: {
-      width: 40,
-      height: 40,
+      width: AVATAR_SIZE,
+      height: AVATAR_SIZE,
       borderRadius: radius.full,
     },
   });

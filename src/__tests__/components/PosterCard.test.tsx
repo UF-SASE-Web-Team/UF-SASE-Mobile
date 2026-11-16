@@ -53,4 +53,11 @@ describe('PosterCard', () => {
     // Card should render title properly with chevron
     expect(screen.getByText('Chevron Poster')).toBeTruthy();
   });
+
+  it('renders overline text when provided', async () => {
+    await render(<PosterCard title="Overline Poster" overline="Today • 6:30 PM" />);
+
+    expect(screen.getByText('Today • 6:30 PM')).toBeTruthy();
+    expect(screen.getByText('Overline Poster')).toBeTruthy();
+  });
 });

@@ -73,6 +73,12 @@ describe('HomeEventCard', () => {
     expect(screen.queryByTestId('home-event-card-placeholder-test-event-1')).toBeNull();
   });
 
+  it('shows the relative date and time overline', async () => {
+    await renderHomeEventCard({ event: baseEvent, onPress: jest.fn() });
+
+    expect(screen.getByText(/Tomorrow/i)).toBeTruthy();
+  });
+
   it('calls onPress with the event when the card is pressed', async () => {
     const handlePress = jest.fn();
     const user = userEvent.setup();

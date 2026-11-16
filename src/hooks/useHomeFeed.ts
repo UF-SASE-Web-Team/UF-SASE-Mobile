@@ -11,6 +11,10 @@ import { getOpenApplicationPrograms, getPrograms } from '@/services/programs';
 import { EventRow, EventWithRsvp } from '@/types/events';
 import { ProgramWithPoCs } from '@/types/programs';
 
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const MAX_UPCOMING_COUNT = 6;
+const MIN_WEEK_THRESHOLD = 3;
+
 export function useHomeFeed() {
   const router = useRouter();
   const { user } = useAuth();
@@ -26,17 +30,26 @@ export function useHomeFeed() {
     toggleRsvp,
   } = useEvents();
 
-  const upcomingEvents = useMemo(() => {
+  const allFutureEvents = useMemo(() => {
     const now = new Date();
     return events
       .filter((e) => new Date(e.starts_at) > now)
       .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
   }, [events]);
 
+  const upcomingEvents = useMemo(() => {
+    const now = new Date();
+    const thisWeekEvents = allFutureEvents.filter(
+      (e) => new Date(e.starts_at).getTime() <= now.getTime() + SEVEN_DAYS_MS,
+    );
+    const selected = thisWeekEvents.length >= MIN_WEEK_THRESHOLD ? thisWeekEvents : allFutureEvents;
+    return selected.slice(0, MAX_UPCOMING_COUNT);
+  }, [allFutureEvents]);
+
   // The soonest upcoming event the user has RSVPed to
   const nextEvent = useMemo(
-    () => upcomingEvents.find((e) => e.is_rsvped) ?? null,
-    [upcomingEvents],
+    () => allFutureEvents.find((e) => e.is_rsvped) ?? null,
+    [allFutureEvents],
   );
 
   const [programs, setPrograms] = useState<ProgramWithPoCs[]>([]);

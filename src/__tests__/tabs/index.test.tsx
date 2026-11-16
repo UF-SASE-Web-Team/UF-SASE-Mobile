@@ -264,6 +264,62 @@ describe('HomePage', () => {
 
       expect(mockPush).toHaveBeenCalledWith('/events');
     });
+
+    it('restricts to this week when at least 3 events occur within 7 days', async () => {
+      mockEvents({
+        events: [
+          makeUpcomingEvent({
+            id: 'e1',
+            title: 'Event 1',
+            starts_at: new Date(Date.now() + 24 * HOUR).toISOString(),
+          }),
+          makeUpcomingEvent({
+            id: 'e2',
+            title: 'Event 2',
+            starts_at: new Date(Date.now() + 48 * HOUR).toISOString(),
+          }),
+          makeUpcomingEvent({
+            id: 'e3',
+            title: 'Event 3',
+            starts_at: new Date(Date.now() + 72 * HOUR).toISOString(),
+          }),
+          makeUpcomingEvent({
+            id: 'e4',
+            title: 'Event Later',
+            starts_at: new Date(Date.now() + 240 * HOUR).toISOString(),
+          }),
+        ],
+      });
+
+      await renderHomePage();
+
+      expect(screen.getByRole('button', { name: 'Event 1' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Event 2' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Event 3' })).toBeTruthy();
+      expect(screen.queryByRole('button', { name: 'Event Later' })).toBeNull();
+    });
+
+    it('falls back to include future events when fewer than 3 events occur within 7 days', async () => {
+      mockEvents({
+        events: [
+          makeUpcomingEvent({
+            id: 'e1',
+            title: 'Event 1',
+            starts_at: new Date(Date.now() + 24 * HOUR).toISOString(),
+          }),
+          makeUpcomingEvent({
+            id: 'e2',
+            title: 'Event Later',
+            starts_at: new Date(Date.now() + 240 * HOUR).toISOString(),
+          }),
+        ],
+      });
+
+      await renderHomePage();
+
+      expect(screen.getByRole('button', { name: 'Event 1' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Event Later' })).toBeTruthy();
+    });
   });
 
   describe('your next event', () => {
