@@ -3,7 +3,13 @@
     "name": "UF SASE",
     "slug": "uf-sase-mobile",
     "owner": "uf-sase",
-    "version": "1.0.1",
+    "version": "1.1.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/8f3a261d-8d50-459c-a2b0-2dc1cb32f31d"
+    },
     "orientation": "portrait",
     "icon": "./assets/app/icon.png",
     "scheme": "ufsasemobile",
