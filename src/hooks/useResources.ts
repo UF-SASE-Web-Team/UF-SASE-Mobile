@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
+import { getFriendlyErrorMessage } from '@/lib/errors';
 import { openExternalLink } from '@/lib/links';
 import { getResourceSections } from '@/services/resources';
 import {
@@ -41,8 +42,8 @@ export function useResources() {
       setSections(data);
       setError(null);
     } catch (err: any) {
-      console.error('Error fetching resources:', err.message);
-      setError(err.message);
+      console.warn('Error fetching resources:', err?.message || err);
+      setError(getFriendlyErrorMessage(err, "Couldn't load resources."));
     }
   };
 
@@ -57,8 +58,8 @@ export function useResources() {
         setError(null);
       } catch (err: any) {
         if (!isMounted) return;
-        console.error('Error fetching resources:', err.message);
-        setError(err.message);
+        console.warn('Error fetching resources:', err?.message || err);
+        setError(getFriendlyErrorMessage(err, "Couldn't load resources."));
       } finally {
         if (isMounted) {
           setLoading(false);

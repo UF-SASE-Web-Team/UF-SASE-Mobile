@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { CameraView } from 'expo-camera';
 import { Button } from '@/components/ui/Button';
 import { SixDigitInput } from '@/components/ui/SixDigitInput';
+import { SegmentedControl, type SegmentedControlOption } from '@/components/ui/SegmentedControl';
 import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { useEventCheckIn } from '@/hooks/useEventCheckIn';
@@ -27,10 +28,10 @@ export interface EventCheckInModalProps {
   initialMode?: 'code' | 'qr';
 }
 
-const SEGMENT_TABS = [
-  { key: 'qr', label: 'Scan QR', icon: 'qr-code-outline' },
-  { key: 'code', label: 'Code', icon: 'keypad-outline' },
-] as const;
+const SEGMENT_TABS: SegmentedControlOption<'code' | 'qr'>[] = [
+  { value: 'qr', label: 'Scan QR', icon: 'qr-code-outline' },
+  { value: 'code', label: 'Code', icon: 'keypad-outline', accessibilityLabel: '6-Digit Code' },
+];
 
 export function EventCheckInModal({
   visible,
@@ -89,37 +90,12 @@ export function EventCheckInModal({
           </Text>
 
           {/* Segmented Control */}
-          <View style={styles.segmentContainer} accessibilityRole="tablist">
-            {SEGMENT_TABS.map((tab) => {
-              const isSelected = mode === tab.key;
-              return (
-                <Pressable
-                  key={tab.key}
-                  style={[styles.segmentButton, isSelected && styles.segmentButtonActive]}
-                  onPress={() => handleModeChange(tab.key)}
-                  accessibilityRole="tab"
-                  accessibilityState={{ selected: isSelected }}
-                  accessibilityLabel={tab.key === 'code' ? '6-Digit Code' : tab.label}
-                >
-                  <Ionicons
-                    name={tab.icon}
-                    size={iconSize.sm}
-                    color={
-                      isSelected ? colors.content.onBase.primary : colors.content.onBase.secondary
-                    }
-                  />
-                  <Text
-                    variant="bodySmStrong"
-                    color={
-                      isSelected ? colors.content.onBase.primary : colors.content.onBase.secondary
-                    }
-                  >
-                    {tab.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+          <SegmentedControl
+            options={SEGMENT_TABS}
+            value={mode}
+            onChange={handleModeChange}
+            style={styles.segmentedControl}
+          />
 
           {mode === 'qr' ? (
             <View style={styles.scannerWrapper}>
@@ -273,31 +249,8 @@ const createStyles = (colors: Colors) =>
     modalTitle: {
       textAlign: 'center',
     },
-    segmentContainer: {
-      flexDirection: 'row',
-      backgroundColor: colors.surface.base.secondary,
-      borderRadius: radius.md,
-      padding: space['100'],
-      gap: space['100'],
+    segmentedControl: {
       marginTop: space['100'],
-      width: '100%',
-    },
-    segmentButton: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: space['200'],
-      borderRadius: radius.md,
-      gap: space['150'],
-    },
-    segmentButtonActive: {
-      backgroundColor: colors.surface.base.primary,
-      shadowColor: colors.surface.media.backdrop,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 3,
-      elevation: 2,
     },
     codePromptText: {
       textAlign: 'center',

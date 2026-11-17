@@ -301,4 +301,15 @@ describe('Account settings', () => {
     expect(within(sheet).getByText('Database unavailable')).toBeTruthy();
     expect(signOut).not.toHaveBeenCalled();
   });
+
+  it('opens Feedback sheet when Send Feedback row is pressed', async () => {
+    const user = userEvent.setup();
+    await renderSettings();
+
+    const feedbackRow = screen.getByRole('button', { name: 'Send Feedback' });
+    expect(feedbackRow).toBeTruthy();
+
+    await user.press(feedbackRow);
+    expect(screen.getByRole('tab', { name: 'Bug' })).toBeTruthy();
+  });
 });

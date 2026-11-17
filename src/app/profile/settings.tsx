@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { PasswordResetSheet } from '@/components/profile/PasswordResetSheet';
 import { ChangeUsernameSheet } from '@/components/profile/ChangeUsernameSheet';
 import { DeleteAccountSheet } from '@/components/profile/DeleteAccountSheet';
+import { FeedbackSheet } from '@/components/profile/FeedbackSheet';
 import { useAuth } from '@/context/AuthContext';
 import { getProfileError, useProfile } from '@/context/ProfileContext';
 import { legalLinks } from '@/lib/links';
@@ -46,7 +47,7 @@ export default function AccountSettingsPage() {
   const styles = useThemedStyles(createStyles);
   const router = useRouter();
   const [busy, setBusy] = useState<'reset' | 'logout' | null>(null);
-  const [sheet, setSheet] = useState<'username' | 'password' | 'delete' | null>(null);
+  const [sheet, setSheet] = useState<'username' | 'password' | 'delete' | 'feedback' | null>(null);
 
   const logOut = async () => {
     setBusy('logout');
@@ -245,8 +246,32 @@ export default function AccountSettingsPage() {
           </View>
         </View>
 
-        {/* Card 3: Legal & About */}
+        {/* Card 3: Support & Legal */}
         <View style={styles.card}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Send Feedback"
+            onPress={() => setSheet('feedback')}
+            disabled={!!busy}
+            style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+          >
+            <Ionicons
+              name="chatbubble-ellipses-outline"
+              size={iconSize.md}
+              color={colors.content.onBase.secondary}
+            />
+            <Text variant="body" style={styles.rowLabel}>
+              Send Feedback
+            </Text>
+            <Ionicons
+              name="chevron-forward"
+              size={iconSize.sm}
+              color={colors.content.onBase.secondary}
+            />
+          </Pressable>
+
+          <View style={styles.divider} />
+
           {legalRows.map((row, index) => (
             <View key={row.label}>
               {index > 0 && <View style={styles.divider} />}
@@ -286,6 +311,11 @@ export default function AccountSettingsPage() {
         <PasswordResetSheet email={user.email} onClose={() => setSheet(null)} />
       )}
       <DeleteAccountSheet visible={sheet === 'delete'} onClose={() => setSheet(null)} />
+      <FeedbackSheet
+        visible={sheet === 'feedback'}
+        onClose={() => setSheet(null)}
+        userId={profile.id}
+      />
     </ProfileScreen>
   );
 }
@@ -321,7 +351,6 @@ const createStyles = (colors: Colors) =>
     },
     divider: {
       height: borderWidth.sm,
-      marginLeft: space['400'] + iconSize.md + space['300'],
       backgroundColor: colors.border.base.subtle,
     },
     themeMenu: { flexShrink: 1 },

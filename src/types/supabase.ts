@@ -48,6 +48,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      app_feedback: {
+        Row: {
+          category: string;
+          created_at: string;
+          id: string;
+          message: string;
+          metadata: NonNullable<Json>;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          category: string;
+          created_at?: string;
+          id?: string;
+          message: string;
+          metadata?: NonNullable<Json>;
+          user_id: string;
+        };
+        Update: {
+          category?: string;
+          created_at?: string;
+          id?: string;
+          message?: string;
+          metadata?: NonNullable<Json>;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'app_feedback_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       app_settings: {
         Row: {
           key: string;
@@ -249,6 +285,115 @@ export type Database = {
             columns: ['rsvp'];
             isOneToOne: false;
             referencedRelation: 'event_links';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      point_rules: {
+        Row: {
+          category: Database['public']['Enums']['point_category'];
+          created_at: string;
+          description: string | null;
+          id: string;
+          is_active: boolean;
+          name: string;
+          points: number;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          category: Database['public']['Enums']['point_category'];
+          created_at?: string;
+          description?: string | null;
+          id: string;
+          is_active?: boolean;
+          name: string;
+          points?: number;
+          updated_at?: string;
+        };
+        Update: {
+          category?: Database['public']['Enums']['point_category'];
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          points?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      point_transactions: {
+        Row: {
+          academic_term: string;
+          amount: number;
+          category: Database['public']['Enums']['point_category'];
+          created_at: string;
+          description: string | null;
+          event_id: string | null;
+          id: string;
+          reference_id: string | null;
+          reference_type: string | null;
+          rule_id: string | null;
+          title: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          academic_term: string;
+          amount: number;
+          category: Database['public']['Enums']['point_category'];
+          created_at?: string;
+          description?: string | null;
+          event_id?: string | null;
+          id?: string;
+          reference_id?: string | null;
+          reference_type?: string | null;
+          rule_id?: string | null;
+          title: string;
+          user_id: string;
+        };
+        Update: {
+          academic_term?: string;
+          amount?: number;
+          category?: Database['public']['Enums']['point_category'];
+          created_at?: string;
+          description?: string | null;
+          event_id?: string | null;
+          id?: string;
+          reference_id?: string | null;
+          reference_type?: string | null;
+          rule_id?: string | null;
+          title?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'point_transactions_academic_term_fkey';
+            columns: ['academic_term'];
+            isOneToOne: false;
+            referencedRelation: 'academic_terms';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'point_transactions_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: false;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'point_transactions_rule_id_fkey';
+            columns: ['rule_id'];
+            isOneToOne: false;
+            referencedRelation: 'point_rules';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'point_transactions_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
             referencedColumns: ['id'];
           },
         ];
@@ -594,12 +739,25 @@ export type Database = {
       delete_user_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       discard_unverified_signup: { Args: { p_email: string }; Returns: undefined };
       get_email_from_username: { Args: { p_username: string }; Returns: string };
+      get_leaderboard: {
+        Args: { p_limit?: number; p_term?: string };
+        Returns: {
+          avatar_url: string;
+          name: string;
+          points: number;
+          rank: number;
+          user_id: string;
+        }[];
+      };
+      get_user_leaderboard_rank: { Args: { p_term?: string; p_user_id: string }; Returns: number };
+      get_user_points_total: { Args: { p_term?: string; p_user_id: string }; Returns: number };
       suggest_username: { Args: { p_separator?: string }; Returns: string };
       toggle_event_rsvp: { Args: { p_event_id: string }; Returns: boolean };
     };
     Enums: {
       checkin_method: 'code' | 'qr' | 'manual';
       event_type: 'gbm' | 'career' | 'social' | 'team' | 'other' | 'service' | 'sports';
+      point_category: 'digital_engagement' | 'attendance' | 'commitment' | 'marketplace';
       program_category: 'events_and_committees' | 'technical_and_research' | 'community';
       report_reason: 'harassment' | 'inappropriate' | 'impersonation' | 'spam' | 'other';
       resource_category: 'general' | 'sase' | 'academic' | 'professional';
@@ -720,6 +878,7 @@ export const Constants = {
     Enums: {
       checkin_method: ['code', 'qr', 'manual'],
       event_type: ['gbm', 'career', 'social', 'team', 'other', 'service', 'sports'],
+      point_category: ['digital_engagement', 'attendance', 'commitment', 'marketplace'],
       program_category: ['events_and_committees', 'technical_and_research', 'community'],
       report_reason: ['harassment', 'inappropriate', 'impersonation', 'spam', 'other'],
       resource_category: ['general', 'sase', 'academic', 'professional'],

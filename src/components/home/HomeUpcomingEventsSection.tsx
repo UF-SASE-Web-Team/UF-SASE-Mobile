@@ -1,10 +1,12 @@
 import React from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { HomeEventCard } from '@/components/events/HomeEventCard';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { SectionHeader } from '@/components/ui/SectionHeader';
-import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import { useThemedStyles } from '@/context/ThemeContext';
+import { getFriendlyErrorMessage } from '@/lib/errors';
 import { space, type Colors } from '@/theme';
 import { EventRow, EventWithRsvp } from '@/types/events';
 
@@ -22,7 +24,6 @@ export function HomeUpcomingEventsSection({
   onCardPress,
 }: HomeUpcomingEventsSectionProps) {
   const router = useRouter();
-  const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
   return (
@@ -43,19 +44,14 @@ export function HomeUpcomingEventsSection({
           renderItem={({ item }) => <HomeEventCard event={item} onPress={onCardPress} />}
         />
       ) : loading ? (
-        <View style={styles.emptyState}>
-          <ActivityIndicator
-            color={colors.surface.saseBlue.primary}
-            accessibilityLabel="Loading events"
-          />
-        </View>
+        <LoadingState accessibilityLabel="Loading events" style={styles.emptyState} />
       ) : (
         <EmptyState
           icon={error ? 'cloud-offline-outline' : 'calendar-outline'}
           tone={error ? 'orange' : 'blue'}
           message={
             error
-              ? "Couldn't load events. Pull down to refresh."
+              ? getFriendlyErrorMessage(error, "Couldn't load events. Pull down to refresh.")
               : 'No upcoming events right now. Check back soon!'
           }
           style={styles.emptyState}

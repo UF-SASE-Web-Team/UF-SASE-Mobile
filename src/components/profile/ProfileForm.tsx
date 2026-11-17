@@ -316,9 +316,11 @@ const createStyles = (colors: Colors) =>
   StyleSheet.create({
     form: { gap: space['300'] },
     card: {
+      backgroundColor: colors.surface.base.secondary,
       padding: space['400'],
-      // borderColor: colors.border.base.subtle,
-      // borderWidth: borderWidth.sm,
+      borderRadius: radius.lg,
+      borderWidth: borderWidth.sm,
+      borderColor: colors.border.base.subtle,
       gap: space['400'],
     },
     fieldItem: {

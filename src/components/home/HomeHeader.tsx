@@ -102,7 +102,7 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       paddingHorizontal: space['400'],
       paddingTop: space['200'],
-      paddingBottom: space['300'],
+      paddingBottom: space['250'],
     },
     logoRow: {
       flexDirection: 'row',

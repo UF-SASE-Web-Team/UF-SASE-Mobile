@@ -10,6 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { useOptionalEvents } from '@/context/EventsContext';
+import { getFriendlyErrorMessage } from '@/lib/errors';
 import { openExternalLink, openMapLocation } from '@/lib/links';
 import { getEvent, toggleEventRsvp } from '@/services/events';
 import { radius } from '@/theme';
@@ -52,9 +53,32 @@ export function useEventDetail(id?: string) {
   const isLongDescription = Boolean(event?.description && event.description.length > 250);
   const shouldShowExpandButton = isTextLong || hasManyNewlines || isLongDescription;
 
-  useEffect(() => {
+  const loadEvent = useCallback(async () => {
     if (!id) return;
+    setLoading(true);
+    try {
+      const data = await getEvent(id);
+      if (!data) {
+        setError('Event not found.');
+        return;
+      }
+      setEvent(data);
+      setIsRsvped(Boolean(data.is_rsvped));
+      setHasCheckedIn(Boolean(data.has_attended));
+      setIsAboutExpanded(false);
+      setIsTextLong(false);
+      setError(null);
+    } catch (err: any) {
+      console.warn('Error fetching event details:', err?.message || err);
+      setError(getFriendlyErrorMessage(err, "Couldn't load event details."));
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
     let isMounted = true;
+    if (!id) return;
 
     getEvent(id)
       .then((data) => {
@@ -72,8 +96,8 @@ export function useEventDetail(id?: string) {
       })
       .catch((err: any) => {
         if (!isMounted) return;
-        console.error('Error fetching event details:', err.message);
-        setError(err.message || 'Failed to load event details.');
+        console.warn('Error fetching event details:', err?.message || err);
+        setError(getFriendlyErrorMessage(err, "Couldn't load event details."));
       })
       .finally(() => {
         if (!isMounted) return;
@@ -263,5 +287,6 @@ export function useEventDetail(id?: string) {
     },
     handleBack,
     handleScrollEndDrag,
+    reloadEvent: loadEvent,
   };
 }

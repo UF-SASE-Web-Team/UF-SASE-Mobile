@@ -88,7 +88,8 @@ describe('ProgramsPage', () => {
     renderScreen();
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load programs: Network error/)).toBeTruthy();
+      expect(screen.getByText("Couldn't load programs")).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy();
     });
   });
 

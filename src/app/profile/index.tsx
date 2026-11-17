@@ -14,7 +14,7 @@ export default function ProfilePage() {
       onEdit={() => router.push('/profile/edit')}
       footer={
         <Button size="lg" onPress={() => router.push('/profile/settings')}>
-          Account Settings
+          Settings
         </Button>
       }
     >

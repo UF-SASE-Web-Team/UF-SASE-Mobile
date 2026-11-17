@@ -81,13 +81,16 @@ describe('EventDetailScreen', () => {
     expect(screen.getByTestId('loading-indicator')).toBeTruthy();
   });
 
-  it('renders error state when event is not found', async () => {
+  it('renders error state in bottom sheet when event is not found', async () => {
     (eventsService.getEvent as jest.Mock).mockResolvedValue(null);
 
     await renderScreen();
 
     expect(await screen.findByText('Event not found.')).toBeTruthy();
-    expect(screen.getByText('Go Back')).toBeTruthy();
+    expect(screen.getByText("Couldn't load event")).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy();
+    expect(screen.getByLabelText('Go back')).toBeTruthy();
+    expect(screen.queryByText('Go Back')).toBeNull();
   });
 
   describe('Before check-in opens', () => {

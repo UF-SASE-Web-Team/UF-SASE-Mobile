@@ -91,7 +91,9 @@ describe('PublicProfilePage (/profile/[id])', () => {
     });
 
     expect(screen.queryByLabelText('Edit profile')).toBeNull();
-    expect(screen.queryByText('Account Settings')).toBeNull();
+    expect(screen.queryByText('Settings')).toBeNull();
+    expect(screen.getByTestId('report-member-button')).toBeTruthy();
+    expect(screen.getByTestId('block-member-button')).toBeTruthy();
   });
 
   it('renders edit button and account settings when viewing own profile', async () => {
@@ -102,8 +104,11 @@ describe('PublicProfilePage (/profile/[id])', () => {
     await waitFor(() => {
       expect(screen.getByText('Alice Gator')).toBeTruthy();
       expect(screen.getByLabelText('Edit profile')).toBeTruthy();
-      expect(screen.getByText('Account Settings')).toBeTruthy();
+      expect(screen.getByText('Settings')).toBeTruthy();
     });
+
+    expect(screen.queryByTestId('report-member-button')).toBeNull();
+    expect(screen.queryByTestId('block-member-button')).toBeNull();
   });
 
   it('renders error state when profile fails to load', async () => {
@@ -122,7 +127,7 @@ describe('PublicProfilePage (/profile/[id])', () => {
 
     await renderPage();
 
-    await screen.findByRole('button', { name: 'Account Settings' });
+    await screen.findByRole('button', { name: 'Settings' });
     expect(screen.queryByRole('button', { name: 'Report Member' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Block Member' })).toBeNull();
     expect(moderationService.isMemberBlocked).not.toHaveBeenCalled();

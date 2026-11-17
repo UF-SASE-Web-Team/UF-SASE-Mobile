@@ -1,14 +1,9 @@
 import React from 'react';
-import {
-  ActivityIndicator,
-  RefreshControl,
-  SectionList,
-  StyleSheet,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import { RefreshControl, SectionList, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { ResourceCard } from '@/components/resources/ResourceCard';
 import { ResourceSectionHeader } from '@/components/resources/ResourceSectionHeader';
 import { Text } from '@/components/ui/Text';
@@ -36,20 +31,23 @@ export default function ResourcesPage() {
   // Calculate card width for 2-column layout (16px screen padding on each side, 12px gap)
   const cardWidth = Math.max(140, Math.floor((width - space['400'] * 2 - space['300']) / 2));
 
-  if (loading) {
+  if (loading && sectionListData.length === 0) {
     return (
-      <SafeAreaView style={styles.centered} edges={['top']}>
-        <ActivityIndicator size="large" color={colors.surface.saseBlue.primary} />
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <LoadingState accessibilityLabel="Loading resources" />
       </SafeAreaView>
     );
   }
 
-  if (error) {
+  if (error && sectionListData.length === 0) {
     return (
-      <SafeAreaView style={styles.centered} edges={['top']}>
-        <Text variant="body" color={colors.content.onDanger.primary} style={styles.errorText}>
-          Failed to load resources: {error}
-        </Text>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <ErrorState
+          error={error}
+          title="Couldn't load resources"
+          onRetry={handleRefresh}
+          isRetrying={refreshing}
+        />
       </SafeAreaView>
     );
   }
