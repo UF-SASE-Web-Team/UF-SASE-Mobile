@@ -1,90 +1,66 @@
 import { supabase } from '@/lib/supabase';
-import type { LeaderboardMember, PointsLogEntry } from '@/types/points';
+import type { LeaderboardEntry, PointsLogEntry, PointsSummary } from '@/types/points';
 
-export type { LeaderboardMember, PointsLogEntry };
+export type { LeaderboardEntry, PointsLogEntry, PointsSummary };
+
+export const LEADERBOARD_SIZE = 10;
 
 export async function getPointsLog(userId: string): Promise<PointsLogEntry[]> {
   const { data, error } = await supabase
-    .from('point_transactions')
-    .select('id, title, category, amount, created_at, event_id, rule_id, description')
+    .from('check_ins')
+    .select('id, checked_in_at, event:events(id, title, type, starts_at, points_value)')
     .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+    .order('checked_in_at', { ascending: false });
+
+  if (error) throw error;
+
+  return (data ?? []).flatMap((row) =>
+    row.event
+      ? [
+          {
+            id: row.id,
+            checkedInAt: row.checked_in_at,
+            eventId: row.event.id,
+            eventTitle: row.event.title,
+            eventType: row.event.type,
+            eventStartsAt: row.event.starts_at,
+            pointsValue: row.event.points_value,
+          },
+        ]
+      : [],
+  );
+}
+
+/** The signed-in member's all-time total plus this term's points and rank. */
+export async function getPointsSummary(): Promise<PointsSummary> {
+  const { data, error } = await supabase.rpc('get_points_summary').single();
+
+  if (error) throw error;
+
+  return {
+    totalPoints: data?.total_points ?? 0,
+    semesterPoints: data?.semester_points ?? 0,
+    semesterRank: data?.semester_rank ?? null,
+    rankedMembers: data?.ranked_members ?? 0,
+    termName: data?.term_name ?? null,
+  };
+}
+
+/** Top members this term, plus the caller's own row when they fall outside the top. */
+export async function getPointsLeaderboard(
+  limit: number = LEADERBOARD_SIZE,
+): Promise<LeaderboardEntry[]> {
+  const { data, error } = await supabase.rpc('get_points_leaderboard', { p_limit: limit });
 
   if (error) throw error;
 
   return (data ?? []).map((row) => ({
-    id: row.id,
-    title: row.title,
-    category: row.category,
-    pointsValue: row.amount,
-    date: row.created_at,
-    eventId: row.event_id,
-    ruleId: row.rule_id,
-    description: row.description,
-  }));
-}
-
-export async function getUserPointsTotal(userId: string, term?: string | null): Promise<number> {
-  const { data, error } = await supabase.rpc('get_user_points_total', {
-    p_user_id: userId,
-    p_term: term ?? undefined,
-  });
-
-  if (!error && typeof data === 'number') {
-    return data;
-  }
-
-  // Fallback: direct aggregate query from point_transactions
-  let query = supabase.from('point_transactions').select('amount').eq('user_id', userId);
-
-  if (term) {
-    query = query.eq('academic_term', term);
-  }
-
-  const { data: rows, error: selectError } = await query;
-  if (selectError) throw selectError;
-  return (rows ?? []).reduce((sum, row) => sum + row.amount, 0);
-}
-
-export async function getLeaderboard(
-  term?: string | null,
-  limit: number = 50,
-): Promise<LeaderboardMember[]> {
-  const { data, error } = await supabase.rpc('get_leaderboard', {
-    p_term: term ?? undefined,
-    p_limit: limit,
-  });
-
-  if (error) throw error;
-
-  return (data ?? []).map((row) => ({
-    rank: Number(row.rank),
+    rank: row.member_rank,
     userId: row.user_id,
-    name: row.name,
-    points: Number(row.points),
-    avatarUrl: row.avatar_url,
+    fullName: row.full_name,
+    username: row.username ?? null,
+    avatarUrl: row.avatar_url ?? null,
+    points: row.points,
+    isMe: row.is_me,
   }));
-}
-
-export async function getUserLeaderboardRank(
-  userId: string,
-  term?: string | null,
-): Promise<number | null> {
-  const { data, error } = await supabase.rpc('get_user_leaderboard_rank', {
-    p_user_id: userId,
-    p_term: term ?? undefined,
-  });
-
-  if (!error && typeof data === 'number') {
-    return data;
-  }
-
-  // Fallback: search user's position in getLeaderboard
-  try {
-    const list = await getLeaderboard(term, 100);
-    const member = list.find((m) => m.userId === userId);
-    return member?.rank ?? null;
-  } catch {
-    return null;
-  }
 }

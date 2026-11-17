@@ -1,97 +1,76 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { getFriendlyErrorMessage } from '@/lib/errors';
-import { getPointsLog, getUserLeaderboardRank, getUserPointsTotal } from '@/services/points';
-import type { PointsLogEntry } from '@/types/points';
+import { getPointsLog, getPointsSummary } from '@/services/points';
+import type { PointsLogEntry, PointsSummary } from '@/types/points';
 
 export const FREE_SHIRT_POINTS = 4;
+
+function loadPoints(userId: string) {
+  return Promise.all([getPointsLog(userId), getPointsSummary()]);
+}
 
 export function usePointsLog() {
   const { user } = useAuth();
   const [entries, setEntries] = useState<PointsLogEntry[]>([]);
-  const [totalPointsFromRpc, setTotalPointsFromRpc] = useState<number | null>(null);
-  const [rank, setRank] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [summary, setSummary] = useState<PointsSummary | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
 
-  const loadEntries = useCallback(async () => {
-    if (!user) {
-      setEntries([]);
-      setTotalPointsFromRpc(null);
-      setRank(null);
-      return;
-    }
-    try {
-      const [entriesData, totalData, rankData] = await Promise.all([
-        getPointsLog(user.id),
-        getUserPointsTotal(user.id).catch(() => null),
-        getUserLeaderboardRank(user.id).catch(() => null),
-      ]);
-      setEntries(entriesData);
-      setTotalPointsFromRpc(totalData);
-      setRank(rankData);
-      setError(null);
-    } catch (err: any) {
-      console.warn('Error fetching points log:', err?.message || err);
-      setError(getFriendlyErrorMessage(err, "Couldn't load points."));
-    }
-  }, [user]);
+  const applyResult = useCallback(([log, nextSummary]: [PointsLogEntry[], PointsSummary]) => {
+    setEntries(log);
+    setSummary(nextSummary);
+    setError(null);
+  }, []);
+
+  const applyError = useCallback((err: any) => {
+    console.error('Error fetching points:', err?.message);
+    setError(err?.message || 'Failed to load points.');
+  }, []);
 
   useEffect(() => {
     if (!user) return;
     let isMounted = true;
 
-    Promise.all([
-      getPointsLog(user.id),
-      getUserPointsTotal(user.id).catch(() => null),
-      getUserLeaderboardRank(user.id).catch(() => null),
-    ])
-      .then(([entriesData, totalData, rankData]) => {
-        if (!isMounted) return;
-        setEntries(entriesData);
-        setTotalPointsFromRpc(totalData);
-        setRank(rankData);
-        setError(null);
+    loadPoints(user.id)
+      .then((result) => {
+        if (isMounted) applyResult(result);
       })
-      .catch((err: any) => {
-        if (!isMounted) return;
-        console.warn('Error fetching points log:', err?.message || err);
-        setError(getFriendlyErrorMessage(err, "Couldn't load points."));
+      .catch((err) => {
+        if (isMounted) applyError(err);
       })
       .finally(() => {
-        if (!isMounted) return;
-        setLoading(false);
+        if (isMounted) setLoaded(true);
       });
 
     return () => {
       isMounted = false;
     };
-  }, [user]);
+  }, [user, applyResult, applyError]);
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
+    if (!user) return;
     setRefreshing(true);
-    await loadEntries();
-    setRefreshing(false);
-  };
-
-  const totalPoints = useMemo(() => {
-    if (typeof totalPointsFromRpc === 'number') {
-      return totalPointsFromRpc;
+    try {
+      applyResult(await loadPoints(user.id));
+    } catch (err) {
+      applyError(err);
+    } finally {
+      setRefreshing(false);
     }
-    return entries.reduce((sum, entry) => sum + entry.pointsValue, 0);
-  }, [totalPointsFromRpc, entries]);
+  }, [user, applyResult, applyError]);
 
   return {
     entries,
-    loading,
+    summary,
+    // Without a signed-in user there is nothing to load, so never show a spinner.
+    loading: Boolean(user) && !loaded,
     refreshing,
     error,
     showInfo,
     setShowInfo,
-    totalPoints,
-    rank,
+    totalPoints: summary?.totalPoints ?? 0,
     handleRefresh,
   };
 }

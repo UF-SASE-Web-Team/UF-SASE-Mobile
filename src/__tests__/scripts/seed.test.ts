@@ -9,7 +9,7 @@ import {
 } from '../../../scripts/seed.ts';
 
 describe('SQL Seed Files Integrity', () => {
-  it('registers all 7 modular SQL seed targets in expected dependency order', () => {
+  it('registers all 6 modular SQL seed targets in expected dependency order', () => {
     expect(SEED_TARGETS.map((t) => t.name)).toEqual([
       'academic_terms',
       'app_settings',
@@ -17,11 +17,10 @@ describe('SQL Seed Files Integrity', () => {
       'resources',
       'reviewer_accounts',
       'events',
-      'points',
     ]);
   });
 
-  it('all 7 SQL seed files exist on disk and are non-empty', () => {
+  it('all 6 SQL seed files exist on disk and are non-empty', () => {
     for (const target of SEED_TARGETS) {
       expect(fs.existsSync(target.filePath)).toBe(true);
       const content = fs.readFileSync(target.filePath, 'utf-8');
@@ -130,18 +129,6 @@ describe('SQL Seed Files Integrity', () => {
       expect(sql).toContain('COMMIT;');
     });
   });
-
-  describe('07_points.sql', () => {
-    it('contains point_rules seed with idempotent ON CONFLICT clause', () => {
-      const target = SEED_TARGETS.find((t) => t.name === 'points')!;
-      const sql = fs.readFileSync(target.filePath, 'utf-8');
-
-      expect(sql).toContain('insert into public.point_rules');
-      expect(sql).toContain('on conflict (id) do update');
-      expect(sql).toContain('account_created');
-      expect(sql).toContain('gbm_attendance');
-    });
-  });
 });
 
 describe('Seeder CLI & Filter Logic', () => {
@@ -195,7 +182,7 @@ describe('Seeder CLI & Filter Logic', () => {
   describe('getSelectedTargets', () => {
     it('returns all targets when no filter is provided', () => {
       const targets = getSelectedTargets();
-      expect(targets).toHaveLength(7);
+      expect(targets).toHaveLength(6);
     });
 
     it('filters by exact name', () => {

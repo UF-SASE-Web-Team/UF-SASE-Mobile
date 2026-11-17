@@ -31,8 +31,7 @@ sql_paths = [
   "seeds/04_resources.sql",
   "seeds/05_reviewer_accounts.sql",
   "seeds/06_events.sql",
-  "seeds/07_points.sql",
-  "seeds/08_check_ins.sql"
+  "seeds/07_check_ins.sql"
 ]
 
 [realtime]

@@ -1,25 +1,38 @@
+import type { EventType } from '@/types/events';
 import type { Database } from '@/types/supabase';
 
-export type PointCategory = Database['public']['Enums']['point_category'];
-export type PointRuleRow = Database['public']['Tables']['point_rules']['Row'];
-export type PointTransactionRow = Database['public']['Tables']['point_transactions']['Row'];
 export type CheckInRow = Database['public']['Tables']['check_ins']['Row'];
+
+type Functions = Database['public']['Functions'];
+
+export type PointsSummaryRow = Functions['get_points_summary']['Returns'][number];
+export type LeaderboardRow = Functions['get_points_leaderboard']['Returns'][number];
 
 export interface PointsLogEntry {
   id: string;
-  title: string;
-  category: PointCategory;
+  checkedInAt: string;
+  eventId: string;
+  eventTitle: string;
+  eventType: EventType;
+  eventStartsAt: string;
   pointsValue: number;
-  date: string;
-  eventId?: string | null;
-  ruleId?: string | null;
-  description?: string | null;
 }
 
-export interface LeaderboardMember {
+export interface PointsSummary {
+  totalPoints: number;
+  semesterPoints: number;
+  /** Null when the member has no points this term. */
+  semesterRank: number | null;
+  rankedMembers: number;
+  termName: string | null;
+}
+
+export interface LeaderboardEntry {
   rank: number;
   userId: string;
-  name: string;
+  fullName: string;
+  username: string | null;
+  avatarUrl: string | null;
   points: number;
-  avatarUrl?: string | null;
+  isMe: boolean;
 }
