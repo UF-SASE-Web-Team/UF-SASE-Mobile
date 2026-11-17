@@ -1,7 +1,15 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { LeaderboardRow } from '@/components/points/LeaderboardRow';
 import { PointsInfoModal } from '@/components/points/PointsInfoModal';
 import { PointsItem } from '@/components/points/PointsItem';
@@ -14,7 +22,7 @@ import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { usePointsLog } from '@/hooks/usePointsLog';
-import { space, type Colors } from '@/theme';
+import { borderWidth, iconSize, radius, space, type Colors } from '@/theme';
 import type { LeaderboardEntry } from '@/types/points';
 
 type PointsTab = 'log' | 'leaderboard';
@@ -45,7 +53,6 @@ export default function PointsLogPage() {
         totalPoints={points.totalPoints}
         error={tab === 'log' ? points.error : leaderboard.error}
         hasData={tab === 'log' ? points.entries.length > 0 : leaderboard.entries.length > 0}
-        onOpenInfo={() => points.setShowInfo(true)}
       />
       <SegmentedControl options={TABS} value={tab} onChange={setTab} testID="points-tabs" />
       {tab === 'leaderboard' && (
@@ -71,6 +78,20 @@ export default function PointsLogPage() {
         <Text variant="title" style={styles.headerTitle} accessibilityRole="header">
           Points
         </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="How points work"
+          testID="points-info-button"
+          onPress={() => points.setShowInfo(true)}
+          hitSlop={space['100']}
+          style={({ pressed }) => [styles.infoButton, pressed && styles.pressed]}
+        >
+          <Ionicons
+            name="information-circle-outline"
+            size={iconSize.md}
+            color={colors.content.onBase.primary}
+          />
+        </Pressable>
       </View>
 
       {tab === 'log' ? (
@@ -168,7 +189,22 @@ const createStyles = (colors: Colors) =>
       paddingBottom: space['400'],
     },
     headerTitle: {
+      flex: 1,
       color: colors.content.onBase.primary,
+    },
+    // Matches BackButton so the header reads as a balanced pair of circles.
+    infoButton: {
+      width: space['1000'],
+      height: space['1000'],
+      borderRadius: radius.full,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surface.base.secondary,
+      borderWidth: borderWidth.sm,
+      borderColor: colors.border.base.subtle,
+    },
+    pressed: {
+      opacity: 0.7,
     },
     listHeader: {
       marginBottom: space['400'],

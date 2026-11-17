@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { AccentIcon } from '@/components/ui/AccentIcon';
 import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
@@ -11,15 +11,9 @@ interface PointsProgressCardProps {
   error: string | null;
   /** True when older data is still on screen, so a failed refresh shows a notice. */
   hasData: boolean;
-  onOpenInfo: () => void;
 }
 
-export function PointsProgressCard({
-  totalPoints,
-  error,
-  hasData,
-  onOpenInfo,
-}: PointsProgressCardProps) {
+export function PointsProgressCard({ totalPoints, error, hasData }: PointsProgressCardProps) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
@@ -37,16 +31,6 @@ export function PointsProgressCard({
         </View>
       </View>
 
-      <Pressable
-        accessibilityRole="button"
-        testID="points-info-button"
-        onPress={onOpenInfo}
-        style={({ pressed }) => [styles.infoButton, pressed && styles.pressed]}
-      >
-        <Text variant="bodySmStrong" color={colors.content.onSaseBlueSubtle.primary}>
-          What Are Points?
-        </Text>
-      </Pressable>
       {/* Show refresh errors even when older points are still on screen */}
       {error && hasData && (
         <Text
@@ -79,16 +63,6 @@ const createStyles = (colors: Colors) =>
     totalInfo: {
       flex: 1,
       gap: space['050'],
-    },
-    infoButton: {
-      alignSelf: 'center',
-      paddingVertical: space['200'],
-      paddingHorizontal: space['400'],
-      backgroundColor: colors.surface.saseBlueSubtle.primary,
-      borderRadius: radius.full,
-    },
-    pressed: {
-      opacity: 0.7,
     },
     errorText: {
       textAlign: 'center',

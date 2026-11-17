@@ -69,13 +69,15 @@ export function SegmentedControl<T extends string = string>({
                 name={option.icon}
                 size={iconSize.sm}
                 color={
-                  isSelected ? colors.content.onBase.saseDarkBlue : colors.content.onBase.secondary
+                  isSelected ? colors.content.onSaseBlue.primary : colors.content.onBase.secondary
                 }
               />
             ) : null}
             <Text
               variant="bodySmStrong"
-              color={isSelected ? colors.content.onBase.primary : colors.content.onBase.secondary}
+              color={
+                isSelected ? colors.content.onSaseBlue.primary : colors.content.onBase.secondary
+              }
               numberOfLines={1}
             >
               {option.label}
@@ -110,8 +112,8 @@ const createStyles = (colors: Colors) =>
       borderColor: 'transparent',
     },
     buttonActive: {
-      backgroundColor: colors.surface.base.primary,
-      borderColor: colors.border.base.subtle,
+      backgroundColor: colors.surface.saseBlue.primary,
+      borderColor: colors.surface.saseBlue.primary,
       shadowColor: colors.surface.media.backdrop,
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.06,

@@ -106,4 +106,13 @@ describe('Points page', () => {
     await user.press(screen.getByRole('tab', { name: 'Leaderboard' }));
     expect(mocked.getPointsLeaderboard).toHaveBeenCalledTimes(1);
   });
+  it('opens the points info sheet from the header button', async () => {
+    const user = userEvent.setup();
+    await renderPage();
+    expect(screen.queryByTestId('points-info-close')).toBeNull();
+
+    await user.press(screen.getByRole('button', { name: 'How points work' }));
+
+    expect(await screen.findByTestId('points-info-close')).toBeTruthy();
+  });
 });
