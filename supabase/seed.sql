@@ -10,3 +10,4 @@
 \ir seeds/05_reviewer_accounts.sql
 \ir seeds/06_events.sql
 \ir seeds/07_points.sql
+\ir seeds/08_check_ins.sql

@@ -14,7 +14,7 @@ export interface SegmentedControlOption<T extends string = string> {
 }
 
 export interface SegmentedControlProps<T extends string = string> {
-  options: SegmentedControlOption<T>[];
+  options: readonly SegmentedControlOption<T>[];
   value: T;
   onChange: (value: T) => void;
   disabled?: boolean;
@@ -54,7 +54,9 @@ export function SegmentedControl<T extends string = string>({
             accessibilityLabel={option.accessibilityLabel ?? option.label}
             accessibilityState={itemAccessibilityState}
             disabled={disabled}
-            onPress={() => onChange(option.value)}
+            onPress={() => {
+              if (!isSelected) onChange(option.value);
+            }}
             style={({ pressed }) => [
               styles.button,
               isSelected && styles.buttonActive,
@@ -67,13 +69,15 @@ export function SegmentedControl<T extends string = string>({
                 name={option.icon}
                 size={iconSize.sm}
                 color={
-                  isSelected ? colors.content.onBase.saseDarkBlue : colors.content.onBase.secondary
+                  isSelected ? colors.content.onSaseBlue.primary : colors.content.onBase.secondary
                 }
               />
             ) : null}
             <Text
               variant="bodySmStrong"
-              color={isSelected ? colors.content.onBase.primary : colors.content.onBase.secondary}
+              color={
+                isSelected ? colors.content.onSaseBlue.primary : colors.content.onBase.secondary
+              }
               numberOfLines={1}
             >
               {option.label}
@@ -108,8 +112,8 @@ const createStyles = (colors: Colors) =>
       borderColor: 'transparent',
     },
     buttonActive: {
-      backgroundColor: colors.surface.base.primary,
-      borderColor: colors.border.base.subtle,
+      backgroundColor: colors.surface.saseBlue.primary,
+      borderColor: colors.surface.saseBlue.primary,
       shadowColor: colors.surface.media.backdrop,
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.06,

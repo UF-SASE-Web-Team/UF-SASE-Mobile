@@ -65,4 +65,31 @@ describe('SegmentedControl', () => {
     expect(screen.getByRole('radio', { name: 'Option 1' })).toBeTruthy();
     expect(screen.getByRole('radio', { name: 'Option 2' })).toBeTruthy();
   });
+  it('ignores presses on the option that is already selected', async () => {
+    const user = userEvent.setup();
+    const onChange = jest.fn();
+    await render(
+      <ThemeProvider initialMode="light">
+        <SegmentedControl options={options} value="opt1" onChange={onChange} />
+      </ThemeProvider>,
+    );
+
+    await user.press(screen.getByRole('tab', { name: 'Option 1' }));
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('marks only the active option as selected', async () => {
+    await render(
+      <ThemeProvider initialMode="light">
+        <SegmentedControl options={options} value="opt2" onChange={jest.fn()} />
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByRole('tab', { name: 'Option 2' }).props.accessibilityState).toEqual(
+      expect.objectContaining({ selected: true }),
+    );
+    expect(screen.getByRole('tab', { name: 'Option 1' }).props.accessibilityState).toEqual(
+      expect.objectContaining({ selected: false }),
+    );
+  });
 });
