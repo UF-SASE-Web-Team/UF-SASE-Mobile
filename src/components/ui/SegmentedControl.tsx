@@ -14,7 +14,7 @@ export interface SegmentedControlOption<T extends string = string> {
 }
 
 export interface SegmentedControlProps<T extends string = string> {
-  options: SegmentedControlOption<T>[];
+  options: readonly SegmentedControlOption<T>[];
   value: T;
   onChange: (value: T) => void;
   disabled?: boolean;
@@ -54,7 +54,9 @@ export function SegmentedControl<T extends string = string>({
             accessibilityLabel={option.accessibilityLabel ?? option.label}
             accessibilityState={itemAccessibilityState}
             disabled={disabled}
-            onPress={() => onChange(option.value)}
+            onPress={() => {
+              if (!isSelected) onChange(option.value);
+            }}
             style={({ pressed }) => [
               styles.button,
               isSelected && styles.buttonActive,

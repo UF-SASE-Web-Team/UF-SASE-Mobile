@@ -9,14 +9,15 @@ import { FREE_SHIRT_POINTS } from '@/hooks/usePointsLog';
 interface PointsProgressCardProps {
   totalPoints: number;
   error: string | null;
-  entriesCount: number;
+  /** True when older data is still on screen, so a failed refresh shows a notice. */
+  hasData: boolean;
   onOpenInfo: () => void;
 }
 
 export function PointsProgressCard({
   totalPoints,
   error,
-  entriesCount,
+  hasData,
   onOpenInfo,
 }: PointsProgressCardProps) {
   const { colors } = useTheme();
@@ -47,14 +48,14 @@ export function PointsProgressCard({
         </Text>
       </Pressable>
       {/* Show refresh errors even when older points are still on screen */}
-      {error && entriesCount > 0 && (
+      {error && hasData && (
         <Text
           variant="bodySm"
-          color={colors.content.onDanger.primary}
+          color={colors.content.onBase.secondary}
           style={styles.errorText}
           accessibilityRole="alert"
         >
-          Could not refresh points. Pull down to try again.
+          Could not refresh. Pull down to try again.
         </Text>
       )}
     </View>
@@ -76,6 +77,7 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.surface.base.secondary,
     },
     totalInfo: {
+      flex: 1,
       gap: space['050'],
     },
     infoButton: {

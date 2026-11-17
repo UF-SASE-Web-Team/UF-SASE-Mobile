@@ -1,89 +1,154 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { LeaderboardRow } from '@/components/points/LeaderboardRow';
 import { PointsInfoModal } from '@/components/points/PointsInfoModal';
 import { PointsItem } from '@/components/points/PointsItem';
 import { PointsProgressCard } from '@/components/points/PointsProgressCard';
+import { SemesterStandingCard } from '@/components/points/SemesterStandingCard';
 import { BackButton } from '@/components/ui/BackButton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { usePointsLog } from '@/hooks/usePointsLog';
-import { borderWidth, space, type Colors } from '@/theme';
-import { EventType } from '@/types/events';
+import { space, type Colors } from '@/theme';
+import type { LeaderboardEntry } from '@/types/points';
 
-const EVENT_TYPE_LABELS: Record<EventType, string> = {
-  gbm: 'GBM',
-  career: 'Pro Dev',
-  social: 'Social',
-  service: 'Service',
-  sports: 'Sports',
-  team: 'Team',
-  other: 'Other',
-};
+type PointsTab = 'log' | 'leaderboard';
+
+const TABS = [
+  { label: 'My Points', value: 'log' },
+  { label: 'Leaderboard', value: 'leaderboard' },
+] as const;
+
+/** True when the caller's own row is appended below the top list rather than part of it. */
+function isDetachedRow(entries: LeaderboardEntry[], index: number) {
+  const prev = entries[index - 1];
+  return Boolean(prev) && entries[index].isMe && entries[index].rank > prev.rank + 1;
+}
 
 export default function PointsLogPage() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const [tab, setTab] = useState<PointsTab>('log');
 
-  const { entries, loading, refreshing, error, showInfo, setShowInfo, totalPoints, handleRefresh } =
-    usePointsLog();
+  const points = usePointsLog();
+  const leaderboard = useLeaderboard(tab === 'leaderboard');
+
+  const header = (
+    <View style={styles.listHeader}>
+      <PointsProgressCard
+        totalPoints={points.totalPoints}
+        error={tab === 'log' ? points.error : leaderboard.error}
+        hasData={tab === 'log' ? points.entries.length > 0 : leaderboard.entries.length > 0}
+        onOpenInfo={() => points.setShowInfo(true)}
+      />
+      <SegmentedControl options={TABS} value={tab} onChange={setTab} testID="points-tabs" />
+      {tab === 'leaderboard' && (
+        <View style={styles.standing}>
+          <SemesterStandingCard summary={points.summary} />
+        </View>
+      )}
+    </View>
+  );
+
+  const renderRefresh = (refreshing: boolean, onRefresh: () => void) => (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor={colors.surface.saseBlue.primary}
+    />
+  );
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.header}>
         <BackButton />
         <Text variant="title" style={styles.headerTitle} accessibilityRole="header">
-          Points Log
+          Points
         </Text>
       </View>
 
-      <FlatList
-        data={entries}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={colors.surface.saseBlue.primary}
-          />
-        }
-        ListHeaderComponent={
-          <PointsProgressCard
-            totalPoints={totalPoints}
-            error={error}
-            entriesCount={entries.length}
-            onOpenInfo={() => setShowInfo(true)}
-          />
-        }
-        ListEmptyComponent={
-          loading ? (
-            <ActivityIndicator color={colors.surface.saseBlue.primary} />
-          ) : (
-            <EmptyState
-              icon={error ? 'cloud-offline-outline' : 'star-outline'}
-              tone={error ? 'orange' : 'yellow'}
-              message={error ?? 'No check-ins yet. Check in at an event to earn points!'}
-              actionLabel={error ? undefined : 'Browse events'}
-              onAction={error ? undefined : () => router.push('/events')}
+      {tab === 'log' ? (
+        <FlatList
+          key="log"
+          data={points.entries}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ItemSeparatorComponent={() => <View style={styles.rowGap} />}
+          refreshControl={renderRefresh(points.refreshing, points.handleRefresh)}
+          ListHeaderComponent={header}
+          ListEmptyComponent={
+            points.loading ? (
+              <ActivityIndicator color={colors.surface.saseBlue.primary} />
+            ) : (
+              <EmptyState
+                icon={points.error ? 'cloud-offline-outline' : 'star-outline'}
+                tone={points.error ? 'orange' : 'yellow'}
+                message={points.error ?? 'No check-ins yet. Check in at an event to earn points!'}
+                actionLabel={points.error ? undefined : 'Browse events'}
+                onAction={points.error ? undefined : () => router.push('/events')}
+              />
+            )
+          }
+          renderItem={({ item }) => (
+            <PointsItem
+              title={item.eventTitle}
+              date={item.eventStartsAt}
+              eventType={item.eventType}
+              points={item.pointsValue}
             />
-          )
-        }
-        renderItem={({ item }) => (
-          <PointsItem
-            title={item.eventTitle}
-            date={item.eventStartsAt}
-            category={EVENT_TYPE_LABELS[item.eventType]}
-          />
-        )}
-      />
+          )}
+        />
+      ) : (
+        <FlatList
+          key="leaderboard"
+          data={leaderboard.entries}
+          keyExtractor={(item) => item.userId}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ItemSeparatorComponent={() => <View style={styles.rowGap} />}
+          refreshControl={renderRefresh(leaderboard.refreshing, leaderboard.handleRefresh)}
+          ListHeaderComponent={header}
+          ListEmptyComponent={
+            leaderboard.loading ? (
+              <ActivityIndicator color={colors.surface.saseBlue.primary} />
+            ) : (
+              <EmptyState
+                icon={leaderboard.error ? 'cloud-offline-outline' : 'trophy-outline'}
+                tone={leaderboard.error ? 'orange' : 'yellow'}
+                message={
+                  leaderboard.error ??
+                  'No one has earned points this semester yet. Check in at an event to take the lead!'
+                }
+              />
+            )
+          }
+          renderItem={({ item, index }) => (
+            <View>
+              {isDetachedRow(leaderboard.entries, index) && (
+                <Text
+                  variant="bodyStrong"
+                  color={colors.content.onBase.secondary}
+                  style={styles.ellipsis}
+                  accessibilityElementsHidden
+                  importantForAccessibility="no"
+                >
+                  ⋯
+                </Text>
+              )}
+              <LeaderboardRow entry={item} />
+            </View>
+          )}
+        />
+      )}
 
-      <PointsInfoModal visible={showInfo} onClose={() => setShowInfo(false)} />
+      <PointsInfoModal visible={points.showInfo} onClose={() => points.setShowInfo(false)} />
     </SafeAreaView>
   );
 }
@@ -105,13 +170,21 @@ const createStyles = (colors: Colors) =>
     headerTitle: {
       color: colors.content.onBase.primary,
     },
+    listHeader: {
+      marginBottom: space['400'],
+    },
+    standing: {
+      marginTop: space['400'],
+    },
     listContent: {
       paddingHorizontal: space['400'],
       paddingBottom: space['800'],
     },
-    separator: {
-      height: borderWidth.sm,
-      backgroundColor: colors.border.base.subtle,
-      marginVertical: space['200'],
+    rowGap: {
+      height: space['200'],
+    },
+    ellipsis: {
+      textAlign: 'center',
+      paddingBottom: space['200'],
     },
   });

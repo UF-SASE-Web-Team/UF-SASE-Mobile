@@ -6,7 +6,7 @@ import { useEvents } from '@/context/EventsContext';
 import { useProfile } from '@/context/ProfileContext';
 import { openExternalLink } from '@/lib/links';
 import { getProfileAvatarSource, profileAvatars } from '@/lib/profileAvatars';
-import { getPointsLog } from '@/services/points';
+import { getPointsSummary } from '@/services/points';
 import { getOpenApplicationPrograms, getPrograms } from '@/services/programs';
 import { EventRow, EventWithRsvp } from '@/types/events';
 import { ProgramWithPoCs } from '@/types/programs';
@@ -76,10 +76,10 @@ export function useHomeFeed() {
     if (!user) return;
     let isMounted = true;
 
-    getPointsLog(user.id)
-      .then((entries) => {
+    getPointsSummary()
+      .then((summary) => {
         if (!isMounted) return;
-        setTotalPoints(entries.reduce((sum, e) => sum + e.pointsValue, 0));
+        setTotalPoints(summary.totalPoints);
       })
       .catch(() => {
         if (!isMounted) return;

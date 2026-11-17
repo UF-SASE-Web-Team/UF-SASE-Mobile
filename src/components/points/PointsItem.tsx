@@ -1,58 +1,60 @@
 import { StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { EventTag, TAG_LABELS } from '@/components/events/EventTag';
 import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { iconSize, radius, space, type Colors } from '@/theme';
+import { spellPoints } from '@/lib/points';
+import { borderWidth, radius, space, type Colors } from '@/theme';
+import type { EventType } from '@/types/events';
 
 type PointsItemProps = {
   title: string;
   date: string;
-  category: string;
-  status?: string;
+  eventType: EventType;
+  points: number;
 };
 
-export function PointsItem({
-  title,
-  date,
-  category,
-  status = 'attendance confirmed',
-}: PointsItemProps) {
+/** A check-in on the points log. Mirrors EventCard so attended events look the same everywhere. */
+export function PointsItem({ title, date, eventType, points }: PointsItemProps) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const parsed = new Date(date);
   const month = parsed.toLocaleDateString('en-US', { month: 'short' });
   const day = parsed.getDate();
+  const category = eventType === 'other' ? null : TAG_LABELS[eventType];
 
   return (
     <View
       style={styles.card}
       accessible
-      accessibilityLabel={`${title}, ${category}, ${month} ${day}, ${status}`}
+      accessibilityLabel={[title, category, `${month} ${day}`, spellPoints(points)]
+        .filter(Boolean)
+        .join(', ')}
       testID="points-item"
     >
-      <View style={styles.date}>
-        <Text variant="bodySm">{month}</Text>
-        <Text variant="title">{day}</Text>
+      <View style={styles.dateColumn}>
+        <Text variant="bodySm" color={colors.content.onBase.secondary}>
+          {month}
+        </Text>
+        <Text variant="title" color={colors.content.onBase.secondary}>
+          {day}
+        </Text>
       </View>
 
-      <View style={styles.info}>
-        <Text variant="bodySmStrong" numberOfLines={1}>
+      <View style={styles.infoColumn}>
+        <Text variant="bodyStrong" numberOfLines={2}>
           {title}
         </Text>
-        <View style={styles.row}>
-          <View style={styles.pill}>
-            <Text variant="bodySmStrong" color={colors.content.onAccentSubtle.primary}>
-              {category}
-            </Text>
+        {category ? (
+          <View style={styles.detailsRow}>
+            <EventTag type={eventType} />
           </View>
-          <Text variant="bodySm" color={colors.content.onBase.secondary}>
-            {status}
-          </Text>
-        </View>
+        ) : null}
       </View>
 
-      <View style={styles.check}>
-        <Ionicons name="checkmark" size={iconSize.md} color={colors.content.onMedia.primary} />
+      <View style={styles.pointsChip}>
+        <Text variant="bodyStrong" numberOfLines={1}>
+          +{points}
+        </Text>
       </View>
     </View>
   );
@@ -64,36 +66,36 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: colors.surface.base.secondary,
-      borderRadius: radius.xl,
-      paddingVertical: space['300'],
-      paddingHorizontal: space['400'],
-      gap: space['300'],
+      borderWidth: borderWidth.sm,
+      borderColor: colors.border.base.subtle,
+      borderRadius: radius.lg,
+      paddingVertical: space['200'],
+      paddingHorizontal: space['250'],
     },
-    date: {
-      alignItems: 'center',
-      width: 36,
-    },
-    info: {
-      flex: 1,
-      gap: space['100'],
-    },
-    row: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: space['200'],
-    },
-    pill: {
-      backgroundColor: colors.surface.accentSubtle.primary,
-      borderRadius: radius.full,
-      paddingHorizontal: space['300'],
-      paddingVertical: space['050'],
-    },
-    check: {
-      width: 48,
-      height: 48,
-      borderRadius: radius.full,
-      backgroundColor: colors.surface.success.primary,
+    dateColumn: {
+      minWidth: space['1000'],
       alignItems: 'center',
       justifyContent: 'center',
+      marginRight: space['300'],
+    },
+    infoColumn: {
+      flex: 1,
+      justifyContent: 'center',
+      marginRight: space['300'],
+    },
+    detailsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: space['100'],
+    },
+    pointsChip: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: borderWidth.sm,
+      borderColor: colors.border.base.subtle,
+      borderRadius: radius.md,
+      backgroundColor: colors.surface.base.primary,
+      paddingHorizontal: space['300'],
+      paddingVertical: space['150'],
     },
   });

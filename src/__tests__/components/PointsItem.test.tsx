@@ -21,41 +21,32 @@ describe('PointsItem', () => {
   const baseProps: PointsItemProps = {
     title: 'SASE App Meeting',
     date: '2026-10-05T18:00:00Z',
-    category: 'GBM',
+    eventType: 'gbm',
+    points: 2,
   };
 
-  it('shows the event title and category', async () => {
+  it('describes the event, category, date and points earned', async () => {
     await renderPointsItem(baseProps);
 
-    expect(screen.getByText('SASE App Meeting')).toBeTruthy();
-    expect(screen.getByText('GBM')).toBeTruthy();
+    expect(screen.getByLabelText('SASE App Meeting, GBM, Oct 5, 2 points')).toBeTruthy();
   });
 
-  it('shows the month and day of the event', async () => {
+  it('uses the singular for a one-point event', async () => {
+    await renderPointsItem({ ...baseProps, points: 1 });
+
+    expect(screen.getByLabelText(/, 1 point$/)).toBeTruthy();
+  });
+
+  it('renders the event category tag', async () => {
     await renderPointsItem(baseProps);
 
-    expect(screen.getByText('Oct')).toBeTruthy();
-    expect(screen.getByText('5')).toBeTruthy();
+    expect(screen.getByTestId('event-tag-gbm')).toBeTruthy();
   });
 
-  it('shows "attendance confirmed" by default', async () => {
-    await renderPointsItem(baseProps);
+  it('omits the category for uncategorized events', async () => {
+    await renderPointsItem({ ...baseProps, eventType: 'other' });
 
-    expect(screen.getByText('attendance confirmed')).toBeTruthy();
-  });
-
-  it('shows a custom status when provided', async () => {
-    await renderPointsItem({ ...baseProps, status: 'pending review' });
-
-    expect(screen.getByText('pending review')).toBeTruthy();
-    expect(screen.queryByText('attendance confirmed')).toBeNull();
-  });
-
-  it('has an accessibility label describing the whole card', async () => {
-    await renderPointsItem(baseProps);
-
-    expect(
-      screen.getByLabelText('SASE App Meeting, GBM, Oct 5, attendance confirmed'),
-    ).toBeTruthy();
+    expect(screen.queryByTestId('event-tag-other')).toBeNull();
+    expect(screen.getByLabelText('SASE App Meeting, Oct 5, 2 points')).toBeTruthy();
   });
 });
