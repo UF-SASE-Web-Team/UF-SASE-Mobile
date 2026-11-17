@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { type Colors, radius, space } from '@/theme';
+import { type Colors, borderWidth, radius, space } from '@/theme';
 
 export interface SegmentedControlOption<T extends string> {
   label: string;
@@ -70,6 +70,8 @@ const createStyles = (colors: Colors) =>
       padding: space['100'],
       gap: space['100'],
       borderRadius: radius.full,
+      borderWidth: borderWidth.sm,
+      borderColor: colors.border.base.subtle,
       backgroundColor: colors.surface.base.secondary,
     },
     segment: {

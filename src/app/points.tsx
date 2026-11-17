@@ -6,6 +6,7 @@ import { LeaderboardRow } from '@/components/points/LeaderboardRow';
 import { PointsInfoModal } from '@/components/points/PointsInfoModal';
 import { PointsItem } from '@/components/points/PointsItem';
 import { PointsProgressCard } from '@/components/points/PointsProgressCard';
+import { SemesterStandingCard } from '@/components/points/SemesterStandingCard';
 import { BackButton } from '@/components/ui/BackButton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
@@ -13,7 +14,7 @@ import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { usePointsLog } from '@/hooks/usePointsLog';
-import { borderWidth, space, type Colors } from '@/theme';
+import { space, type Colors } from '@/theme';
 import type { LeaderboardEntry } from '@/types/points';
 
 type PointsTab = 'log' | 'leaderboard';
@@ -41,12 +42,17 @@ export default function PointsLogPage() {
   const header = (
     <View style={styles.listHeader}>
       <PointsProgressCard
-        summary={points.summary}
+        totalPoints={points.totalPoints}
         error={tab === 'log' ? points.error : leaderboard.error}
         hasData={tab === 'log' ? points.entries.length > 0 : leaderboard.entries.length > 0}
         onOpenInfo={() => points.setShowInfo(true)}
       />
       <SegmentedControl options={TABS} value={tab} onChange={setTab} testID="points-tabs" />
+      {tab === 'leaderboard' && (
+        <View style={styles.standing}>
+          <SemesterStandingCard summary={points.summary} />
+        </View>
+      )}
     </View>
   );
 
@@ -74,7 +80,7 @@ export default function PointsLogPage() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          ItemSeparatorComponent={() => <View style={styles.rowGap} />}
           refreshControl={renderRefresh(points.refreshing, points.handleRefresh)}
           ListHeaderComponent={header}
           ListEmptyComponent={
@@ -167,14 +173,12 @@ const createStyles = (colors: Colors) =>
     listHeader: {
       marginBottom: space['400'],
     },
+    standing: {
+      marginTop: space['400'],
+    },
     listContent: {
       paddingHorizontal: space['400'],
       paddingBottom: space['800'],
-    },
-    separator: {
-      height: borderWidth.sm,
-      backgroundColor: colors.border.base.subtle,
-      marginVertical: space['200'],
     },
     rowGap: {
       height: space['200'],

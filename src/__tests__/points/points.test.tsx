@@ -76,6 +76,8 @@ describe('Points page', () => {
     expect(await screen.findByTestId('points-item')).toBeTruthy();
     expect(mocked.getPointsLog).toHaveBeenCalledWith('user-1');
     expect(mocked.getPointsSummary).toHaveBeenCalledTimes(1);
+    // Semester standing only appears on the Leaderboard tab.
+    expect(screen.queryByTestId('semester-standing')).toBeNull();
   });
 
   it('does not hang on a loading state without a signed-in user', async () => {
@@ -96,6 +98,8 @@ describe('Points page', () => {
 
     await waitFor(() => expect(mocked.getPointsLeaderboard).toHaveBeenCalledTimes(1));
     expect(await screen.findByTestId('leaderboard-row')).toBeTruthy();
+
+    expect(screen.getByTestId('semester-standing')).toBeTruthy();
 
     // Switching back and forth reuses the loaded leaderboard.
     await user.press(screen.getByRole('tab', { name: 'My Points' }));

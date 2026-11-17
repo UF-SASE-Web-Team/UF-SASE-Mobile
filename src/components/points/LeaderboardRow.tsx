@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import { formatPoints, spellPoints } from '@/lib/points';
 import { getProfileAvatarSource } from '@/lib/profileAvatars';
 import { type Colors, borderWidth, radius, space } from '@/theme';
 import type { LeaderboardEntry } from '@/types/points';
@@ -22,7 +23,7 @@ export function LeaderboardRow({ entry }: LeaderboardRowProps) {
   const { rank, fullName, username, avatarUrl, points, isMe, userId } = entry;
   const onPodium = rank <= PODIUM_SIZE;
   const name = isMe ? `${fullName} (You)` : fullName;
-  const pointsLabel = `${points} ${points === 1 ? 'point' : 'points'}`;
+  const pointsLabel = spellPoints(points);
 
   return (
     <Pressable
@@ -72,13 +73,11 @@ export function LeaderboardRow({ entry }: LeaderboardRowProps) {
         ) : null}
       </View>
 
-      <Text variant="bodyStrong" color={colors.content.onBase.brand}>
-        {points}
-        <Text variant="bodySm" color={colors.content.onBase.secondary}>
-          {' '}
-          pts
+      <View style={styles.pointsChip}>
+        <Text variant="bodyStrong" numberOfLines={1}>
+          {formatPoints(points)}
         </Text>
-      </Text>
+      </View>
     </Pressable>
   );
 }
@@ -89,15 +88,26 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: space['300'],
-      paddingVertical: space['300'],
-      paddingHorizontal: space['400'],
-      borderRadius: radius.xl,
+      paddingVertical: space['200'],
+      paddingHorizontal: space['250'],
+      borderRadius: radius.md,
+      borderWidth: borderWidth.sm,
+      borderColor: colors.border.base.subtle,
       backgroundColor: colors.surface.base.secondary,
     },
     rowMe: {
-      borderWidth: borderWidth.sm,
       backgroundColor: colors.surface.saseBlueSubtle.primary,
-      borderColor: colors.border.saseBlue.primary,
+      borderColor: colors.surface.saseBlueSubtle.primary,
+    },
+    pointsChip: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: borderWidth.sm,
+      borderColor: colors.border.base.subtle,
+      borderRadius: radius.md,
+      backgroundColor: colors.surface.base.primary,
+      paddingHorizontal: space['300'],
+      paddingVertical: space['150'],
     },
     pressed: {
       opacity: 0.7,
