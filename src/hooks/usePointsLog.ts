@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { getPointsLog } from '@/services/points';
+import { getFriendlyErrorMessage } from '@/lib/errors';
+import { getPointsLog, getUserLeaderboardRank, getUserPointsTotal } from '@/services/points';
 import type { PointsLogEntry } from '@/types/points';
 
 export const FREE_SHIRT_POINTS = 4;
@@ -8,6 +9,8 @@ export const FREE_SHIRT_POINTS = 4;
 export function usePointsLog() {
   const { user } = useAuth();
   const [entries, setEntries] = useState<PointsLogEntry[]>([]);
+  const [totalPointsFromRpc, setTotalPointsFromRpc] = useState<number | null>(null);
+  const [rank, setRank] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -16,15 +19,23 @@ export function usePointsLog() {
   const loadEntries = useCallback(async () => {
     if (!user) {
       setEntries([]);
+      setTotalPointsFromRpc(null);
+      setRank(null);
       return;
     }
     try {
-      const data = await getPointsLog(user.id);
-      setEntries(data);
+      const [entriesData, totalData, rankData] = await Promise.all([
+        getPointsLog(user.id),
+        getUserPointsTotal(user.id).catch(() => null),
+        getUserLeaderboardRank(user.id).catch(() => null),
+      ]);
+      setEntries(entriesData);
+      setTotalPointsFromRpc(totalData);
+      setRank(rankData);
       setError(null);
     } catch (err: any) {
-      console.error('Error fetching points log:', err.message);
-      setError(err.message || 'Failed to load points.');
+      console.warn('Error fetching points log:', err?.message || err);
+      setError(getFriendlyErrorMessage(err, "Couldn't load points."));
     }
   }, [user]);
 
@@ -32,16 +43,22 @@ export function usePointsLog() {
     if (!user) return;
     let isMounted = true;
 
-    getPointsLog(user.id)
-      .then((data) => {
+    Promise.all([
+      getPointsLog(user.id),
+      getUserPointsTotal(user.id).catch(() => null),
+      getUserLeaderboardRank(user.id).catch(() => null),
+    ])
+      .then(([entriesData, totalData, rankData]) => {
         if (!isMounted) return;
-        setEntries(data);
+        setEntries(entriesData);
+        setTotalPointsFromRpc(totalData);
+        setRank(rankData);
         setError(null);
       })
       .catch((err: any) => {
         if (!isMounted) return;
-        console.error('Error fetching points log:', err.message);
-        setError(err.message || 'Failed to load points.');
+        console.warn('Error fetching points log:', err?.message || err);
+        setError(getFriendlyErrorMessage(err, "Couldn't load points."));
       })
       .finally(() => {
         if (!isMounted) return;
@@ -59,10 +76,12 @@ export function usePointsLog() {
     setRefreshing(false);
   };
 
-  const totalPoints = useMemo(
-    () => entries.reduce((sum, entry) => sum + entry.pointsValue, 0),
-    [entries],
-  );
+  const totalPoints = useMemo(() => {
+    if (typeof totalPointsFromRpc === 'number') {
+      return totalPointsFromRpc;
+    }
+    return entries.reduce((sum, entry) => sum + entry.pointsValue, 0);
+  }, [totalPointsFromRpc, entries]);
 
   return {
     entries,
@@ -72,6 +91,7 @@ export function usePointsLog() {
     showInfo,
     setShowInfo,
     totalPoints,
+    rank,
     handleRefresh,
   };
 }

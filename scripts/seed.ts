@@ -51,6 +51,12 @@ export const SEED_TARGETS: readonly SeedTarget[] = [
     description: 'UF SASE official calendar events & links (from 06_events.sql)',
     filePath: path.resolve('supabase/seeds/06_events.sql'),
   },
+  {
+    name: 'points',
+    aliases: ['point', 'rules'],
+    description: 'Points system rules configuration (from 07_points.sql)',
+    filePath: path.resolve('supabase/seeds/07_points.sql'),
+  },
 ] as const;
 
 export interface SeedOptions {

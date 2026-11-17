@@ -87,6 +87,7 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
           <Stack.Screen name="programs/[slug]" />
           <Stack.Screen name="profile" />
           <Stack.Screen name="points" />
+          <Stack.Screen name="leaderboard" />
           <Stack.Screen name="resources/freshman-faqs" />
         </Stack.Protected>
         <Stack.Protected guard={!isAuthenticated}>
