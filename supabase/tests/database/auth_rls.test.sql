@@ -35,6 +35,9 @@ begin
   select id into v_bob_id from auth.users where email = 'bob@gmail.com';
   select id into v_event_id from public.events limit 1;
 
+  -- Start from a known state: drop seeded check-ins (rolled back at the end)
+  delete from public.check_ins where user_id in (v_alice_id, v_bob_id);
+
   -- Create check-ins for Alice and Bob
   insert into public.check_ins (event_id, user_id, method)
   values (v_event_id, v_alice_id, 'code')
