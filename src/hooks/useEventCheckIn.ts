@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { useCameraPermissions } from 'expo-camera';
 import { useAuth } from '@/context/AuthContext';
+import { recordCheckInAndMaybeRequestReview } from '@/lib/storeReview';
 import { checkInToEvent } from '@/services/events';
 
 export interface UseEventCheckInOptions {
@@ -38,6 +39,13 @@ export function useEventCheckIn({
       }
     };
   }, []);
+
+  // The review prompt waits for the alert to be dismissed so the two never stack.
+  const showCheckInSuccess = () => {
+    Alert.alert('Check-in successful!', `You've gained +${pointsValue} points.`, [
+      { text: 'OK', onPress: () => void recordCheckInAndMaybeRequestReview() },
+    ]);
+  };
 
   const handleClose = () => {
     if (isSubmitting) return;
@@ -76,7 +84,7 @@ export function useEventCheckIn({
       setCheckInCode('');
       onSuccess?.();
       onClose?.();
-      Alert.alert('Check-in successful!', `You've gained +${pointsValue} points.`);
+      showCheckInSuccess();
     } catch (err: any) {
       setCheckInError(err.message || 'Invalid check-in code. Please try again.');
     } finally {
@@ -121,7 +129,7 @@ export function useEventCheckIn({
       await checkInToEvent(eventId, payload, method);
       onSuccess?.();
       onClose?.();
-      Alert.alert('Check-in successful!', `You've gained +${pointsValue} points.`);
+      showCheckInSuccess();
     } catch (err: any) {
       setCheckInError(err.message || 'Invalid QR code. Please try again.');
       // Cooldown for 2.5 seconds before allowing another scan attempt
