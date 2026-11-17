@@ -7,6 +7,7 @@ import { HomeHappeningNowSection } from '@/components/home/HomeHappeningNowSecti
 import { HomeHeader } from '@/components/home/HomeHeader';
 import { HomeNextEventSection } from '@/components/home/HomeNextEventSection';
 import { HomeUpcomingEventsSection } from '@/components/home/HomeUpcomingEventsSection';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { useHomeFeed } from '@/hooks/useHomeFeed';
 import { space, type Colors } from '@/theme';
@@ -37,6 +38,9 @@ export default function HomePage() {
     handleRefresh,
   } = useHomeFeed();
 
+  const isFeedEmpty =
+    !activeEvents.length && !upcomingEvents.length && !nextEvent && !openApplicationPrograms.length;
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <HomeHeader
@@ -46,41 +50,50 @@ export default function HomePage() {
         onAvatarError={() => setFailedAvatarUrl(profile?.avatar_url ?? '__fallback__')}
       />
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={colors.surface.saseBlue.primary}
-          />
-        }
-      >
-        <HomeHappeningNowSection
-          events={activeEvents}
-          onCheckInPress={handleCheckInPress}
-          onCardPress={handleCardPress}
-        />
-
-        <HomeNextEventSection
-          event={nextEvent}
-          onPress={handleCardPress}
-          onRsvpPress={handleRsvpPress}
-        />
-
-        <HomeUpcomingEventsSection
-          events={upcomingEvents}
-          loading={loading}
+      {error && isFeedEmpty ? (
+        <ErrorState
           error={error}
-          onCardPress={handleCardPress}
+          title="Couldn't load events"
+          onRetry={handleRefresh}
+          isRetrying={refreshing}
         />
+      ) : (
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.surface.saseBlue.primary}
+            />
+          }
+        >
+          <HomeHappeningNowSection
+            events={activeEvents}
+            onCheckInPress={handleCheckInPress}
+            onCardPress={handleCardPress}
+          />
 
-        <HomeApplicationsSection
-          programs={openApplicationPrograms}
-          onProgramPress={handleProgramPress}
-        />
-      </ScrollView>
+          <HomeNextEventSection
+            event={nextEvent}
+            onPress={handleCardPress}
+            onRsvpPress={handleRsvpPress}
+          />
+
+          <HomeUpcomingEventsSection
+            events={upcomingEvents}
+            loading={loading}
+            error={error}
+            onCardPress={handleCardPress}
+          />
+
+          <HomeApplicationsSection
+            programs={openApplicationPrograms}
+            onProgramPress={handleProgramPress}
+          />
+        </ScrollView>
+      )}
 
       {selectedCheckInEvent && (
         <EventCheckInModal

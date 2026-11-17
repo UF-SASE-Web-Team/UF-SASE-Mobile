@@ -1,14 +1,9 @@
 import React from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { FlatList, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { ApplicationCard } from '@/components/programs/ApplicationCard';
 import { ProgramCard } from '@/components/programs/ProgramCard';
 import { SectionHeader } from '@/components/ui/SectionHeader';
@@ -32,20 +27,23 @@ export default function ProgramsPage() {
     handleCardPress,
   } = useProgramsFeed();
 
-  if (loading) {
+  if (loading && programs.length === 0) {
     return (
-      <SafeAreaView style={styles.centered} edges={['top']}>
-        <ActivityIndicator size="large" color={colors.surface.saseBlue.primary} />
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <LoadingState accessibilityLabel="Loading programs" />
       </SafeAreaView>
     );
   }
 
-  if (error) {
+  if (error && programs.length === 0) {
     return (
-      <SafeAreaView style={styles.centered} edges={['top']}>
-        <Text variant="body" color={colors.content.onDanger.primary}>
-          Failed to load programs: {error}
-        </Text>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <ErrorState
+          error={error}
+          title="Couldn't load programs"
+          onRetry={handleRefresh}
+          isRetrying={refreshing}
+        />
       </SafeAreaView>
     );
   }

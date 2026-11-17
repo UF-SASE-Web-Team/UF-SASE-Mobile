@@ -1,7 +1,9 @@
 import React from 'react';
-import { ActivityIndicator, RefreshControl, SectionList, StyleSheet, View } from 'react-native';
+import { RefreshControl, SectionList, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { EventCard } from '@/components/events/EventCard';
 import { EventCheckInModal } from '@/components/events/EventCheckInModal';
 import { EventFilters } from '@/components/events/EventFilters';
@@ -17,6 +19,7 @@ export default function EventsPage() {
   const styles = useThemedStyles(createStyles);
 
   const {
+    events,
     activeEvents,
     monthSections,
     loading,
@@ -37,20 +40,23 @@ export default function EventsPage() {
     refreshEvents,
   } = useEventsFeed();
 
-  if (loading) {
+  if (loading && events.length === 0) {
     return (
-      <SafeAreaView style={styles.centered} edges={['top']}>
-        <ActivityIndicator size="large" color={colors.surface.saseBlue.primary} />
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <LoadingState accessibilityLabel="Loading events" />
       </SafeAreaView>
     );
   }
 
-  if (error) {
+  if (error && events.length === 0) {
     return (
-      <SafeAreaView style={styles.centered} edges={['top']}>
-        <Text variant="body" color={colors.content.onDanger.primary}>
-          Failed to load events: {error}
-        </Text>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <ErrorState
+          error={error}
+          title="Couldn't load events"
+          onRetry={refreshEvents}
+          isRetrying={refreshing}
+        />
       </SafeAreaView>
     );
   }
@@ -158,7 +164,7 @@ const createStyles = (colors: Colors) =>
     },
     listHeader: {
       gap: space['400'],
-      marginBottom: space['400'],
+      marginBottom: space['300'],
     },
     header: {
       marginBottom: space['000'],
@@ -167,7 +173,7 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: space['400'],
+      marginBottom: space['300'],
     },
     itemSeparator: {
       height: space['400'],

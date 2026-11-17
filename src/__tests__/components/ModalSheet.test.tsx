@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { Keyboard, View } from 'react-native';
 import { render, screen, userEvent } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ModalSheet } from '@/components/ui/ModalSheet';
@@ -81,5 +81,17 @@ describe('ModalSheet', () => {
 
     await user.press(scrim);
     expect(handleClose).not.toHaveBeenCalled();
+  });
+
+  it('registers keyboard listeners to adjust padding when keyboard appears', async () => {
+    const spy = jest.spyOn(Keyboard, 'addListener');
+
+    await renderSheet(
+      <ModalSheet title="Test Sheet" visible onClose={jest.fn()}>
+        <Text variant="body">Content</Text>
+      </ModalSheet>,
+    );
+
+    expect(spy).toHaveBeenCalled();
   });
 });

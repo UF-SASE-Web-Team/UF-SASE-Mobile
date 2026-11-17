@@ -50,7 +50,7 @@ const createStyles = (colors: Colors) =>
     card: {
       flexDirection: 'row',
       paddingVertical: space['300'],
-      borderRadius: radius.md,
+      borderRadius: radius.lg,
       borderWidth: borderWidth.sm,
       borderColor: colors.border.base.subtle,
       backgroundColor: colors.surface.base.secondary,

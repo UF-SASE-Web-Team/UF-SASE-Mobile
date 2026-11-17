@@ -13,7 +13,7 @@ import { EventDetailMeta } from '@/components/events/EventDetailMeta';
 import { EventFlyerViewer } from '@/components/events/EventFlyerViewer';
 import { EventLinksSection } from '@/components/events/EventLinksSection';
 import { BackButton } from '@/components/ui/BackButton';
-import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { useEventDetail } from '@/hooks/useEventDetail';
 import { radius, space, type Colors } from '@/theme';
@@ -48,8 +48,8 @@ export default function EventDetailScreen() {
     handleRsvpPress,
     handleLocationPress,
     handleCheckInSuccess,
-    handleBack,
     handleScrollEndDrag,
+    reloadEvent,
   } = useEventDetail(id);
 
   if (loading) {
@@ -81,14 +81,29 @@ export default function EventDetailScreen() {
 
   if (error || !event) {
     return (
-      <View style={styles.centerContainer}>
-        <EmptyState
-          icon="alert-circle-outline"
-          tone="orange"
-          message={error || 'Event not found.'}
-          actionLabel="Go Back"
-          onAction={handleBack}
+      <View style={styles.container}>
+        <LinearGradient
+          testID="event-backdrop-gradient"
+          colors={[colors.surface.saseBlue.secondary, colors.surface.saseBlue.primary]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.backdropGradient, { height: heroHeight }]}
         />
+        <BackButton
+          variant="onMedia"
+          fallbackRoute="/events"
+          style={[styles.floatingBackButton, { top: insets.top + space['200'] }]}
+        />
+        <View style={[styles.cardContainer, styles.errorCardContainer, { marginTop: sheetTop }]}>
+          <ErrorState
+            error={error}
+            title="Couldn't load event"
+            message={error || 'Event not found.'}
+            onRetry={reloadEvent}
+            actionLabel="Try again"
+            scrollable={false}
+          />
+        </View>
       </View>
     );
   }
@@ -239,11 +254,12 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    centerContainer: {
+    errorCardContainer: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      padding: space['400'],
+      paddingHorizontal: space['500'],
+      paddingBottom: space['800'],
     },
     linksSection: {
       marginBottom: space['400'],

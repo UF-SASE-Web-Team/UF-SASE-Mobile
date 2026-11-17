@@ -132,14 +132,14 @@ export function HappeningNowCard({
 const createStyles = (colors: Colors) => {
   return StyleSheet.create({
     wrapper: {
-      borderRadius: radius.md,
+      borderRadius: radius.lg,
       overflow: 'hidden',
     },
     wrapperPressed: {
       opacity: 0.95,
     },
     container: {
-      borderRadius: radius.md,
+      borderRadius: radius.lg,
       paddingHorizontal: space['400'],
       paddingVertical: space['300'],
     },
@@ -156,7 +156,7 @@ const createStyles = (colors: Colors) => {
       marginBottom: 0,
     },
     subtitleWithButton: {
-      marginBottom: space['400'],
+      marginBottom: space['250'],
     },
     checkInButton: {
       flexDirection: 'row',
@@ -165,6 +165,7 @@ const createStyles = (colors: Colors) => {
       backgroundColor: colors.surface.media.scrim,
       borderRadius: radius.md,
       paddingVertical: space['300'],
+      marginBottom: space['050'],
       gap: space['200'],
     },
     checkInButtonPressed: {

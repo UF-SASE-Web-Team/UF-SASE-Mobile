@@ -170,6 +170,7 @@ export function useEventsFeed() {
   };
 
   return {
+    events,
     activeEvents,
     monthSections,
     loading,

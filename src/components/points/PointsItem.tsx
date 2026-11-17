@@ -68,7 +68,7 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.surface.base.secondary,
       borderWidth: borderWidth.sm,
       borderColor: colors.border.base.subtle,
-      borderRadius: radius.md,
+      borderRadius: radius.lg,
       paddingVertical: space['200'],
       paddingHorizontal: space['250'],
     },

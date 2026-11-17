@@ -1,57 +1,81 @@
 import React from 'react';
-import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Text } from '@/components/ui/Text';
-import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { type Colors, borderWidth, radius, space } from '@/theme';
+import { useThemedStyles, useTheme } from '@/context/ThemeContext';
+import { type Colors, borderWidth, iconSize, radius, space } from '@/theme';
 
-export interface SegmentedControlOption<T extends string> {
-  label: string;
+export interface SegmentedControlOption<T extends string = string> {
   value: T;
+  label: string;
+  icon?: keyof typeof Ionicons.glyphMap;
+  testID?: string;
+  accessibilityLabel?: string;
 }
 
-export interface SegmentedControlProps<T extends string> {
+export interface SegmentedControlProps<T extends string = string> {
   options: readonly SegmentedControlOption<T>[];
   value: T;
   onChange: (value: T) => void;
+  disabled?: boolean;
   style?: StyleProp<ViewStyle>;
   testID?: string;
+  accessibilityRole?: 'tab' | 'radio' | 'button';
 }
 
-/** Pill-shaped tab switcher for flipping between views on one screen. */
-export function SegmentedControl<T extends string>({
+export function SegmentedControl<T extends string = string>({
   options,
   value,
   onChange,
+  disabled = false,
   style,
   testID,
+  accessibilityRole = 'tab',
 }: SegmentedControlProps<T>) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
+  const containerRole = accessibilityRole === 'radio' ? 'radiogroup' : 'tablist';
+
   return (
-    <View style={[styles.track, style]} accessibilityRole="tablist" testID={testID}>
+    <View style={[styles.container, style]} accessibilityRole={containerRole} testID={testID}>
       {options.map((option) => {
-        const selected = option.value === value;
+        const isSelected = value === option.value;
+        const itemAccessibilityState =
+          accessibilityRole === 'radio'
+            ? { checked: isSelected, disabled }
+            : { selected: isSelected, disabled };
+
         return (
           <Pressable
             key={option.value}
-            accessibilityRole="tab"
-            accessibilityState={{ selected }}
-            accessibilityLabel={option.label}
+            testID={option.testID ?? (testID ? `${testID}-${option.value}` : undefined)}
+            accessibilityRole={accessibilityRole}
+            accessibilityLabel={option.accessibilityLabel ?? option.label}
+            accessibilityState={itemAccessibilityState}
+            disabled={disabled}
             onPress={() => {
-              if (!selected) onChange(option.value);
+              if (!isSelected) onChange(option.value);
             }}
             style={({ pressed }) => [
-              styles.segment,
-              selected && styles.segmentSelected,
-              pressed && !selected && styles.pressed,
+              styles.button,
+              isSelected && styles.buttonActive,
+              pressed && !disabled && styles.buttonPressed,
+              disabled && styles.buttonDisabled,
             ]}
           >
+            {option.icon ? (
+              <Ionicons
+                name={option.icon}
+                size={iconSize.sm}
+                color={
+                  isSelected ? colors.content.onBase.saseDarkBlue : colors.content.onBase.secondary
+                }
+              />
+            ) : null}
             <Text
               variant="bodySmStrong"
-              color={
-                selected ? colors.content.onSaseBlueSubtle.primary : colors.content.onBase.secondary
-              }
+              color={isSelected ? colors.content.onBase.primary : colors.content.onBase.secondary}
               numberOfLines={1}
             >
               {option.label}
@@ -65,27 +89,39 @@ export function SegmentedControl<T extends string>({
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    track: {
+    container: {
       flexDirection: 'row',
+      backgroundColor: colors.surface.base.secondary,
+      borderRadius: radius.full,
       padding: space['100'],
       gap: space['100'],
-      borderRadius: radius.full,
-      borderWidth: borderWidth.sm,
-      borderColor: colors.border.base.subtle,
-      backgroundColor: colors.surface.base.secondary,
+      width: '100%',
     },
-    segment: {
+    button: {
       flex: 1,
+      flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       paddingVertical: space['200'],
-      paddingHorizontal: space['300'],
+      paddingHorizontal: space['150'],
       borderRadius: radius.full,
+      gap: space['150'],
+      borderWidth: borderWidth.sm,
+      borderColor: 'transparent',
     },
-    segmentSelected: {
-      backgroundColor: colors.surface.saseBlueSubtle.primary,
+    buttonActive: {
+      backgroundColor: colors.surface.base.primary,
+      borderColor: colors.border.base.subtle,
+      shadowColor: colors.surface.media.backdrop,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.06,
+      shadowRadius: 3,
+      elevation: 1,
     },
-    pressed: {
-      opacity: 0.7,
+    buttonPressed: {
+      opacity: 0.8,
+    },
+    buttonDisabled: {
+      opacity: 0.5,
     },
   });

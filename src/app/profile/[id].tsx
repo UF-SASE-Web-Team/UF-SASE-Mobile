@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { BackButton } from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/Button';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { ProfileDetails } from '@/components/profile/ProfileDetails';
 import { ProfileHero } from '@/components/profile/ProfileHero';
 import { ProfileScreen } from '@/components/profile/ProfileScreen';
@@ -12,7 +15,15 @@ import { useAuth } from '@/context/AuthContext';
 import { getProfileError } from '@/context/ProfileContext';
 import { blockMember, isMemberBlocked, unblockMember } from '@/services/moderation';
 import { getProfile } from '@/services/profiles';
-import { useTheme, useThemedStyles, space } from '@/theme';
+import {
+  borderWidth,
+  iconSize,
+  radius,
+  space,
+  useTheme,
+  useThemedStyles,
+  type Colors,
+} from '@/theme';
 import type { ProfileWithPrograms } from '@/types/profiles';
 
 export default function PublicProfilePage() {
@@ -31,10 +42,8 @@ export default function PublicProfilePage() {
 
   const isOwnProfile = Boolean(user?.id && id && user.id === id);
 
-  useEffect(() => {
+  const fetchProfile = useCallback(() => {
     if (!id) return;
-
-    let isMounted = true;
 
     // A failed block lookup should not hide an otherwise loadable profile.
     const blockStatus = isOwnProfile
@@ -43,24 +52,27 @@ export default function PublicProfilePage() {
 
     Promise.all([getProfile(id), blockStatus])
       .then(([data, isBlocked]) => {
-        if (!isMounted) return;
         setProfile(data);
         setBlocked(isBlocked);
         setError(null);
       })
       .catch((err) => {
-        if (!isMounted) return;
         console.warn('Error loading profile:', err?.message || err);
         setError(err?.message || 'Could not load profile.');
       })
       .finally(() => {
-        if (isMounted) setLoading(false);
+        setLoading(false);
       });
-
-    return () => {
-      isMounted = false;
-    };
   }, [id, isOwnProfile]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  const handleRetry = () => {
+    setLoading(true);
+    fetchProfile();
+  };
 
   const setBlock = async (shouldBlock: boolean) => {
     if (!id) return;
@@ -90,13 +102,14 @@ export default function PublicProfilePage() {
   if (!id) {
     return (
       <ProfileScreen>
-        <View style={styles.centered} testID="public-profile-error">
-          <Text variant="title">Profile unavailable</Text>
-          <Text variant="body" color={colors.content.onBase.secondary}>
-            No profile ID provided.
-          </Text>
+        <ErrorState
+          title="Profile unavailable"
+          message="No profile ID provided."
+          scrollable={false}
+          testID="public-profile-error"
+        >
           <BackButton fallbackRoute="/(tabs)" />
-        </View>
+        </ErrorState>
       </ProfileScreen>
     );
   }
@@ -104,9 +117,7 @@ export default function PublicProfilePage() {
   if (loading) {
     return (
       <ProfileScreen>
-        <View style={styles.centered} testID="public-profile-loading">
-          <ActivityIndicator size="large" color={colors.surface.saseBlue.primary} />
-        </View>
+        <LoadingState accessibilityLabel="Loading profile" testID="public-profile-loading" />
       </ProfileScreen>
     );
   }
@@ -114,46 +125,75 @@ export default function PublicProfilePage() {
   if (error || !profile) {
     return (
       <ProfileScreen>
-        <View style={styles.centered} testID="public-profile-error">
-          <Text variant="title">Profile unavailable</Text>
-          <Text variant="body" color={colors.content.onBase.secondary}>
-            {error || 'This user profile could not be found.'}
-          </Text>
+        <ErrorState
+          error={error}
+          title="Profile unavailable"
+          message={error || 'This user profile could not be found.'}
+          onRetry={handleRetry}
+          scrollable={false}
+          testID="public-profile-error"
+        >
           <BackButton fallbackRoute="/(tabs)" />
-        </View>
+        </ErrorState>
       </ProfileScreen>
     );
   }
 
-  const moderationFooter = (
-    <View style={styles.actions}>
-      {blocked && (
-        <Button onPress={() => setBlock(false)} variant="secondary" loading={blockBusy}>
-          {blockBusy ? 'Unblocking...' : 'Unblock Member'}
-        </Button>
-      )}
-      <Button onPress={() => setReporting(true)} variant="ghost" disabled={blockBusy}>
-        Report Member
-      </Button>
-      {!blocked && (
-        <Button onPress={confirmBlock} variant="ghost" loading={blockBusy}>
-          {blockBusy ? 'Blocking...' : 'Block Member'}
-        </Button>
-      )}
+  const moderationHeader = (
+    <View style={styles.headerActions}>
+      <Pressable
+        testID="report-member-button"
+        accessibilityRole="button"
+        accessibilityLabel="Report Member"
+        disabled={blockBusy}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        onPress={() => setReporting(true)}
+        style={({ pressed }) => [
+          styles.headerButton,
+          pressed && !blockBusy && styles.pressed,
+          blockBusy && styles.disabled,
+        ]}
+      >
+        <Ionicons name="flag-outline" size={iconSize.md} color={colors.content.onBase.primary} />
+      </Pressable>
+
+      <Pressable
+        testID="block-member-button"
+        accessibilityRole="button"
+        accessibilityLabel={blocked ? 'Unblock Member' : 'Block Member'}
+        accessibilityState={{ disabled: blockBusy, busy: blockBusy }}
+        disabled={blockBusy}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        onPress={blocked ? () => setBlock(false) : confirmBlock}
+        style={({ pressed }) => [
+          styles.headerButton,
+          pressed && !blockBusy && styles.pressed,
+          blockBusy && styles.disabled,
+        ]}
+      >
+        {blockBusy ? (
+          <ActivityIndicator size="small" color={colors.content.onBase.primary} />
+        ) : (
+          <Ionicons
+            name={blocked ? 'ban' : 'ban-outline'}
+            size={iconSize.md}
+            color={colors.content.onBase.primary}
+          />
+        )}
+      </Pressable>
     </View>
   );
 
   return (
     <ProfileScreen
       onEdit={isOwnProfile ? () => router.push('/profile/edit') : undefined}
+      headerRight={isOwnProfile ? undefined : moderationHeader}
       footer={
         isOwnProfile ? (
           <Button size="lg" onPress={() => router.push('/profile/settings')}>
-            Account Settings
+            Settings
           </Button>
-        ) : (
-          moderationFooter
-        )
+        ) : undefined
       }
     >
       {blocked ? (
@@ -187,7 +227,7 @@ export default function PublicProfilePage() {
   );
 }
 
-const createStyles = () =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     centered: {
       flex: 1,
@@ -197,5 +237,25 @@ const createStyles = () =>
       paddingVertical: space['1200'],
     },
     centeredText: { textAlign: 'center' },
-    actions: { gap: space['100'] },
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space['200'],
+    },
+    headerButton: {
+      width: 40,
+      height: 40,
+      borderRadius: radius.full,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surface.base.secondary,
+      borderWidth: borderWidth.sm,
+      borderColor: colors.border.base.subtle,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+    disabled: {
+      opacity: 0.5,
+    },
   });

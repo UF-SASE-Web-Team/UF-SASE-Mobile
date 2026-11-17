@@ -48,6 +48,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      app_feedback: {
+        Row: {
+          category: string;
+          created_at: string;
+          id: string;
+          message: string;
+          metadata: NonNullable<Json>;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          category: string;
+          created_at?: string;
+          id?: string;
+          message: string;
+          metadata?: NonNullable<Json>;
+          user_id: string;
+        };
+        Update: {
+          category?: string;
+          created_at?: string;
+          id?: string;
+          message?: string;
+          metadata?: NonNullable<Json>;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'app_feedback_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       app_settings: {
         Row: {
           key: string;

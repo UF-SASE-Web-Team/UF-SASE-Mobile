@@ -6,6 +6,8 @@ import { ProgramDetailsContent } from '@/components/programs/ProgramDetailsConte
 import { ProgramHeroBanner } from '@/components/programs/ProgramHeroBanner';
 import { BackButton } from '@/components/ui/BackButton';
 import { ContactItem } from '@/components/ui/ContactList';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { useThemedStyles } from '@/context/ThemeContext';
 import { useProgramDetail } from '@/hooks/useProgramDetail';
 import { space, type Colors } from '@/theme';
@@ -18,10 +20,18 @@ export default function ProgramDetailScreen({ onContactPress }: ProgramDetailScr
   const { slug, name: paramName } = useLocalSearchParams<{ slug: string; name?: string }>();
   const styles = useThemedStyles(createStyles);
 
-  const { programName, description, action, pocContacts, openAction } = useProgramDetail(
-    slug,
-    paramName,
-  );
+  const {
+    program,
+    programName,
+    description,
+    action,
+    pocContacts,
+    loading,
+    error,
+    isRetrying,
+    reloadProgram,
+    openAction,
+  } = useProgramDetail(slug, paramName);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -29,17 +39,32 @@ export default function ProgramDetailScreen({ onContactPress }: ProgramDetailScr
         <BackButton fallbackRoute="/programs" />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <ProgramHeroBanner programName={programName} />
-
-        <ProgramDetailsContent
-          description={description}
-          action={action}
-          pocContacts={pocContacts}
-          onOpenAction={openAction}
-          onContactPress={onContactPress}
+      {loading ? (
+        <LoadingState accessibilityLabel="Loading program details" />
+      ) : error || !program ? (
+        <ErrorState
+          error={error}
+          title="Couldn't load program"
+          message={error || 'Program not found.'}
+          onRetry={reloadProgram}
+          isRetrying={isRetrying}
         />
-      </ScrollView>
+      ) : (
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <ProgramHeroBanner programName={programName} />
+
+          <ProgramDetailsContent
+            description={description}
+            action={action}
+            pocContacts={pocContacts}
+            onOpenAction={openAction}
+            onContactPress={onContactPress}
+          />
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }

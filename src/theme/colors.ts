@@ -16,7 +16,12 @@ export type Colors = {
   };
   // text, icons
   content: {
-    onBase: { primary: string; secondary: string; brand: string };
+    onBase: {
+      primary: string;
+      secondary: string;
+      brand: string;
+      saseDarkBlue: string;
+    };
     onInverse: { primary: string };
     onSaseBlue: { primary: string; secondary: string };
     onSaseBlueSubtle: { primary: string };
@@ -65,7 +70,12 @@ export const lightColors: Colors = {
     media: { scrim: p.black[600], backdrop: p.black[1000] },
   },
   content: {
-    onBase: { primary: p.gray[900], secondary: p.gray[600], brand: p.sase.blue[800] },
+    onBase: {
+      primary: p.gray[900],
+      secondary: p.gray[600],
+      brand: p.sase.blue[800],
+      saseDarkBlue: p.sase.blue[1000],
+    },
     onInverse: { primary: p.gray[100] },
     // saseBlue: { primary: p.sase.blue[1000] },
     onSaseBlue: { primary: p.sase.blue[1000], secondary: p.white[1000] },
@@ -125,7 +135,12 @@ export const darkColors: Colors = {
     media: { scrim: p.black[600], backdrop: p.black[1000] },
   },
   content: {
-    onBase: { primary: p.white[700], secondary: p.white[1000], brand: p.sase.blue[500] },
+    onBase: {
+      primary: p.white[700],
+      secondary: p.white[1000],
+      brand: p.sase.blue[500],
+      saseDarkBlue: p.sase.blue[500],
+    },
     onInverse: { primary: p.gray[1000] },
     // saseBlue: { primary: p.sase.blue[500] },
     onSaseBlue: { primary: p.sase.blue[1000], secondary: p.white[1000] },

@@ -23,7 +23,7 @@ export function ProfileCard({
   const styles = useThemedStyles(createStyles);
   const content = <View style={[styles.card, style]}>{children}</View>;
   return editing ? (
-    <View style={styles.border}>{content}</View>
+    content
   ) : (
     <LinearGradient
       colors={[colors.surface.saseBlue.secondary, colors.surface.saseBlue.primary]}

@@ -72,7 +72,7 @@ describe('Profile', () => {
     await renderProfile();
     await user.press(screen.getByRole('button', { name: 'Edit profile' }));
     expect(push).toHaveBeenCalledWith('/profile/edit');
-    await user.press(screen.getByRole('button', { name: 'Account Settings' }));
+    await user.press(screen.getByRole('button', { name: 'Settings' }));
     expect(push).toHaveBeenCalledWith('/profile/settings');
     await user.press(screen.getByRole('button', { name: 'Back' }));
     expect(back).toHaveBeenCalled();

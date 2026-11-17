@@ -25,7 +25,11 @@ insert into auth.users (
 )
 select
   '00000000-0000-0000-0000-000000000000',
-  uuid_generate_v4(),
+  case
+    when u.name = 'alice' then '00000000-0000-0000-0000-000000000001'::uuid
+    when u.name = 'bob' then '00000000-0000-0000-0000-000000000002'::uuid
+    else uuid_generate_v4()
+  end,
   'authenticated',
   'authenticated',
   u.name || '@gmail.com',
@@ -127,5 +131,19 @@ where reporter.username = 'bob' and reported.username = 'alice'
   and not exists (
     select 1 from public.profile_reports where reporter_id = reporter.id and reported_id = reported.id
   );
+
+-- Sample feedback from Alice
+insert into public.app_feedback (user_id, category, message, metadata)
+select
+  id,
+  'general',
+  'Loving the new points and leaderboard features! Great job team.',
+  jsonb_build_object('platform', 'ios', 'app_version', '1.1.0')
+from public.profiles
+where username = 'alice'
+and not exists (
+  select 1 from public.app_feedback where message like 'Loving the new points%'
+);
+
 
 

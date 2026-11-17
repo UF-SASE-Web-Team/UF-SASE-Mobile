@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ContactItem } from '@/components/ui/ContactList';
+import { getFriendlyErrorMessage } from '@/lib/errors';
 import { openExternalLink } from '@/lib/links';
 import { getProgramAction, getProgramBySlug } from '@/services/programs';
 import { ProgramWithPoCs } from '@/types/programs';
@@ -14,27 +15,58 @@ function formatSlugToName(slug?: string) {
 
 export function useProgramDetail(slug?: string, paramName?: string) {
   const [program, setProgram] = useState<ProgramWithPoCs | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(slug));
+  const [error, setError] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   useEffect(() => {
-    if (!slug) return;
     let isMounted = true;
+    if (!slug) return;
+
     getProgramBySlug(slug)
       .then((data) => {
-        if (isMounted && data) {
-          setProgram(data);
+        if (!isMounted) return;
+        if (!data) {
+          setProgram(null);
+          setError('Program not found.');
+          return;
         }
+        setProgram(data);
+        setError(null);
       })
-      .catch((err) => {
-        console.warn('Error fetching program:', err.message);
+      .catch((err: any) => {
+        if (!isMounted) return;
+        console.warn('Error fetching program:', err?.message || err);
+        setError(getFriendlyErrorMessage(err, "Couldn't load program."));
       })
       .finally(() => {
-        if (isMounted) setLoading(false);
+        if (!isMounted) return;
+        setLoading(false);
       });
 
     return () => {
       isMounted = false;
     };
+  }, [slug]);
+
+  const reloadProgram = useCallback(async () => {
+    if (!slug) return;
+    setIsRetrying(true);
+    try {
+      const data = await getProgramBySlug(slug);
+      if (!data) {
+        setProgram(null);
+        setError('Program not found.');
+        return;
+      }
+      setProgram(data);
+      setError(null);
+    } catch (err: any) {
+      console.warn('Error fetching program:', err?.message || err);
+      setError(getFriendlyErrorMessage(err, "Couldn't load program."));
+    } finally {
+      setIsRetrying(false);
+    }
   }, [slug]);
 
   const programName = paramName || program?.name || formatSlugToName(slug);
@@ -64,6 +96,9 @@ export function useProgramDetail(slug?: string, paramName?: string) {
     action,
     pocContacts,
     loading,
+    error,
+    isRetrying,
+    reloadProgram,
     openAction,
   };
 }

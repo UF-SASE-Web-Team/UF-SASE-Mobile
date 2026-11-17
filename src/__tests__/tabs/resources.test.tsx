@@ -197,6 +197,7 @@ describe('ResourcesPage', () => {
 
     await renderResourcesPage();
 
-    expect(screen.getByText('Failed to load resources: Network error')).toBeTruthy();
+    expect(screen.getByText("Couldn't load resources")).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy();
   });
 });

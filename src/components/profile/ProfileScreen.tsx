@@ -10,7 +10,6 @@ import {
   type ReactNode,
 } from 'react';
 import {
-  ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
   type KeyboardEvent,
@@ -25,7 +24,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { BackButton } from '@/components/ui/BackButton';
 import { CloseButton } from '@/components/ui/CloseButton';
 import { Text } from '@/components/ui/Text';
-import { Button } from '@/components/ui/Button';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { useProfile } from '@/context/ProfileContext';
 import { useThemedStyles, useTheme, type Colors, iconSize, space } from '@/theme';
 
@@ -40,6 +40,7 @@ interface ProfileScreenProps {
   backLabel?: string;
   footer?: ReactNode;
   scrollViewRef?: React.RefObject<ScrollView | null>;
+  keyboardDismissMode?: 'none' | 'on-drag' | 'interactive';
 }
 
 export type ProfileModalContextType = {
@@ -75,6 +76,7 @@ export function ProfileScreen({
   backLabel = 'Back',
   footer,
   scrollViewRef,
+  keyboardDismissMode,
 }: ProfileScreenProps) {
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
@@ -179,7 +181,9 @@ export function ProfileScreen({
             ref={scrollViewRef}
             contentContainerStyle={[styles.scrollContent, { paddingBottom: scrollPaddingBottom }]}
             keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
+            keyboardDismissMode={
+              keyboardDismissMode ?? (Platform.OS === 'ios' ? 'interactive' : 'on-drag')
+            }
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.content}>{children}</View>
@@ -196,26 +200,19 @@ export function ProfileScreen({
 
 export function ProfileLoadingState() {
   const { isLoading, error, reload } = useProfile();
-  const { colors } = useTheme();
-  const styles = useThemedStyles(createStyles);
   return (
     <ProfileScreen>
-      <View style={styles.status}>
-        {isLoading ? (
-          <ActivityIndicator
-            accessibilityLabel="Loading profile"
-            color={colors.surface.saseBlue.primary}
-          />
-        ) : (
-          <>
-            <Text variant="title">Profile unavailable</Text>
-            <Text variant="body" accessibilityRole="alert">
-              {error ?? 'Please sign in to view your profile.'}
-            </Text>
-            <Button onPress={reload}>Try again</Button>
-          </>
-        )}
-      </View>
+      {isLoading ? (
+        <LoadingState accessibilityLabel="Loading profile" />
+      ) : (
+        <ErrorState
+          error={error}
+          title="Profile unavailable"
+          message={error ?? 'Please sign in to view your profile.'}
+          onRetry={reload}
+          scrollable={false}
+        />
+      )}
     </ProfileScreen>
   );
 }

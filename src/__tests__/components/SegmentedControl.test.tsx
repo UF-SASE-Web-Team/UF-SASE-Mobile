@@ -1,50 +1,95 @@
 import React from 'react';
 import { render, screen, userEvent } from '@testing-library/react-native';
-import { SegmentedControl } from '@/components/ui/SegmentedControl';
+import { SegmentedControl, type SegmentedControlOption } from '@/components/ui/SegmentedControl';
 import { ThemeProvider } from '@/context/ThemeContext';
 
-const OPTIONS = [
-  { label: 'First', value: 'first' },
-  { label: 'Second', value: 'second' },
-] as const;
-
-function renderControl(onChange = jest.fn()) {
-  return render(
-    <ThemeProvider>
-      <SegmentedControl options={OPTIONS} value="first" onChange={onChange} />
-    </ThemeProvider>,
-  );
-}
-
 describe('SegmentedControl', () => {
-  it('marks only the active option as selected', async () => {
-    await renderControl();
+  const options: SegmentedControlOption<'opt1' | 'opt2' | 'opt3'>[] = [
+    { value: 'opt1', label: 'Option 1', icon: 'star' },
+    { value: 'opt2', label: 'Option 2', icon: 'heart' },
+    { value: 'opt3', label: 'Option 3' },
+  ];
 
-    expect(screen.getByRole('tab', { name: 'First' }).props.accessibilityState).toEqual(
-      expect.objectContaining({ selected: true }),
+  it('renders all options with appropriate labels and roles', async () => {
+    const onChange = jest.fn();
+    await render(
+      <ThemeProvider initialMode="light">
+        <SegmentedControl options={options} value="opt1" onChange={onChange} />
+      </ThemeProvider>,
     );
-    expect(screen.getByRole('tab', { name: 'Second' }).props.accessibilityState).toEqual(
-      expect.objectContaining({ selected: false }),
-    );
+
+    expect(screen.getByRole('tab', { name: 'Option 1' })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Option 2' })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Option 3' })).toBeTruthy();
   });
 
-  it('reports the newly chosen option', async () => {
+  it('calls onChange when an option is pressed', async () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
-    await renderControl(onChange);
+    await render(
+      <ThemeProvider initialMode="light">
+        <SegmentedControl options={options} value="opt1" onChange={onChange} />
+      </ThemeProvider>,
+    );
 
-    await user.press(screen.getByRole('tab', { name: 'Second' }));
-
-    expect(onChange).toHaveBeenCalledWith('second');
+    await user.press(screen.getByRole('tab', { name: 'Option 2' }));
+    expect(onChange).toHaveBeenCalledWith('opt2');
   });
 
+  it('does not trigger onChange when disabled', async () => {
+    const user = userEvent.setup();
+    const onChange = jest.fn();
+    await render(
+      <ThemeProvider initialMode="light">
+        <SegmentedControl options={options} value="opt1" onChange={onChange} disabled />
+      </ThemeProvider>,
+    );
+
+    await user.press(screen.getByRole('tab', { name: 'Option 2' }));
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('supports radio accessibility role', async () => {
+    const onChange = jest.fn();
+    await render(
+      <ThemeProvider initialMode="light">
+        <SegmentedControl
+          options={options}
+          value="opt1"
+          onChange={onChange}
+          accessibilityRole="radio"
+        />
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByRole('radio', { name: 'Option 1' })).toBeTruthy();
+    expect(screen.getByRole('radio', { name: 'Option 2' })).toBeTruthy();
+  });
   it('ignores presses on the option that is already selected', async () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
-    await renderControl(onChange);
+    await render(
+      <ThemeProvider initialMode="light">
+        <SegmentedControl options={options} value="opt1" onChange={onChange} />
+      </ThemeProvider>,
+    );
 
-    await user.press(screen.getByRole('tab', { name: 'First' }));
-
+    await user.press(screen.getByRole('tab', { name: 'Option 1' }));
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('marks only the active option as selected', async () => {
+    await render(
+      <ThemeProvider initialMode="light">
+        <SegmentedControl options={options} value="opt2" onChange={jest.fn()} />
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByRole('tab', { name: 'Option 2' }).props.accessibilityState).toEqual(
+      expect.objectContaining({ selected: true }),
+    );
+    expect(screen.getByRole('tab', { name: 'Option 1' }).props.accessibilityState).toEqual(
+      expect.objectContaining({ selected: false }),
+    );
   });
 });

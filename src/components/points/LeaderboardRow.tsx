@@ -90,7 +90,7 @@ const createStyles = (colors: Colors) =>
       gap: space['300'],
       paddingVertical: space['200'],
       paddingHorizontal: space['250'],
-      borderRadius: radius.md,
+      borderRadius: radius.lg,
       borderWidth: borderWidth.sm,
       borderColor: colors.border.base.subtle,
       backgroundColor: colors.surface.base.secondary,

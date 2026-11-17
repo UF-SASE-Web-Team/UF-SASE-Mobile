@@ -94,10 +94,71 @@ describe('ProgramDetailScreen', () => {
 
   it('formats slug into title when name param is not passed', async () => {
     (useLocalSearchParams as jest.Mock).mockReturnValue({ slug: 'intramural-sports' });
+    (programsService.getProgramBySlug as jest.Mock).mockResolvedValue({
+      id: 'prog-intramural',
+      slug: 'intramural-sports',
+      name: '',
+      description: 'Intramural sports at UF',
+      pocs: [],
+    });
+    await renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByText('Intramural Sports')).toBeTruthy();
+    });
+  });
+
+  it('renders loading indicator initially with back button present', async () => {
+    (programsService.getProgramBySlug as jest.Mock).mockReturnValue(new Promise(() => {}));
+    await renderScreen();
+
+    expect(screen.getByRole('button', { name: 'Go back' })).toBeTruthy();
+    expect(screen.getByLabelText('Loading program details')).toBeTruthy();
+  });
+
+  it('renders error state when program is not found while keeping back button visible', async () => {
+    (useLocalSearchParams as jest.Mock).mockReturnValue({ slug: 'nonexistent-program' });
     (programsService.getProgramBySlug as jest.Mock).mockResolvedValue(null);
     await renderScreen();
 
-    expect(screen.getByText('Intramural Sports')).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText("Couldn't load program")).toBeTruthy();
+      expect(screen.getByText('Program not found.')).toBeTruthy();
+    });
+    expect(screen.getByRole('button', { name: 'Go back' })).toBeTruthy();
+  });
+
+  it('renders error state and retries fetching when error occurs', async () => {
+    (programsService.getProgramBySlug as jest.Mock).mockRejectedValueOnce(
+      new Error('fetch failed: network error'),
+    );
+    const user = userEvent.setup();
+    await renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByText("Couldn't load program")).toBeTruthy();
+      expect(
+        screen.getByText(
+          'Unable to connect to SASE servers. Please check your internet connection and try again.',
+        ),
+      ).toBeTruthy();
+    });
+    expect(screen.getByRole('button', { name: 'Go back' })).toBeTruthy();
+
+    (programsService.getProgramBySlug as jest.Mock).mockResolvedValueOnce({
+      id: 'prog-interns',
+      name: 'SASE Interns',
+      slug: 'sase-interns',
+      description: 'Interns program description',
+      pocs: [],
+    });
+
+    const retryBtn = screen.getByRole('button', { name: 'Try again' });
+    await user.press(retryBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Interns program description')).toBeTruthy();
+    });
   });
 
   it('navigates back when back button is pressed', async () => {

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
+import { getFriendlyErrorMessage } from '@/lib/errors';
 import { getOpenApplicationPrograms, getPrograms } from '@/services/programs';
 import { ProgramCategory, ProgramWithPoCs } from '@/types/programs';
 
@@ -45,8 +46,8 @@ export function useProgramsFeed() {
       })
       .catch((err: any) => {
         if (!isMounted) return;
-        console.error('Error fetching programs:', err.message);
-        setError(err.message);
+        console.warn('Error fetching programs:', err?.message || err);
+        setError(getFriendlyErrorMessage(err, "Couldn't load programs."));
       })
       .finally(() => {
         if (!isMounted) return;
@@ -65,8 +66,8 @@ export function useProgramsFeed() {
       setPrograms(formattedPrograms);
       setError(null);
     } catch (err: any) {
-      console.error('Error fetching programs:', err.message);
-      setError(err.message);
+      console.warn('Error fetching programs:', err?.message || err);
+      setError(getFriendlyErrorMessage(err, "Couldn't load programs."));
     } finally {
       setRefreshing(false);
     }

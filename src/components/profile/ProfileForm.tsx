@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Input } from '@/components/ui/Input';
@@ -68,6 +68,7 @@ interface ProfileFormProps {
   /** `optional` leaves out the required fields (full name and UFID). */
   variant?: 'full' | 'optional';
   onBioFocus?: () => void;
+  onFieldFocus?: (key: keyof ProfileDraft | string, relativeY: number) => void;
 }
 
 export function ProfileForm({
@@ -76,19 +77,45 @@ export function ProfileForm({
   disabled,
   variant = 'full',
   onBioFocus,
+  onFieldFocus,
 }: ProfileFormProps) {
   const [selection, setSelection] = useState<SelectKey | null>(null);
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
 
-  const renderField = (field: ProfileField) => {
+  const cardOffsets = useRef<Record<string, number>>({});
+  const fieldOffsets = useRef<Record<string, number>>({});
+
+  const handleCardLayout = (card: string, y: number) => {
+    cardOffsets.current[card] = y;
+  };
+
+  const handleFieldLayout = (key: string, y: number) => {
+    fieldOffsets.current[key] = y;
+  };
+
+  const handleFocus = (card: string, key: string) => {
+    const cardY = cardOffsets.current[card] ?? 0;
+    const fieldY = fieldOffsets.current[key] ?? 0;
+    const relativeY = cardY + fieldY;
+    onFieldFocus?.(key, relativeY);
+    if (key === 'bio') {
+      onBioFocus?.();
+    }
+  };
+
+  const renderField = (field: ProfileField, card: string) => {
     const { key } = field;
     const isSelect = key === 'majors' || key === 'minors';
     const selectValues = [draft[key]].flat().filter(Boolean);
     const selectDisplayText = selectValues.join(', ');
 
     return (
-      <View key={key} style={styles.fieldItem}>
+      <View
+        key={key}
+        style={styles.fieldItem}
+        onLayout={(e) => handleFieldLayout(key, e.nativeEvent.layout.y)}
+      >
         <View style={styles.fieldHeader}>
           <Ionicons name={field.icon} size={iconSize.sm} color={colors.content.onBase.secondary} />
           <Text variant="bodyStrong" style={styles.fieldLabel}>
@@ -180,6 +207,7 @@ export function ProfileForm({
             }
             containerStyle={styles.inputContainer}
             inputStyle={styles.input}
+            onFocus={() => handleFocus(card, key)}
             rightIcon={
               Boolean(draft[key]?.length) ? (
                 <Pressable
@@ -210,50 +238,61 @@ export function ProfileForm({
 
   return (
     <View style={styles.form}>
-      <ProfileCard editing style={styles.card}>
-        {academicFields
-          .filter((field) => variant === 'full' || field.key !== 'full_name')
-          .map(renderField)}
-      </ProfileCard>
-      <ProfileCard editing style={styles.card}>
-        <View style={styles.fieldItem}>
-          <View style={styles.fieldHeader}>
-            <Ionicons
-              name="create-outline"
-              size={iconSize.sm}
-              color={colors.content.onBase.secondary}
-            />
-            <Text variant="bodyStrong" style={styles.fieldLabel}>
-              About Me
-            </Text>
-          </View>
-          <Input
-            accessibilityLabel="Bio"
-            placeholder="Tell us a little about yourself, your interests, or what you're working on..."
-            value={draft.bio}
-            onChangeText={(text) => onChange('bio', text)}
-            multiline
-            maxLength={300}
-            editable={!disabled}
-            scrollEnabled={false}
-            containerStyle={styles.bioContainer}
-            inputStyle={styles.bioInput}
-            onFocus={onBioFocus}
-          />
-          <View style={styles.bioFooter}>
-            <Text variant="bodySm" style={styles.charCount}>
-              {(draft.bio || '').length}/300
-            </Text>
-          </View>
-        </View>
-      </ProfileCard>
-      <ProfileCard editing style={styles.card}>
-        {socialFields.map(renderField)}
-      </ProfileCard>
-      {variant === 'full' && (
+      <View onLayout={(e) => handleCardLayout('academic', e.nativeEvent.layout.y)}>
         <ProfileCard editing style={styles.card}>
-          {privateFields.map(renderField)}
+          {academicFields
+            .filter((field) => variant === 'full' || field.key !== 'full_name')
+            .map((field) => renderField(field, 'academic'))}
         </ProfileCard>
+      </View>
+      <View onLayout={(e) => handleCardLayout('bio', e.nativeEvent.layout.y)}>
+        <ProfileCard editing style={styles.card}>
+          <View
+            style={styles.fieldItem}
+            onLayout={(e) => handleFieldLayout('bio', e.nativeEvent.layout.y)}
+          >
+            <View style={styles.fieldHeader}>
+              <Ionicons
+                name="create-outline"
+                size={iconSize.sm}
+                color={colors.content.onBase.secondary}
+              />
+              <Text variant="bodyStrong" style={styles.fieldLabel}>
+                About Me
+              </Text>
+            </View>
+            <Input
+              accessibilityLabel="Bio"
+              placeholder="Tell us a little about yourself, your interests, or what you're working on..."
+              value={draft.bio}
+              onChangeText={(text) => onChange('bio', text)}
+              multiline
+              maxLength={300}
+              editable={!disabled}
+              scrollEnabled={false}
+              containerStyle={styles.bioContainer}
+              inputStyle={styles.bioInput}
+              onFocus={() => handleFocus('bio', 'bio')}
+            />
+            <View style={styles.bioFooter}>
+              <Text variant="bodySm" style={styles.charCount}>
+                {(draft.bio || '').length}/300
+              </Text>
+            </View>
+          </View>
+        </ProfileCard>
+      </View>
+      <View onLayout={(e) => handleCardLayout('social', e.nativeEvent.layout.y)}>
+        <ProfileCard editing style={styles.card}>
+          {socialFields.map((field) => renderField(field, 'social'))}
+        </ProfileCard>
+      </View>
+      {variant === 'full' && (
+        <View onLayout={(e) => handleCardLayout('private', e.nativeEvent.layout.y)}>
+          <ProfileCard editing style={styles.card}>
+            {privateFields.map((field) => renderField(field, 'private'))}
+          </ProfileCard>
+        </View>
       )}
       {selection && (
         <ProfileModalSlot>
@@ -277,9 +316,11 @@ const createStyles = (colors: Colors) =>
   StyleSheet.create({
     form: { gap: space['300'] },
     card: {
+      backgroundColor: colors.surface.base.secondary,
       padding: space['400'],
-      // borderColor: colors.border.base.subtle,
-      // borderWidth: borderWidth.sm,
+      borderRadius: radius.lg,
+      borderWidth: borderWidth.sm,
+      borderColor: colors.border.base.subtle,
       gap: space['400'],
     },
     fieldItem: {

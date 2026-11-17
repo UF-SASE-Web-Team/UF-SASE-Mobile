@@ -8,6 +8,7 @@ import React, {
   ReactNode,
 } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { getFriendlyErrorMessage } from '@/lib/errors';
 import { getEvents, toggleEventRsvp } from '@/services/events';
 import { EventWithRsvp } from '@/types/events';
 
@@ -43,8 +44,8 @@ export function EventsProvider({ children }: { children: ReactNode }) {
       })
       .catch((err: any) => {
         if (!isMounted) return;
-        console.error('Error fetching events:', err.message);
-        setError(err.message || 'Failed to load events.');
+        console.warn('Error fetching events:', err?.message || err);
+        setError(getFriendlyErrorMessage(err, "Couldn't load events."));
       })
       .finally(() => {
         if (!isMounted) return;
@@ -63,8 +64,8 @@ export function EventsProvider({ children }: { children: ReactNode }) {
       setEvents(data);
       setError(null);
     } catch (err: any) {
-      console.error('Error fetching events:', err.message);
-      setError(err.message || 'Failed to load events.');
+      console.warn('Error fetching events:', err?.message || err);
+      setError(getFriendlyErrorMessage(err, "Couldn't load events."));
     } finally {
       setRefreshing(false);
     }
