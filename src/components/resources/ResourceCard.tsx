@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from '@/components/ui/Text';
 import { useThemedStyles } from '@/context/ThemeContext';
+import { getResourceIconSource } from '@/lib/assets';
 import { openExternalLink } from '@/lib/links';
 import { type Colors, borderWidth, radius, space } from '@/theme';
 import { ResourceRow, isInternalUrl, resolveInternalPath } from '@/types/resources';
@@ -22,6 +23,7 @@ export function ResourceCard({ resource, isInternal, width, onPress, testID }: R
   const styles = useThemedStyles(createStyles);
   const title = resource.name;
   const hasChevron = isInternal !== undefined ? isInternal : isInternalUrl(resource.url);
+  const iconSource = getResourceIconSource(resource.image_url);
 
   const handlePress = async () => {
     if (onPress) {
@@ -58,9 +60,9 @@ export function ResourceCard({ resource, isInternal, width, onPress, testID }: R
       onPress={handlePress}
     >
       <View style={styles.iconContainer}>
-        {resource.image_url ? (
+        {iconSource ? (
           <Image
-            source={{ uri: resource.image_url }}
+            source={iconSource}
             style={styles.iconImage}
             contentFit="cover"
             cachePolicy="memory-disk"

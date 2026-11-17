@@ -591,9 +591,48 @@ export type Database = {
         };
       };
       check_username_available: { Args: { input_username: string }; Returns: boolean };
+      current_term_window: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          ends_at: string;
+          starts_at: string;
+          term_id: string;
+          term_name: string;
+        }[];
+      };
       delete_user_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       discard_unverified_signup: { Args: { p_email: string }; Returns: undefined };
       get_email_from_username: { Args: { p_username: string }; Returns: string };
+      get_points_leaderboard: {
+        Args: { p_limit?: number };
+        Returns: {
+          avatar_url: string;
+          full_name: string;
+          is_me: boolean;
+          member_rank: number;
+          points: number;
+          user_id: string;
+          username: string;
+        }[];
+      };
+      get_points_summary: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          ranked_members: number;
+          semester_points: number;
+          semester_rank: number;
+          term_name: string;
+          total_points: number;
+        }[];
+      };
+      semester_points_ranked: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          member_rank: number;
+          points: number;
+          user_id: string;
+        }[];
+      };
       suggest_username: { Args: { p_separator?: string }; Returns: string };
       toggle_event_rsvp: { Args: { p_event_id: string }; Returns: boolean };
     };

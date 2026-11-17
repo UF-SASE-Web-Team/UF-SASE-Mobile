@@ -1,58 +1,56 @@
 import { StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { EventTag, TAG_LABELS } from '@/components/events/EventTag';
 import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
-import { iconSize, radius, space, type Colors } from '@/theme';
+import { radius, space, type Colors } from '@/theme';
+import type { EventType } from '@/types/events';
 
 type PointsItemProps = {
   title: string;
   date: string;
-  category: string;
-  status?: string;
+  eventType: EventType;
+  points: number;
 };
 
-export function PointsItem({
-  title,
-  date,
-  category,
-  status = 'attendance confirmed',
-}: PointsItemProps) {
+export function PointsItem({ title, date, eventType, points }: PointsItemProps) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const parsed = new Date(date);
   const month = parsed.toLocaleDateString('en-US', { month: 'short' });
   const day = parsed.getDate();
+  const pointsLabel = `${points} ${points === 1 ? 'point' : 'points'}`;
+  const category = eventType === 'other' ? null : TAG_LABELS[eventType];
 
   return (
     <View
       style={styles.card}
       accessible
-      accessibilityLabel={`${title}, ${category}, ${month} ${day}, ${status}`}
+      accessibilityLabel={[title, category, `${month} ${day}`, pointsLabel]
+        .filter(Boolean)
+        .join(', ')}
       testID="points-item"
     >
       <View style={styles.date}>
-        <Text variant="bodySm">{month}</Text>
+        <Text variant="bodySm" color={colors.content.onBase.secondary}>
+          {month}
+        </Text>
         <Text variant="title">{day}</Text>
       </View>
 
       <View style={styles.info}>
-        <Text variant="bodySmStrong" numberOfLines={1}>
+        <Text variant="bodySmStrong" numberOfLines={2}>
           {title}
         </Text>
-        <View style={styles.row}>
-          <View style={styles.pill}>
-            <Text variant="bodySmStrong" color={colors.content.onAccentSubtle.primary}>
-              {category}
-            </Text>
-          </View>
-          <Text variant="bodySm" color={colors.content.onBase.secondary}>
-            {status}
-          </Text>
-        </View>
+        <EventTag type={eventType} variant="subtle" style={styles.tag} />
       </View>
 
-      <View style={styles.check}>
-        <Ionicons name="checkmark" size={iconSize.md} color={colors.content.onMedia.primary} />
+      <View style={styles.points}>
+        <Text variant="title" color={colors.content.onBase.brand}>
+          +{points}
+        </Text>
+        <Text variant="bodySm" color={colors.content.onBase.secondary}>
+          {points === 1 ? 'pt' : 'pts'}
+        </Text>
       </View>
     </View>
   );
@@ -71,29 +69,17 @@ const createStyles = (colors: Colors) =>
     },
     date: {
       alignItems: 'center',
-      width: 36,
+      minWidth: space['1000'],
     },
     info: {
       flex: 1,
       gap: space['100'],
     },
-    row: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: space['200'],
+    tag: {
+      alignSelf: 'flex-start',
     },
-    pill: {
-      backgroundColor: colors.surface.accentSubtle.primary,
-      borderRadius: radius.full,
-      paddingHorizontal: space['300'],
-      paddingVertical: space['050'],
-    },
-    check: {
-      width: 48,
-      height: 48,
-      borderRadius: radius.full,
-      backgroundColor: colors.surface.success.primary,
+    points: {
       alignItems: 'center',
-      justifyContent: 'center',
+      minWidth: space['1000'],
     },
   });
