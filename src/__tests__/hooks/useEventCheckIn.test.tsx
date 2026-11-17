@@ -4,9 +4,11 @@ import { render, screen, userEvent, cleanup } from '@testing-library/react-nativ
 import { useEventCheckIn, type UseEventCheckInOptions } from '@/hooks/useEventCheckIn';
 import { useAuth } from '@/context/AuthContext';
 import * as eventsService from '@/services/events';
+import * as storeReview from '@/lib/storeReview';
 import { useCameraPermissions } from 'expo-camera';
 
 jest.mock('@/services/events');
+jest.mock('@/lib/storeReview');
 jest.mock('expo-camera', () => ({
   useCameraPermissions: jest.fn(),
 }));
@@ -99,7 +101,20 @@ describe('useEventCheckIn', () => {
     expect(eventsService.checkInToEvent).toHaveBeenCalledWith('event-123', '123456');
     expect(defaultOptions.onSuccess).toHaveBeenCalledTimes(1);
     expect(defaultOptions.onClose).toHaveBeenCalledTimes(1);
-    expect(Alert.alert).toHaveBeenCalledWith('Check-in successful!', "You've gained +2 points.");
+    expect(Alert.alert).toHaveBeenCalledTimes(1);
+  });
+
+  it('records the check-in for the review prompt only after the success alert is dismissed', async () => {
+    (eventsService.checkInToEvent as jest.Mock).mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    await render(<TestConsumer options={defaultOptions} />);
+
+    await user.press(screen.getByTestId('submit-valid'));
+    expect(storeReview.recordCheckInAndMaybeRequestReview).not.toHaveBeenCalled();
+
+    const buttons = (Alert.alert as jest.Mock).mock.calls[0][2];
+    buttons[0].onPress();
+    expect(storeReview.recordCheckInAndMaybeRequestReview).toHaveBeenCalledTimes(1);
   });
 
   it('parses URL with code param and submits as code method', async () => {
