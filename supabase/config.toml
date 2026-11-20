@@ -153,3 +153,6 @@ enabled = true
 
 [experimental.pgdelta]
 enabled = true
+
+[functions.google-form-checkin]
+verify_jwt = false

@@ -102,23 +102,32 @@ export type Database = {
       };
       check_ins: {
         Row: {
+          attended_this_year: boolean | null;
           checked_in_at: string;
           event_id: string;
+          form_submit_error: string | null;
+          form_submitted_at: string | null;
           id: string;
           method: Database['public']['Enums']['checkin_method'];
           user_id: string | null;
         };
         ComputedFields: never;
         Insert: {
+          attended_this_year?: boolean | null;
           checked_in_at?: string;
           event_id: string;
+          form_submit_error?: string | null;
+          form_submitted_at?: string | null;
           id?: string;
           method?: Database['public']['Enums']['checkin_method'];
           user_id?: string | null;
         };
         Update: {
+          attended_this_year?: boolean | null;
           checked_in_at?: string;
           event_id?: string;
+          form_submit_error?: string | null;
+          form_submitted_at?: string | null;
           id?: string;
           method?: Database['public']['Enums']['checkin_method'];
           user_id?: string | null;
@@ -326,6 +335,8 @@ export type Database = {
       profile_private: {
         Row: {
           created_at: string;
+          gender: string | null;
+          uf_email: string | null;
           ufid: string;
           updated_at: string;
           user_id: string;
@@ -333,12 +344,16 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           created_at?: string;
+          gender?: string | null;
+          uf_email?: string | null;
           ufid: string;
           updated_at?: string;
           user_id?: string;
         };
         Update: {
           created_at?: string;
+          gender?: string | null;
+          uf_email?: string | null;
           ufid?: string;
           updated_at?: string;
           user_id?: string;
@@ -412,6 +427,7 @@ export type Database = {
           linkedin_url: string | null;
           majors: string[];
           minors: string[];
+          pronouns: string | null;
           role: Database['public']['Enums']['user_role'];
           updated_at: string;
           username: string;
@@ -429,6 +445,7 @@ export type Database = {
           linkedin_url?: string | null;
           majors?: string[];
           minors?: string[];
+          pronouns?: string | null;
           role?: Database['public']['Enums']['user_role'];
           updated_at?: string;
           username: string;
@@ -445,6 +462,7 @@ export type Database = {
           linkedin_url?: string | null;
           majors?: string[];
           minors?: string[];
+          pronouns?: string | null;
           role?: Database['public']['Enums']['user_role'];
           updated_at?: string;
           username?: string;
@@ -608,13 +626,17 @@ export type Database = {
     Functions: {
       check_in: {
         Args: {
+          p_attended_this_year?: boolean;
           p_event_id: string;
           p_method: Database['public']['Enums']['checkin_method'];
           p_payload: string;
         };
         Returns: {
+          attended_this_year: boolean | null;
           checked_in_at: string;
           event_id: string;
+          form_submit_error: string | null;
+          form_submitted_at: string | null;
           id: string;
           method: Database['public']['Enums']['checkin_method'];
           user_id: string | null;
@@ -661,6 +683,8 @@ export type Database = {
           total_points: number;
         }[];
       };
+      has_checked_in_this_school_year: { Args: Record<PropertyKey, never>; Returns: boolean };
+      school_year_start: { Args: { p_at?: string }; Returns: string };
       semester_points_ranked: {
         Args: Record<PropertyKey, never>;
         Returns: {

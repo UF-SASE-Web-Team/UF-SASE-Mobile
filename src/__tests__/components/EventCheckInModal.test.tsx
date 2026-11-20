@@ -95,7 +95,12 @@ describe('EventCheckInModal', () => {
       await user.type(input, '123456');
 
       await waitFor(() => {
-        expect(eventsService.checkInToEvent).toHaveBeenCalledWith('event-123', '123456');
+        expect(eventsService.checkInToEvent).toHaveBeenCalledWith(
+          'event-123',
+          '123456',
+          'code',
+          undefined,
+        );
       });
 
       expect(props.onSuccess).toHaveBeenCalledTimes(1);
@@ -179,6 +184,7 @@ describe('EventCheckInModal', () => {
         'event-123',
         'https://ufsase.com/checkin-secret',
         'qr',
+        undefined,
       );
       expect(props.onSuccess).toHaveBeenCalledTimes(1);
       expect(props.onClose).toHaveBeenCalledTimes(1);
@@ -198,7 +204,12 @@ describe('EventCheckInModal', () => {
         cameraProps.onBarcodeScanned({ data: '654321' });
       });
 
-      expect(eventsService.checkInToEvent).toHaveBeenCalledWith('event-123', '654321', 'code');
+      expect(eventsService.checkInToEvent).toHaveBeenCalledWith(
+        'event-123',
+        '654321',
+        'code',
+        undefined,
+      );
       expect(props.onSuccess).toHaveBeenCalledTimes(1);
       expect(props.onClose).toHaveBeenCalledTimes(1);
     });
@@ -216,7 +227,12 @@ describe('EventCheckInModal', () => {
         cameraProps.onBarcodeScanned({ data: 'https://ufsase.com/checkin?code=987654' });
       });
 
-      expect(eventsService.checkInToEvent).toHaveBeenCalledWith('event-123', '987654', 'code');
+      expect(eventsService.checkInToEvent).toHaveBeenCalledWith(
+        'event-123',
+        '987654',
+        'code',
+        undefined,
+      );
       expect(props.onSuccess).toHaveBeenCalledTimes(1);
     });
 
@@ -258,6 +274,47 @@ describe('EventCheckInModal', () => {
       });
 
       expect(await screen.findByText('Invalid QR code.')).toBeTruthy();
+    });
+  });
+  describe('Attended this school year question', () => {
+    it('asks first-time members before showing check-in, and sends their answer', async () => {
+      (eventsService.hasCheckedInThisSchoolYear as jest.Mock).mockResolvedValue(false);
+      (eventsService.checkInToEvent as jest.Mock).mockResolvedValue(true);
+      const user = userEvent.setup();
+      await renderModal({ initialMode: 'code' });
+
+      const no = await screen.findByRole('radio', { name: 'No' });
+      expect(screen.queryByLabelText('6-digit verification code')).toBeNull();
+
+      await user.press(no);
+      await user.type(screen.getByLabelText('6-digit verification code'), '123456');
+
+      await waitFor(() => {
+        expect(eventsService.checkInToEvent).toHaveBeenCalledWith(
+          'event-123',
+          '123456',
+          'code',
+          false,
+        );
+      });
+    });
+
+    it('skips the question for members who already checked in this school year', async () => {
+      (eventsService.hasCheckedInThisSchoolYear as jest.Mock).mockResolvedValue(true);
+      await renderModal({ initialMode: 'code' });
+
+      expect(await screen.findByLabelText('6-digit verification code')).toBeTruthy();
+      expect(screen.queryByRole('radio', { name: 'Yes' })).toBeNull();
+    });
+
+    it('does not block check-in when the lookup fails', async () => {
+      (eventsService.hasCheckedInThisSchoolYear as jest.Mock).mockRejectedValue(
+        new Error('offline'),
+      );
+      await renderModal({ initialMode: 'code' });
+
+      expect(await screen.findByLabelText('6-digit verification code')).toBeTruthy();
+      expect(screen.queryByRole('radio', { name: 'No' })).toBeNull();
     });
   });
 });

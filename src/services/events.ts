@@ -67,13 +67,25 @@ export async function checkInToEvent(
   eventId: string,
   payload: string,
   method: 'code' | 'qr' = 'code',
+  attendedThisYear?: boolean,
 ): Promise<boolean> {
   const { data, error } = await supabase.rpc('check_in', {
     p_event_id: eventId,
     p_method: method,
     p_payload: payload.trim(),
+    ...(attendedThisYear === undefined ? {} : { p_attended_this_year: attendedThisYear }),
   });
 
+  if (error) throw error;
+  return Boolean(data);
+}
+
+/**
+ * Whether the signed-in member already checked in to an event this school year.
+ * If not, check-in first asks whether they've attended a SASE event this year.
+ */
+export async function hasCheckedInThisSchoolYear(): Promise<boolean> {
+  const { data, error } = await supabase.rpc('has_checked_in_this_school_year');
   if (error) throw error;
   return Boolean(data);
 }

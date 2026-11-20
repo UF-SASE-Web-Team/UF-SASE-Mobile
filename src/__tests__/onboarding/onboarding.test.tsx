@@ -3,12 +3,13 @@ import OnboardingPage from '@/app/onboarding';
 import { useAuth } from '@/context/AuthContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { useProfile } from '@/context/ProfileContext';
-import { saveUfid, updateProfile } from '@/services/profiles';
+import { saveUfEmail, saveUfid, updateProfile } from '@/services/profiles';
 import type { ProfileWithPrograms } from '@/types/profiles';
 
 const mockProfile: ProfileWithPrograms = {
   id: 'user-alice',
   full_name: 'Alice Gator',
+  pronouns: null,
   username: 'alice',
   role: 'member',
   avatar_url: 'sase-shark',
@@ -107,6 +108,32 @@ describe('Onboarding', () => {
       full_name: mockProfile.full_name,
     });
     expect(save).not.toHaveBeenCalled();
+  });
+
+  it('saves an optional UF email with the required details', async () => {
+    const user = userEvent.setup();
+    await renderOnboarding();
+    await user.type(screen.getByLabelText('UF email'), 'Alice@UFL.edu');
+    await completeRequiredStep(user);
+    expect(saveUfid).toHaveBeenCalledWith(mockProfile.id, '12345678');
+    expect(saveUfEmail).toHaveBeenCalledWith(mockProfile.id, 'alice@ufl.edu');
+  });
+
+  it('prefills the UF email from a UF login and rejects other domains', async () => {
+    (useAuth as jest.Mock).mockReturnValue({
+      user: { id: mockProfile.id, email: 'alice@ufl.edu' },
+      signOut,
+    });
+    const user = userEvent.setup();
+    await renderOnboarding();
+    expect(screen.getByLabelText('UF email')).toHaveDisplayValue('alice@ufl.edu');
+
+    await user.clear(screen.getByLabelText('UF email'));
+    await user.type(screen.getByLabelText('UF email'), 'alice@gmail.com');
+    await user.type(screen.getByLabelText('UFID'), '12345678');
+    await user.press(screen.getByRole('button', { name: 'Continue' }));
+    expect(screen.getByLabelText('UF email').props['aria-invalid']).toBe(true);
+    expect(saveUfid).not.toHaveBeenCalled();
   });
 
   it('rejects an invalid graduation year on finish', async () => {

@@ -98,7 +98,12 @@ describe('useEventCheckIn', () => {
 
     await user.press(screen.getByTestId('submit-valid'));
 
-    expect(eventsService.checkInToEvent).toHaveBeenCalledWith('event-123', '123456');
+    expect(eventsService.checkInToEvent).toHaveBeenCalledWith(
+      'event-123',
+      '123456',
+      'code',
+      undefined,
+    );
     expect(defaultOptions.onSuccess).toHaveBeenCalledTimes(1);
     expect(defaultOptions.onClose).toHaveBeenCalledTimes(1);
     expect(Alert.alert).toHaveBeenCalledTimes(1);
@@ -124,7 +129,12 @@ describe('useEventCheckIn', () => {
 
     await user.press(screen.getByTestId('scan-url'));
 
-    expect(eventsService.checkInToEvent).toHaveBeenCalledWith('event-123', '654321', 'code');
+    expect(eventsService.checkInToEvent).toHaveBeenCalledWith(
+      'event-123',
+      '654321',
+      'code',
+      undefined,
+    );
     expect(defaultOptions.onSuccess).toHaveBeenCalledTimes(1);
     expect(defaultOptions.onClose).toHaveBeenCalledTimes(1);
   });

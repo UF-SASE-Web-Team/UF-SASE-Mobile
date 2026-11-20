@@ -16,12 +16,30 @@ import { type Colors, borderWidth, radius, space, useThemedStyles } from '@/them
 import type { ProfileWithPrograms } from '@/types/profiles';
 
 export default function EditProfilePage() {
-  const { profile, ufid } = useProfile();
+  const { profile, ufid, ufEmail, gender } = useProfile();
   if (!profile) return <ProfileLoadingState />;
-  return <ProfileEditor key={profile.id} profile={profile} ufid={ufid} />;
+  return (
+    <ProfileEditor
+      key={profile.id}
+      profile={profile}
+      ufid={ufid}
+      ufEmail={ufEmail}
+      gender={gender}
+    />
+  );
 }
 
-function ProfileEditor({ profile, ufid }: { profile: ProfileWithPrograms; ufid: string | null }) {
+function ProfileEditor({
+  profile,
+  ufid,
+  ufEmail,
+  gender,
+}: {
+  profile: ProfileWithPrograms;
+  ufid: string | null;
+  ufEmail: string | null;
+  gender: string | null;
+}) {
   const {
     draft,
     change,
@@ -31,7 +49,7 @@ function ProfileEditor({ profile, ufid }: { profile: ProfileWithPrograms; ufid: 
     error,
     saveChanges,
     goBack,
-  } = useProfileForm({ profile, ufid });
+  } = useProfileForm({ profile, ufid, ufEmail, gender });
   const styles = useThemedStyles(createStyles);
   const scrollViewRef = useRef<ScrollView>(null);
   const formOffsetYRef = useRef<number>(0);

@@ -12,6 +12,7 @@ import type { ProfileWithPrograms } from '@/types/profiles';
 const mockProfile: ProfileWithPrograms = {
   id: 'user-alice',
   full_name: 'Alice Gator',
+  pronouns: null,
   username: 'alice',
   role: 'member',
   avatar_url: 'sase-shark',

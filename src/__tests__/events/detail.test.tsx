@@ -264,7 +264,12 @@ describe('EventDetailScreen', () => {
       await user.type(input, '123456');
 
       await waitFor(() => {
-        expect(eventsService.checkInToEvent).toHaveBeenCalledWith('event-1', '123456');
+        expect(eventsService.checkInToEvent).toHaveBeenCalledWith(
+          'event-1',
+          '123456',
+          'code',
+          undefined,
+        );
       });
 
       // After checked in: Pill list shows "Checked in", bottom Check-in button is gone

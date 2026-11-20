@@ -18,6 +18,7 @@ import type { ProfileWithPrograms } from '@/types/profiles';
 const mockProfile: ProfileWithPrograms = {
   id: 'user-alice',
   full_name: 'Alice Gator',
+  pronouns: null,
   username: 'alice',
   role: 'member',
   avatar_url: 'sase-shark',
@@ -200,6 +201,54 @@ describe('Edit profile', () => {
     await user.type(screen.getByLabelText('UFID'), '1234');
     await user.press(screen.getByRole('button', { name: 'Save Changes' }));
     expect(screen.getByRole('alert')).toBeTruthy();
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it('saves a UF email for the SASE check-in form and leaves an untouched one out', async () => {
+    const user = userEvent.setup();
+    await renderEditor();
+    await user.type(screen.getByLabelText('Full Name'), ' Jr');
+    await user.press(screen.getByRole('button', { name: 'Save Changes' }));
+    expect(save.mock.calls[0][0]).not.toHaveProperty('ufEmail');
+
+    await user.type(screen.getByLabelText('UF email'), ' Alice.Gator@UFL.edu ');
+    await user.press(screen.getByRole('button', { name: 'Save Changes' }));
+    expect(save).toHaveBeenLastCalledWith(
+      expect.objectContaining({ ufEmail: 'alice.gator@ufl.edu' }),
+    );
+  });
+
+  it('saves pronouns on the profile and gender as a private detail', async () => {
+    const user = userEvent.setup();
+    await renderEditor();
+    await user.type(screen.getByLabelText('Pronouns'), 'she/her');
+    await user.press(screen.getByRole('button', { name: 'Gender' }));
+    await user.press(await screen.findByRole('radio', { name: 'Non-binary' }));
+    await user.press(screen.getByRole('button', { name: 'Save Changes' }));
+    expect(save).toHaveBeenCalledWith(
+      expect.objectContaining({ pronouns: 'she/her', gender: 'Non-binary' }),
+    );
+  });
+
+  it('leaves an unchanged gender out of the save', async () => {
+    (useProfile as jest.Mock).mockReturnValue({
+      profile: mockProfile,
+      ufid: '12345678',
+      gender: 'Female',
+      save,
+    });
+    const user = userEvent.setup();
+    await renderEditor();
+    await user.press(screen.getByRole('button', { name: 'Save Changes' }));
+    expect(save.mock.calls[0][0]).not.toHaveProperty('gender');
+  });
+
+  it('rejects a UF email that is not an @ufl.edu address', async () => {
+    const user = userEvent.setup();
+    await renderEditor();
+    await user.type(screen.getByLabelText('UF email'), 'alice@gmail.com');
+    expect(screen.getByLabelText('UF email')).toHaveProp('aria-invalid', true);
+    await user.press(screen.getByRole('button', { name: 'Save Changes' }));
     expect(save).not.toHaveBeenCalled();
   });
 

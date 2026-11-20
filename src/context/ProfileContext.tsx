@@ -9,7 +9,15 @@ import {
 } from 'react';
 import { useAuth } from './AuthContext';
 import { posthog } from '@/lib/posthog';
-import { getProfile, getUfid, saveUfid, updateProfile } from '@/services/profiles';
+import {
+  getProfile,
+  getPrivateDetails,
+  getUfid,
+  saveGender,
+  saveUfEmail,
+  saveUfid,
+  updateProfile,
+} from '@/services/profiles';
 import type { ProfileEdits, ProfileWithPrograms } from '@/types/profiles';
 
 /**
@@ -22,6 +30,10 @@ interface ProfileContextValue {
   profile: ProfileWithPrograms | null;
   /** The member's own UFID. Private: never render it on a profile. */
   ufid: string | null;
+  /** The member's UF email, for the SASE Google check-in form. Private, like the UFID. */
+  ufEmail: string | null;
+  /** The member's gender, only sent to the SASE check-in form. Private, like the UFID. */
+  gender: string | null;
   onboarding: OnboardingStatus;
   isLoading: boolean;
   error: string | null;
@@ -40,12 +52,16 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     revision: number;
     profile: ProfileWithPrograms | null;
     ufid: string | null;
+    ufEmail: string | null;
+    gender: string | null;
     error: string | null;
   } | null>(null);
   const [onboarded, setOnboarded] = useState<{ userId: string; complete: boolean } | null>(null);
   const isCurrent = result?.userId === userId && result?.revision === revision;
   const profile = isCurrent ? (result?.profile ?? null) : null;
   const ufid = isCurrent ? (result?.ufid ?? null) : null;
+  const ufEmail = isCurrent ? (result?.ufEmail ?? null) : null;
+  const gender = isCurrent ? (result?.gender ?? null) : null;
   const error = isCurrent ? (result?.error ?? null) : null;
   const onboarding: OnboardingStatus = !userId
     ? 'complete'
@@ -70,10 +86,18 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let active = true;
     if (!userId) return;
-    Promise.all([getProfile(userId), getUfid(userId)])
-      .then(([profile, ufid]) => {
+    Promise.all([getProfile(userId), getUfid(userId), getPrivateDetails(userId)])
+      .then(([profile, ufid, privateDetails]) => {
         if (!active) return;
-        setResult({ userId, revision, profile, ufid: ufid ?? null, error: null });
+        setResult({
+          userId,
+          revision,
+          profile,
+          ufid: ufid ?? null,
+          ufEmail: privateDetails?.ufEmail ?? null,
+          gender: privateDetails?.gender ?? null,
+          error: null,
+        });
         setOnboarded({ userId, complete: Boolean(ufid) });
       })
       .catch(async (cause: unknown) => {
@@ -96,6 +120,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
           revision,
           profile: null,
           ufid: null,
+          ufEmail: null,
+          gender: null,
           error: getProfileError(cause, 'Could not load your profile.'),
         });
         // A failed load must not lock the member out of the app; onboarding is
@@ -111,10 +137,20 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   const reload = useCallback(() => setRevision((value) => value + 1), []);
   const save = useCallback(
-    async ({ ufid: nextUfid, ...changes }: ProfileEdits) => {
+    async ({
+      ufid: nextUfid,
+      ufEmail: nextUfEmail,
+      gender: nextGender,
+      ...changes
+    }: ProfileEdits) => {
       if (!userId) throw new Error('Please sign in to edit your profile.');
-      // The UFID goes first: it is the write that can be rejected (already in use).
+      // The UFID goes first: it is the write that can be rejected (already in use),
+      // and the UF email is stored on the same private row.
       const savedUfid = nextUfid === undefined ? undefined : await saveUfid(userId, nextUfid);
+      const savedUfEmail =
+        nextUfEmail === undefined ? undefined : await saveUfEmail(userId, nextUfEmail);
+      const savedGender =
+        nextGender === undefined ? undefined : await saveGender(userId, nextGender);
       const saved = Object.keys(changes).length ? await updateProfile(userId, changes) : null;
       setResult((current) =>
         current?.userId === userId && current.revision === revision && current.profile
@@ -122,6 +158,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
               ...current,
               profile: { ...current.profile, ...saved },
               ufid: savedUfid ?? current.ufid,
+              ufEmail: savedUfEmail === undefined ? current.ufEmail : savedUfEmail,
+              gender: savedGender === undefined ? current.gender : savedGender,
             }
           : current,
       );
@@ -130,8 +168,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     [userId, revision],
   );
   const value = useMemo(
-    () => ({ profile, ufid, onboarding, isLoading, error, reload, save }),
-    [profile, ufid, onboarding, isLoading, error, reload, save],
+    () => ({ profile, ufid, ufEmail, gender, onboarding, isLoading, error, reload, save }),
+    [profile, ufid, ufEmail, gender, onboarding, isLoading, error, reload, save],
   );
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;
 }
@@ -139,6 +177,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 const defaultProfileContext: ProfileContextValue = {
   profile: null,
   ufid: null,
+  ufEmail: null,
+  gender: null,
   onboarding: 'complete',
   isLoading: false,
   error: null,
