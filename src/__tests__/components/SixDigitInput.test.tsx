@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { render, screen, userEvent, cleanup, fireEvent } from '@testing-library/react-native';
 import { SixDigitInput, SixDigitInputProps } from '@/components/ui/SixDigitInput';
 import { ThemeProvider } from '@/context/ThemeContext';
+import * as Clipboard from 'expo-clipboard';
 
 function ControlledInput(props: Partial<SixDigitInputProps>) {
   const [val, setVal] = useState(props.value || '');
@@ -79,5 +80,39 @@ describe('SixDigitInput', () => {
 
     const input = screen.getByDisplayValue('1234');
     expect(input.props.selection).toEqual({ start: 4, end: 4 });
+  });
+  it('pastes a code copied from a message with the Paste code button', async () => {
+    (Clipboard.getStringAsync as jest.Mock).mockResolvedValueOnce(
+      'Your SASE code is 246 810. It expires in 10 minutes.',
+    );
+    const handleComplete = jest.fn();
+    const user = userEvent.setup();
+    await render(<ControlledInput onComplete={handleComplete} />);
+
+    await user.press(screen.getByRole('button', { name: 'Paste code' }));
+
+    expect(handleComplete).toHaveBeenCalledWith('246810');
+    expect(screen.getByDisplayValue('246810')).toBeTruthy();
+  });
+
+  it('says so when the clipboard has no code', async () => {
+    (Clipboard.getStringAsync as jest.Mock).mockResolvedValueOnce('see you at the GBM');
+    const handleComplete = jest.fn();
+    const user = userEvent.setup();
+    await render(<ControlledInput onComplete={handleComplete} />);
+
+    await user.press(screen.getByRole('button', { name: 'Paste code' }));
+
+    expect(await screen.findByRole('alert')).toBeTruthy();
+    expect(handleComplete).not.toHaveBeenCalled();
+  });
+
+  it('accepts a whole message pasted or autofilled into the field', async () => {
+    const handleComplete = jest.fn();
+    await render(<ControlledInput onComplete={handleComplete} />);
+
+    fireEvent.changeText(screen.getByDisplayValue(''), 'Your code is 123-456');
+
+    expect(handleComplete).toHaveBeenCalledWith('123456');
   });
 });

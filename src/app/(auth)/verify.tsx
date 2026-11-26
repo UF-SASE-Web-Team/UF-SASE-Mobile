@@ -1,4 +1,4 @@
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -77,56 +77,69 @@ export default function VerifyScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <BackButton
-        fallbackRoute={mode === 'recovery' ? '/(auth)/forgot-password' : '/(auth)/signup'}
-        style={styles.backButton}
-      />
-
-      <Text variant="title" style={styles.title}>
-        Check your email
-      </Text>
-
-      {mode === 'recovery' ? (
-        <Text variant="body" style={styles.instructions}>
-          If an account for {email} exists, we&apos;ve sent a 6-digit code.
-        </Text>
-      ) : (
-        <Text variant="body" style={styles.instructions}>
-          Enter the 6-digit code sent to {email}.
-        </Text>
-      )}
-
-      <View style={styles.codeContainer}>
-        <SixDigitInput
-          value={token}
-          onChangeText={setToken}
-          onComplete={(code) => handleVerify(code)}
-          disabled={loading}
-        />
-      </View>
-
-      <View style={styles.buttonsContainer}>
-        <Button
-          variant="primary"
-          size="lg"
-          onPress={() => handleVerify()}
-          disabled={loading || token.length !== 6}
-          loading={loading}
-          accessibilityLabel="Verify"
+      {/* The number pad must never cover the code or the buttons, even on small phones. */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.flex}
+      >
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          showsVerticalScrollIndicator={false}
         >
-          Verify
-        </Button>
+          <BackButton
+            fallbackRoute={mode === 'recovery' ? '/(auth)/forgot-password' : '/(auth)/signup'}
+            style={styles.backButton}
+          />
 
-        <Button
-          variant="secondary"
-          size="lg"
-          onPress={handleResend}
-          disabled={cooldown > 0}
-          accessibilityLabel="Resend code"
-        >
-          {cooldown > 0 ? `Resend code (${cooldown}s)` : 'Resend code'}
-        </Button>
-      </View>
+          <Text variant="title" style={styles.title}>
+            Check your email
+          </Text>
+
+          {mode === 'recovery' ? (
+            <Text variant="body" style={styles.instructions}>
+              If an account for {email} exists, we&apos;ve sent a 6-digit code.
+            </Text>
+          ) : (
+            <Text variant="body" style={styles.instructions}>
+              Enter the 6-digit code sent to {email}.
+            </Text>
+          )}
+
+          <View style={styles.codeContainer}>
+            <SixDigitInput
+              value={token}
+              onChangeText={setToken}
+              onComplete={(code) => handleVerify(code)}
+              disabled={loading}
+            />
+          </View>
+
+          <View style={styles.buttonsContainer}>
+            <Button
+              variant="primary"
+              size="lg"
+              onPress={() => handleVerify()}
+              disabled={loading || token.length !== 6}
+              loading={loading}
+              accessibilityLabel="Verify"
+            >
+              Verify
+            </Button>
+
+            <Button
+              variant="secondary"
+              size="lg"
+              onPress={handleResend}
+              disabled={cooldown > 0}
+              accessibilityLabel="Resend code"
+            >
+              {cooldown > 0 ? `Resend code (${cooldown}s)` : 'Resend code'}
+            </Button>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -136,6 +149,10 @@ const createStyles = (colors: Colors) =>
     safeArea: {
       flex: 1,
       backgroundColor: colors.surface.base.primary,
+    },
+    flex: { flex: 1 },
+    content: {
+      flexGrow: 1,
       paddingHorizontal: space['600'],
       paddingTop: space['300'],
       paddingBottom: space['600'],
