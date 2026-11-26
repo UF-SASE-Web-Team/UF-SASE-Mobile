@@ -34,7 +34,6 @@ describe('HappeningNowCard', () => {
     lat: null,
     lng: null,
     points_value: 5,
-    checkin_code: '123456',
     flyer_url: null,
     created_at: new Date().toISOString(),
     program_id: null,

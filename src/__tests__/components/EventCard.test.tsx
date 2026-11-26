@@ -30,7 +30,6 @@ describe('EventCard', () => {
     lat: null,
     lng: null,
     points_value: 3,
-    checkin_code: '123456',
     checkin_opens_at: null,
     checkin_closes_at: null,
     created_at: new Date().toISOString(),

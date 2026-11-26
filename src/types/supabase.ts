@@ -661,6 +661,21 @@ export type Database = {
       delete_user_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       discard_unverified_signup: { Args: { p_email: string }; Returns: undefined };
       get_email_from_username: { Args: { p_username: string }; Returns: string };
+      get_event_attendance: {
+        Args: { p_event_id: string };
+        Returns: {
+          avatar_url: string;
+          check_in_id: string;
+          checked_in_at: string;
+          form_status: string;
+          form_submit_error: string;
+          full_name: string;
+          method: Database['public']['Enums']['checkin_method'];
+          user_id: string;
+          username: string;
+        }[];
+      };
+      get_event_checkin_code: { Args: { p_event_id: string }; Returns: string };
       get_points_leaderboard: {
         Args: { p_limit?: number };
         Returns: {
@@ -684,6 +699,28 @@ export type Database = {
         }[];
       };
       has_checked_in_this_school_year: { Args: Record<PropertyKey, never>; Returns: boolean };
+      is_officer: { Args: Record<PropertyKey, never>; Returns: boolean };
+      officer_check_in: {
+        Args: { p_event_id: string; p_user_id: string };
+        Returns: {
+          attended_this_year: boolean | null;
+          checked_in_at: string;
+          event_id: string;
+          form_submit_error: string | null;
+          form_submitted_at: string | null;
+          id: string;
+          method: Database['public']['Enums']['checkin_method'];
+          user_id: string | null;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'check_ins';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      queue_check_in_form_sync: { Args: { p_check_in_id: string }; Returns: boolean };
+      resend_check_in_form: { Args: { p_check_in_id: string }; Returns: boolean };
       school_year_start: { Args: { p_at?: string }; Returns: string };
       semester_points_ranked: {
         Args: Record<PropertyKey, never>;

@@ -10,6 +10,7 @@ import {
 } from '@testing-library/react-native';
 import { Alert, Linking } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+import { useRouter } from 'expo-router';
 import AccountSettingsPage from '@/app/profile/settings';
 import { useAuth } from '@/context/AuthContext';
 import { useProfile } from '@/context/ProfileContext';
@@ -103,6 +104,22 @@ describe('Account settings', () => {
       await buttons?.find((button) => button.text === text)?.onPress?.();
     });
   }
+
+  it('shows officer tools only to officers', async () => {
+    const push = jest.fn();
+    (useRouter as jest.Mock).mockReturnValue({ push, back: jest.fn(), canGoBack: () => true });
+    await renderSettings();
+    expect(screen.queryByRole('button', { name: 'Officer Tools' })).toBeNull();
+    await cleanup();
+
+    (useProfile as jest.Mock).mockReturnValue({
+      profile: { ...mockProfile, role: 'officer' },
+      reload,
+    });
+    await renderSettings();
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Officer Tools' }));
+    expect(push).toHaveBeenCalledWith('/admin');
+  });
 
   it('persists the theme selected in the native dropdown', async () => {
     await renderSettings();

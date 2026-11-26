@@ -3,7 +3,7 @@
     "name": "UF SASE",
     "slug": "uf-sase-mobile",
     "owner": "uf-sase",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -66,7 +66,15 @@
           }
         }
       ],
-      "expo-font"
+      "expo-font",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow UF SASE to access your photos so officers can upload event flyers.",
+          "cameraPermission": "Allow UF SASE to access your camera to scan event check-in QR codes."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,4 +1,10 @@
-import { checkInToEvent, getEvent, getEvents, toggleEventRsvp } from '@/services/events';
+import {
+  checkInToEvent,
+  getEvent,
+  getEventCheckinCode,
+  getEvents,
+  toggleEventRsvp,
+} from '@/services/events';
 import { supabase } from '@/lib/supabase';
 
 describe('events service', () => {
@@ -36,9 +42,10 @@ describe('events service', () => {
       const result = await getEvents();
 
       expect(supabase.from).toHaveBeenCalledWith('events');
-      expect(mockSelect).toHaveBeenCalledWith(
-        '*, event_rsvps(event_id, user_id), check_ins(event_id, user_id), rsvp_link:event_links!events_rsvp_fkey(id, event_id, title, url)',
-      );
+      const columns = mockSelect.mock.calls[0][0] as string;
+      // Members may not select the check-in code (or `*`, which includes it).
+      expect(columns).not.toMatch(/checkin_code|\*/);
+      expect(columns).toContain('event_rsvps(event_id, user_id)');
       expect(result).toEqual([
         expect.objectContaining({
           id: 'event-1',
@@ -86,6 +93,7 @@ describe('events service', () => {
       const result = await getEvent('event-123');
 
       expect(supabase.from).toHaveBeenCalledWith('events');
+      expect(mockSelect.mock.calls[0][0]).not.toMatch(/checkin_code|\*/);
       expect(mockEq).toHaveBeenCalledWith('id', 'event-123');
       expect(result).toEqual(
         expect.objectContaining({
@@ -153,6 +161,25 @@ describe('events service', () => {
       await expect(checkInToEvent('event-123', '000000')).rejects.toThrow(
         'Invalid check-in payload',
       );
+    });
+  });
+
+  describe('getEventCheckinCode', () => {
+    it('reads the code through the officer-only RPC', async () => {
+      (supabase.rpc as jest.Mock) = jest.fn().mockResolvedValue({ data: '424242', error: null });
+
+      await expect(getEventCheckinCode('event-1')).resolves.toBe('424242');
+      expect(supabase.rpc).toHaveBeenCalledWith('get_event_checkin_code', {
+        p_event_id: 'event-1',
+      });
+    });
+
+    it('throws when the RPC refuses a member', async () => {
+      (supabase.rpc as jest.Mock) = jest
+        .fn()
+        .mockResolvedValue({ data: null, error: new Error('Officers only') });
+
+      await expect(getEventCheckinCode('event-1')).rejects.toThrow('Officers only');
     });
   });
 
