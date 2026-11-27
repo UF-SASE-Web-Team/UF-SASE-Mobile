@@ -197,6 +197,32 @@ export default function AccountSettingsPage() {
           </Pressable>
         </View>
 
+        {profile.role === 'officer' && (
+          <View style={styles.card}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Officer Tools"
+              onPress={() => router.push('/admin')}
+              disabled={!!busy}
+              style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+            >
+              <Ionicons
+                name="construct-outline"
+                size={iconSize.md}
+                color={colors.content.onBase.secondary}
+              />
+              <Text variant="body" style={styles.rowLabel}>
+                Officer Tools
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={iconSize.sm}
+                color={colors.content.onBase.secondary}
+              />
+            </Pressable>
+          </View>
+        )}
+
         {/* Card 2: Preferences */}
         <View style={styles.card}>
           <View style={styles.row}>

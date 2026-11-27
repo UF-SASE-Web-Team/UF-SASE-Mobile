@@ -1,11 +1,19 @@
 import { supabase } from '@/lib/supabase';
 import { EventWithDetails, EventWithRsvp } from '@/types/events';
 
+/**
+ * Every events column members may read. `checkin_code` is left out on purpose:
+ * the database refuses it (and `*`) for members, and officers fetch it with
+ * `getEventCheckinCode`.
+ */
+const EVENT_COLUMNS =
+  'id, title, type, description, starts_at, ends_at, location_name, address, lat, lng, flyer_url, rsvp, program_id, points_value, checkin_opens_at, checkin_closes_at, created_at';
+
 export async function getEvents(): Promise<EventWithRsvp[]> {
   const { data, error: fetchError } = await supabase
     .from('events')
     .select(
-      '*, event_rsvps(event_id, user_id), check_ins(event_id, user_id), rsvp_link:event_links!events_rsvp_fkey(id, event_id, title, url)',
+      `${EVENT_COLUMNS}, event_rsvps(event_id, user_id), check_ins(event_id, user_id), rsvp_link:event_links!events_rsvp_fkey(id, event_id, title, url)`,
     )
     .order('starts_at', { ascending: true });
 
@@ -23,7 +31,7 @@ export async function getEvent(eventId: string): Promise<EventWithDetails | null
     .from('events')
     .select(
       `
-      *,
+      ${EVENT_COLUMNS},
       event_rsvps(event_id, user_id),
       check_ins(event_id, user_id),
       links:event_links!event_links_event_id_fkey(id, event_id, title, url, display_order),
@@ -63,17 +71,36 @@ export async function getEvent(eventId: string): Promise<EventWithDetails | null
   } as EventWithDetails;
 }
 
+/** An event's 6-digit check-in code. Officers only; members get an error. */
+export async function getEventCheckinCode(eventId: string): Promise<string | null> {
+  const { data, error } = await supabase.rpc('get_event_checkin_code', { p_event_id: eventId });
+  if (error) throw error;
+  return data ?? null;
+}
+
 export async function checkInToEvent(
   eventId: string,
   payload: string,
   method: 'code' | 'qr' = 'code',
+  attendedThisYear?: boolean,
 ): Promise<boolean> {
   const { data, error } = await supabase.rpc('check_in', {
     p_event_id: eventId,
     p_method: method,
     p_payload: payload.trim(),
+    ...(attendedThisYear === undefined ? {} : { p_attended_this_year: attendedThisYear }),
   });
 
+  if (error) throw error;
+  return Boolean(data);
+}
+
+/**
+ * Whether the signed-in member already checked in to an event this school year.
+ * If not, check-in first asks whether they've attended a SASE event this year.
+ */
+export async function hasCheckedInThisSchoolYear(): Promise<boolean> {
+  const { data, error } = await supabase.rpc('has_checked_in_this_school_year');
   if (error) throw error;
   return Boolean(data);
 }

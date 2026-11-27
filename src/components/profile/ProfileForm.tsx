@@ -17,22 +17,30 @@ import {
   borderWidth,
 } from '@/theme';
 import { UFID_LENGTH, sanitizeUfid } from '@/lib/ufid';
+import { INVALID_UF_EMAIL_MESSAGE, isValidUfEmail } from '@/lib/ufEmail';
 import { INVALID_GRAD_YEAR_MESSAGE, isValidGradYear, sanitizeGradYear } from '@/lib/gradYear';
 import type { ProfileChanges } from '@/types/profiles';
 
 type ListKey = 'majors' | 'minors';
-type SelectKey = ListKey;
+type SelectKey = ListKey | 'gender';
+
+/** The SASE check-in form's gender choices; "Other" lets members describe their own. */
+const genderOptions = ['Female', 'Male', 'Non-binary', 'Prefer not to say'] as const;
 
 export type ProfileDraft = {
   [K in Exclude<keyof Required<ProfileChanges>, ListKey>]: string;
-} & Record<ListKey, string[]> & { ufid: string };
+} & Record<ListKey, string[]> & { ufid: string; uf_email: string; gender: string };
 
 /** Mirrors the `profiles_majors_limit` and `profiles_minors_limit` constraints. */
 const MAX_SUBJECTS = 3;
 
 // Private fields are editable here but deliberately absent from `ProfileDetails`,
 // so they never appear on a profile.
-const privateFields = [{ key: 'ufid', label: 'UFID', icon: 'card-outline' }] as const;
+const privateFields = [
+  { key: 'ufid', label: 'UFID', icon: 'card-outline' },
+  { key: 'uf_email', label: 'UF email', icon: 'mail-outline' },
+  { key: 'gender', label: 'Gender', icon: 'person-circle-outline' },
+] as const;
 
 type ProfileField =
   (typeof academicFields)[number] | (typeof socialFields)[number] | (typeof privateFields)[number];
@@ -106,7 +114,7 @@ export function ProfileForm({
 
   const renderField = (field: ProfileField, card: string) => {
     const { key } = field;
-    const isSelect = key === 'majors' || key === 'minors';
+    const isSelect = key === 'majors' || key === 'minors' || key === 'gender';
     const selectValues = [draft[key]].flat().filter(Boolean);
     const selectDisplayText = selectValues.join(', ');
 
@@ -142,7 +150,11 @@ export function ProfileForm({
               numberOfLines={1}
             >
               {selectDisplayText ||
-                (key === 'majors' ? 'Tap to select major(s)' : 'Tap to select minor(s)')}
+                (key === 'majors'
+                  ? 'Tap to select major(s)'
+                  : key === 'minors'
+                    ? 'Tap to select minor(s)'
+                    : 'Not set')}
             </Text>
             <Ionicons
               name="chevron-down"
@@ -168,11 +180,13 @@ export function ProfileForm({
             maxLength={
               key === 'ufid'
                 ? UFID_LENGTH
-                : key === 'grad_time'
-                  ? 4
-                  : key === 'linkedin_url'
-                    ? 300
-                    : 100
+                : key === 'pronouns'
+                  ? 30
+                  : key === 'grad_time'
+                    ? 4
+                    : key === 'linkedin_url'
+                      ? 300
+                      : 100
             }
             autoCapitalize={key === 'full_name' ? 'words' : 'none'}
             autoCorrect={key === 'full_name'}
@@ -181,29 +195,39 @@ export function ProfileForm({
                 ? 'number-pad'
                 : key === 'linkedin_url'
                   ? 'url'
-                  : 'default'
+                  : key === 'uf_email'
+                    ? 'email-address'
+                    : 'default'
             }
             placeholder={
               key === 'full_name'
                 ? 'Full name'
-                : key === 'ufid'
-                  ? `${UFID_LENGTH}-digit UFID`
-                  : key === 'grad_time'
-                    ? 'e.g. 2028'
-                    : key === 'discord_handle'
-                      ? 'Discord handle'
-                      : key === 'instagram_handle'
-                        ? 'Instagram handle'
-                        : key === 'linkedin_url'
-                          ? 'linkedin.com/in/username'
-                          : undefined
+                : key === 'pronouns'
+                  ? 'e.g. she/her, they/them'
+                  : key === 'ufid'
+                    ? `${UFID_LENGTH}-digit UFID`
+                    : key === 'uf_email'
+                      ? 'gatorlink@ufl.edu'
+                      : key === 'grad_time'
+                        ? 'e.g. 2028'
+                        : key === 'discord_handle'
+                          ? 'Discord handle'
+                          : key === 'instagram_handle'
+                            ? 'Instagram handle'
+                            : key === 'linkedin_url'
+                              ? 'linkedin.com/in/username'
+                              : undefined
             }
             error={
               key === 'grad_time' &&
               draft.grad_time.trim().length === 4 &&
               !isValidGradYear(draft.grad_time)
                 ? INVALID_GRAD_YEAR_MESSAGE
-                : undefined
+                : key === 'uf_email' &&
+                    looksFinished(draft.uf_email) &&
+                    !isValidUfEmail(draft.uf_email)
+                  ? INVALID_UF_EMAIL_MESSAGE
+                  : undefined
             }
             containerStyle={styles.inputContainer}
             inputStyle={styles.input}
@@ -299,17 +323,26 @@ export function ProfileForm({
           <ProfileSelect
             key={selection}
             visible
-            label={selection === 'majors' ? 'Major' : 'Minor'}
-            values={draft[selection]}
-            options={subjects}
-            max={MAX_SUBJECTS}
+            label={selection === 'majors' ? 'Major' : selection === 'minors' ? 'Minor' : 'Gender'}
+            values={selection === 'gender' ? [draft.gender].filter(Boolean) : draft[selection]}
+            options={selection === 'gender' ? genderOptions : subjects}
+            max={selection === 'gender' ? 1 : MAX_SUBJECTS}
             onClose={() => setSelection(null)}
-            onChange={(values) => onChange(selection, values)}
+            onChange={(values) =>
+              selection === 'gender'
+                ? onChange('gender', values[0] ?? '')
+                : onChange(selection, values)
+            }
           />
         </ProfileModalSlot>
       )}
     </View>
   );
+}
+
+/** Only flag an email once it has a full domain, so typing isn't interrupted. */
+function looksFinished(email: string): boolean {
+  return /@[^@\s]+\.[a-z]{2,}$/i.test(email.trim());
 }
 
 const createStyles = (colors: Colors) =>

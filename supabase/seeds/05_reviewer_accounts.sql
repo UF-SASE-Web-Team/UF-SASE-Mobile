@@ -99,6 +99,7 @@ on conflict (provider_id, provider) do nothing;
 
 update public.profiles
 set full_name = 'Alice Gator',
+    pronouns = 'she/her',
     majors = array['Computer Science', 'Mathematics'],
     minors = array['Digital Arts and Sciences'],
     grad_time = '2029',
@@ -119,8 +120,8 @@ set majors = array['Mechanical Engineering'],
 where username = 'bob';
 
 -- Alice has finished onboarding. Bob has no UFID yet, so signing in as Bob shows onboarding.
-insert into public.profile_private (user_id, ufid)
-select id, '12345678' from public.profiles where username = 'alice'
+insert into public.profile_private (user_id, ufid, uf_email, gender)
+select id, '12345678', 'alice.reviewer@ufl.edu', 'Female' from public.profiles where username = 'alice'
 on conflict (user_id) do nothing;
 
 -- Sample moderation report so review queue isn't empty locally

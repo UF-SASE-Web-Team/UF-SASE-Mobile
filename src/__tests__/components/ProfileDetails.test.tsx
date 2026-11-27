@@ -8,6 +8,7 @@ import type { Profile } from '@/types/profiles';
 const mockProfile: Profile = {
   id: 'user-alice',
   full_name: 'Alice Gator',
+  pronouns: null,
   username: 'alice',
   role: 'member',
   avatar_url: 'sase-shark',

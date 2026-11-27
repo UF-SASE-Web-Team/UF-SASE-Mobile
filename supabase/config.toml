@@ -31,7 +31,8 @@ sql_paths = [
   "seeds/04_resources.sql",
   "seeds/05_reviewer_accounts.sql",
   "seeds/06_events.sql",
-  "seeds/07_check_ins.sql"
+  "seeds/07_check_ins.sql",
+  "seeds/08_officer_account.sql"
 ]
 
 [realtime]
@@ -153,3 +154,6 @@ enabled = true
 
 [experimental.pgdelta]
 enabled = true
+
+[functions.google-form-checkin]
+verify_jwt = false

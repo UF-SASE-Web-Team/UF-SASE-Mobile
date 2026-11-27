@@ -2,12 +2,20 @@ import { cleanup, render, screen, userEvent } from '@testing-library/react-nativ
 import { Button, Text, View } from 'react-native';
 import { ProfileProvider, useProfile } from '@/context/ProfileContext';
 import { useAuth } from '@/context/AuthContext';
-import { getProfile, getUfid, saveUfid, updateProfile } from '@/services/profiles';
+import {
+  getProfile,
+  getPrivateDetails,
+  getUfid,
+  saveUfEmail,
+  saveUfid,
+  updateProfile,
+} from '@/services/profiles';
 import type { ProfileWithPrograms } from '@/types/profiles';
 
 const mockProfile: ProfileWithPrograms = {
   id: 'user-alice',
   full_name: 'Alice Gator',
+  pronouns: null,
   username: 'alice',
   role: 'member',
   avatar_url: 'sase-shark',
@@ -26,10 +34,12 @@ const mockProfile: ProfileWithPrograms = {
 jest.mock('@/services/profiles');
 
 function ProfileConsumer() {
-  const { profile, error, isLoading, reload, save, onboarding } = useProfile();
+  const { profile, error, isLoading, reload, save, onboarding, ufEmail } = useProfile();
   return (
     <View>
       <Text testID="onboarding">{onboarding}</Text>
+      <Text testID="uf-email">{ufEmail ?? 'none'}</Text>
+      <Button title="Set UF email" onPress={() => save({ ufEmail: 'alice@ufl.edu' })} />
       <Button title="Set UFID" onPress={() => save({ ufid: '12345678' })} />
       <Text>{isLoading ? 'Loading profile' : (profile?.full_name ?? error ?? 'No profile')}</Text>
       <Text>{profile?.programNames.join(' | ')}</Text>
@@ -46,6 +56,23 @@ describe('Profile data shared across the profile flow', () => {
     (getProfile as jest.Mock).mockResolvedValue(mockProfile);
     (getUfid as jest.Mock).mockResolvedValue('12345678');
     (saveUfid as jest.Mock).mockImplementation(async (_userId: string, ufid: string) => ufid);
+    (getPrivateDetails as jest.Mock).mockResolvedValue({ ufEmail: null, gender: null });
+    (saveUfEmail as jest.Mock).mockImplementation(async (_userId: string, email: string) => email);
+  });
+
+  it('loads and saves the private UF email without touching the public profile', async () => {
+    await render(
+      <ProfileProvider>
+        <ProfileConsumer />
+      </ProfileProvider>,
+    );
+    await screen.findByText('Alice Gator');
+    expect(screen.getByTestId('uf-email')).toHaveTextContent('none');
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Set UF email' }));
+    expect(saveUfEmail).toHaveBeenCalledWith(mockProfile.id, 'alice@ufl.edu');
+    expect(saveUfid).not.toHaveBeenCalled();
+    expect(updateProfile).not.toHaveBeenCalled();
+    expect(await screen.findByText('alice@ufl.edu')).toBeTruthy();
   });
   afterEach(async () => {
     await cleanup();

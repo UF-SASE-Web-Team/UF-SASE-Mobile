@@ -28,7 +28,9 @@ export const unstable_settings = {
 function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
   const { isLoading, session, isRecovering } = useAuth();
   const { colors, isDark, isLoaded: isThemeLoaded } = useTheme();
-  const { onboarding } = useProfile();
+  const { onboarding, profile } = useProfile();
+  // The database enforces officer access too; this only hides the screens.
+  const isOfficer = profile?.role === 'officer';
 
   const isAuthenticated = !!session && !isRecovering;
   const isOnboarded = onboarding === 'complete';
@@ -88,6 +90,9 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
           <Stack.Screen name="profile" />
           <Stack.Screen name="points" />
           <Stack.Screen name="resources/freshman-faqs" />
+          <Stack.Protected guard={isOfficer}>
+            <Stack.Screen name="admin" />
+          </Stack.Protected>
         </Stack.Protected>
         <Stack.Protected guard={!isAuthenticated}>
           <Stack.Screen name="(auth)" />

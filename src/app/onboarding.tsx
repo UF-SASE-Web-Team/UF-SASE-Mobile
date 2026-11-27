@@ -49,6 +49,7 @@ function Onboarding({ profile, ufid }: { profile: ProfileWithPrograms; ufid: str
     error,
     nameError,
     ufidError,
+    ufEmailError,
     avatarPickerOpen,
     setAvatarPickerOpen,
     continueToPersonalize,
@@ -157,8 +158,22 @@ function Onboarding({ profile, ufid }: { profile: ProfileWithPrograms; ufid: str
                 icon="card-outline"
                 error={ufidError}
               />
+              <Input
+                accessibilityLabel="UF email"
+                placeholder="UF email (optional)"
+                value={draft.uf_email}
+                onChangeText={(text) => change('uf_email', text)}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="emailAddress"
+                maxLength={100}
+                editable={!busy}
+                icon="mail-outline"
+                error={ufEmailError}
+              />
               <Text variant="bodySm" style={styles.hint}>
-                Your UFID stays private. Other members never see it.
+                Your UFID and UF email stay private. Other members never see them.
               </Text>
             </View>
           </View>

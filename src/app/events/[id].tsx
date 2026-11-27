@@ -1,7 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, Animated, Pressable, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EventAboutSection } from '@/components/events/EventAboutSection';
 import { EventBackdropHero } from '@/components/events/EventBackdropHero';
@@ -13,7 +13,9 @@ import { EventDetailMeta } from '@/components/events/EventDetailMeta';
 import { EventFlyerViewer } from '@/components/events/EventFlyerViewer';
 import { EventLinksSection } from '@/components/events/EventLinksSection';
 import { BackButton } from '@/components/ui/BackButton';
+import { Button } from '@/components/ui/Button';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { useProfile } from '@/context/ProfileContext';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { useEventDetail } from '@/hooks/useEventDetail';
 import { radius, space, type Colors } from '@/theme';
@@ -23,6 +25,8 @@ export default function EventDetailScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const router = useRouter();
+  const isOfficer = useProfile().profile?.role === 'officer';
 
   const {
     event,
@@ -183,6 +187,18 @@ export default function EventDetailScreen() {
 
           <EventLinksSection links={event.links} style={styles.linksSection} />
           <EventContactsSection program={event.program} />
+
+          {isOfficer && (
+            <Button
+              variant="outline"
+              onPress={() =>
+                router.push({ pathname: '/admin/events/[id]', params: { id: event.id } })
+              }
+              style={styles.manageButton}
+            >
+              Manage Event
+            </Button>
+          )}
         </View>
       </Animated.ScrollView>
 
@@ -260,6 +276,9 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       paddingHorizontal: space['500'],
       paddingBottom: space['800'],
+    },
+    manageButton: {
+      marginTop: space['600'],
     },
     linksSection: {
       marginBottom: space['400'],

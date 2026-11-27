@@ -16,6 +16,7 @@ import { SegmentedControl, type SegmentedControlOption } from '@/components/ui/S
 import { Text } from '@/components/ui/Text';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { useEventCheckIn } from '@/hooks/useEventCheckIn';
+import { schoolYearLabel } from '@/lib/schoolYear';
 import { type Colors, borderWidth, iconSize, radius, space } from '@/theme';
 
 export interface EventCheckInModalProps {
@@ -58,10 +59,14 @@ export function EventCheckInModal({
     handleCheckInSubmit,
     handleBarcodeScanned,
     handleClose,
+    isCheckingAttendance,
+    needsAttendanceAnswer,
+    answerAttendance,
   } = useEventCheckIn({
     eventId,
     pointsValue,
     initialMode,
+    visible,
     onSuccess,
     onClose,
   });
@@ -89,117 +94,156 @@ export function EventCheckInModal({
             Event Check-in
           </Text>
 
-          {/* Segmented Control */}
-          <SegmentedControl
-            options={SEGMENT_TABS}
-            value={mode}
-            onChange={handleModeChange}
-            style={styles.segmentedControl}
-          />
-
-          {mode === 'qr' ? (
-            <View style={styles.scannerWrapper}>
-              <Text
-                variant="bodySm"
-                color={
-                  checkInError ? colors.surface.danger.primary : colors.content.onBase.secondary
-                }
-                style={styles.scannerPromptText}
-                numberOfLines={2}
-              >
-                {checkInError ?? 'Scan the QR code displayed.'}
+          {isCheckingAttendance ? (
+            <View style={styles.attendanceWrapper} testID="attendance-loading">
+              <ActivityIndicator size="small" color={colors.content.onBase.primary} />
+            </View>
+          ) : needsAttendanceAnswer ? (
+            <View style={styles.attendanceWrapper}>
+              <Text variant="bodyStrong" style={styles.attendanceQuestion}>
+                Have you attended a SASE event this school year ({schoolYearLabel()})?
               </Text>
-              <View style={styles.scannerContainer}>
-                {permission === null ? (
-                  <View style={styles.permissionPlaceholder}>
-                    <ActivityIndicator size="small" color={colors.content.onBase.primary} />
-                  </View>
-                ) : !permission.granted ? (
-                  <View style={styles.permissionPlaceholder}>
-                    <Ionicons
-                      name="camera-outline"
-                      size={iconSize.lg}
-                      color={colors.content.onBase.secondary}
-                    />
-                    <Text
-                      variant="bodySm"
-                      color={colors.content.onBase.secondary}
-                      style={styles.permissionText}
-                    >
-                      Camera permission is required to scan QR codes.
-                    </Text>
-                    <Button
-                      size="sm"
-                      onPress={requestPermission}
-                      accessibilityLabel="Enable Camera"
-                    >
-                      Enable Camera
-                    </Button>
-                  </View>
-                ) : (
-                  <View style={styles.cameraViewport}>
-                    <CameraView
-                      style={StyleSheet.absoluteFill}
-                      facing="back"
-                      barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-                      onBarcodeScanned={isSubmitting ? undefined : handleBarcodeScanned}
-                      testID="camera-view"
-                    />
-                    <View style={styles.reticleOverlay} pointerEvents="none">
-                      <View style={styles.reticleBox} />
-                    </View>
-                    {isSubmitting && (
-                      <View style={styles.submittingOverlay}>
-                        <ActivityIndicator size="large" color={colors.content.onMedia.primary} />
-                        <Text
-                          variant="bodySmStrong"
-                          color={colors.content.onMedia.primary}
-                          style={styles.submittingText}
-                        >
-                          Checking in...
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                )}
+              <View style={styles.attendanceActions} accessibilityRole="radiogroup">
+                <Button
+                  variant="outline"
+                  onPress={() => answerAttendance(true)}
+                  style={styles.attendanceButton}
+                  accessibilityRole="radio"
+                  accessibilityLabel="Yes"
+                  accessibilityState={{ checked: false }}
+                >
+                  Yes
+                </Button>
+                <Button
+                  variant="outline"
+                  onPress={() => answerAttendance(false)}
+                  style={styles.attendanceButton}
+                  accessibilityRole="radio"
+                  accessibilityLabel="No"
+                  accessibilityState={{ checked: false }}
+                >
+                  No
+                </Button>
               </View>
             </View>
           ) : (
-            <View style={styles.modalInputWrapper}>
-              <Text
-                variant="bodySm"
-                color={colors.content.onBase.secondary}
-                style={styles.codePromptText}
-              >
-                Enter the 6-digit code provided.
-              </Text>
-              <SixDigitInput
-                value={checkInCode}
-                onChangeText={(text) => {
-                  setCheckInCode(text);
-                  setCheckInError(null);
-                }}
-                onComplete={handleCheckInSubmit}
-                disabled={isSubmitting}
+            <>
+              {/* Segmented Control */}
+              <SegmentedControl
+                options={SEGMENT_TABS}
+                value={mode}
+                onChange={handleModeChange}
+                style={styles.segmentedControl}
               />
-              {isSubmitting && (
-                <View style={styles.submittingStatusRow}>
-                  <ActivityIndicator size="small" color={colors.surface.saseBlue.primary} />
-                  <Text variant="bodySmStrong" color={colors.content.onBase.secondary}>
-                    Checking in...
+
+              {mode === 'qr' ? (
+                <View style={styles.scannerWrapper}>
+                  <Text
+                    variant="bodySm"
+                    color={
+                      checkInError ? colors.surface.danger.primary : colors.content.onBase.secondary
+                    }
+                    style={styles.scannerPromptText}
+                    numberOfLines={2}
+                  >
+                    {checkInError ?? 'Scan the QR code displayed.'}
                   </Text>
+                  <View style={styles.scannerContainer}>
+                    {permission === null ? (
+                      <View style={styles.permissionPlaceholder}>
+                        <ActivityIndicator size="small" color={colors.content.onBase.primary} />
+                      </View>
+                    ) : !permission.granted ? (
+                      <View style={styles.permissionPlaceholder}>
+                        <Ionicons
+                          name="camera-outline"
+                          size={iconSize.lg}
+                          color={colors.content.onBase.secondary}
+                        />
+                        <Text
+                          variant="bodySm"
+                          color={colors.content.onBase.secondary}
+                          style={styles.permissionText}
+                        >
+                          Camera permission is required to scan QR codes.
+                        </Text>
+                        <Button
+                          size="sm"
+                          onPress={requestPermission}
+                          accessibilityLabel="Enable Camera"
+                        >
+                          Enable Camera
+                        </Button>
+                      </View>
+                    ) : (
+                      <View style={styles.cameraViewport}>
+                        <CameraView
+                          style={StyleSheet.absoluteFill}
+                          facing="back"
+                          barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+                          onBarcodeScanned={isSubmitting ? undefined : handleBarcodeScanned}
+                          testID="camera-view"
+                        />
+                        <View style={styles.reticleOverlay} pointerEvents="none">
+                          <View style={styles.reticleBox} />
+                        </View>
+                        {isSubmitting && (
+                          <View style={styles.submittingOverlay}>
+                            <ActivityIndicator
+                              size="large"
+                              color={colors.content.onMedia.primary}
+                            />
+                            <Text
+                              variant="bodySmStrong"
+                              color={colors.content.onMedia.primary}
+                              style={styles.submittingText}
+                            >
+                              Checking in...
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
+                  </View>
+                </View>
+              ) : (
+                <View style={styles.modalInputWrapper}>
+                  <Text
+                    variant="bodySm"
+                    color={colors.content.onBase.secondary}
+                    style={styles.codePromptText}
+                  >
+                    Enter the 6-digit code provided.
+                  </Text>
+                  <SixDigitInput
+                    value={checkInCode}
+                    onChangeText={(text) => {
+                      setCheckInCode(text);
+                      setCheckInError(null);
+                    }}
+                    onComplete={handleCheckInSubmit}
+                    disabled={isSubmitting}
+                  />
+                  {isSubmitting && (
+                    <View style={styles.submittingStatusRow}>
+                      <ActivityIndicator size="small" color={colors.surface.saseBlue.primary} />
+                      <Text variant="bodySmStrong" color={colors.content.onBase.secondary}>
+                        Checking in...
+                      </Text>
+                    </View>
+                  )}
+                  {Boolean(checkInError) && (
+                    <Text
+                      variant="bodySm"
+                      color={colors.surface.danger.primary}
+                      style={styles.errorText}
+                    >
+                      {checkInError}
+                    </Text>
+                  )}
                 </View>
               )}
-              {Boolean(checkInError) && (
-                <Text
-                  variant="bodySm"
-                  color={colors.surface.danger.primary}
-                  style={styles.errorText}
-                >
-                  {checkInError}
-                </Text>
-              )}
-            </View>
+            </>
           )}
 
           <View style={styles.modalActions}>
@@ -328,6 +372,25 @@ const createStyles = (colors: Colors) =>
     },
     errorText: {
       textAlign: 'center',
+    },
+    attendanceWrapper: {
+      width: '100%',
+      maxWidth: 300,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: space['300'],
+      gap: space['300'],
+    },
+    attendanceQuestion: {
+      textAlign: 'center',
+    },
+    attendanceActions: {
+      flexDirection: 'row',
+      gap: space['200'],
+      width: '100%',
+    },
+    attendanceButton: {
+      flex: 1,
     },
     modalActions: {
       flexDirection: 'row',

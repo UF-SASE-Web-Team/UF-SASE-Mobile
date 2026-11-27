@@ -26,6 +26,7 @@ export async function updateProfile(userId: string, changes: ProfileChanges): Pr
     .from('profiles')
     .update({
       full_name: changes.full_name,
+      pronouns: changes.pronouns,
       majors: changes.majors,
       minors: changes.minors,
       grad_time: changes.grad_time,
@@ -79,6 +80,53 @@ export async function saveUfid(userId: string, ufid: string): Promise<string> {
     throw error;
   }
   return data.ufid;
+}
+
+/**
+ * The signed-in member's own UF email and gender, used to fill out the SASE
+ * Google check-in form. Both are private, like the UFID.
+ */
+export async function getPrivateDetails(
+  userId: string,
+): Promise<{ ufEmail: string | null; gender: string | null }> {
+  const { data, error } = await supabase
+    .from('profile_private')
+    .select('uf_email, gender')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return { ufEmail: data?.uf_email ?? null, gender: data?.gender ?? null };
+}
+
+/** Saves the private gender. Blank clears it, so the form answers "Prefer not to say". */
+export async function saveGender(userId: string, gender: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('profile_private')
+    .update({ gender: gender.trim() || null })
+    .eq('user_id', userId)
+    .select('gender')
+    .single();
+
+  if (error) throw error;
+  return data.gender;
+}
+
+/** Saves the UF email. The member must already have a UFID (set during onboarding). */
+export async function saveUfEmail(userId: string, ufEmail: string): Promise<string | null> {
+  const value = ufEmail.trim().toLowerCase() || null;
+  const { data, error } = await supabase
+    .from('profile_private')
+    .update({ uf_email: value })
+    .eq('user_id', userId)
+    .select('uf_email')
+    .single();
+
+  if (error) {
+    if (error.code === '23514') throw new Error('Use your @ufl.edu email address.');
+    throw error;
+  }
+  return data.uf_email;
 }
 
 export async function sendPasswordResetEmail(email: string): Promise<void> {

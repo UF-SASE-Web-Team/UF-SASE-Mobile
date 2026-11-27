@@ -237,7 +237,12 @@ describe('EventsPage', () => {
     await user.type(input, '123456');
 
     await waitFor(() => {
-      expect(eventsService.checkInToEvent).toHaveBeenCalledWith('now-1', '123456');
+      expect(eventsService.checkInToEvent).toHaveBeenCalledWith(
+        'now-1',
+        '123456',
+        'code',
+        undefined,
+      );
     });
   });
 

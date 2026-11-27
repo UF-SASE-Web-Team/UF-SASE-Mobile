@@ -1,6 +1,7 @@
 import { Database } from '@/types/supabase';
 
-export type EventRow = Database['public']['Tables']['events']['Row'];
+/** An event as members can read it: the check-in code stays in the database. */
+export type EventRow = Omit<Database['public']['Tables']['events']['Row'], 'checkin_code'>;
 export type EventType = Database['public']['Enums']['event_type'];
 export type EventRsvpRow = Database['public']['Tables']['event_rsvps']['Row'];
 

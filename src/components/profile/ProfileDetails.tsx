@@ -38,6 +38,7 @@ export function ProfileCard({
 
 export const academicFields = [
   { key: 'full_name', label: 'Full Name', icon: 'person-outline' },
+  { key: 'pronouns', label: 'Pronouns', icon: 'chatbubble-ellipses-outline' },
   { key: 'majors', label: 'Major', icon: 'school-outline' },
   { key: 'minors', label: 'Minor', icon: 'book-outline' },
   { key: 'grad_time', label: 'Grad Year', icon: 'calendar-outline' },
@@ -201,7 +202,12 @@ export function ProfileDetails({ profile }: { profile: Profile }) {
 
   return (
     <View style={styles.details}>
-      <ProfileCard>{academicFields.map(renderAcademicRow)}</ProfileCard>
+      <ProfileCard>
+        {academicFields
+          // Pronouns are optional; skip the row instead of showing "Not set".
+          .filter((field) => field.key !== 'pronouns' || profile.pronouns?.trim())
+          .map(renderAcademicRow)}
+      </ProfileCard>
       {profile.bio ? (
         <ProfileCard>
           <Text variant="body" style={styles.bio} selectable>

@@ -5,6 +5,7 @@ import { usePreventRemove } from 'expo-router/react-navigation';
 import type { ProfileDraft } from '@/components/profile/ProfileForm';
 import { getProfileError, useProfile } from '@/context/ProfileContext';
 import { isValidUfid } from '@/lib/ufid';
+import { INVALID_UF_EMAIL_MESSAGE, isValidUfEmail, normalizeUfEmail } from '@/lib/ufEmail';
 import { INVALID_GRAD_YEAR_MESSAGE, isValidGradYear } from '@/lib/gradYear';
 import { normalizeLinkedInUrl } from '@/lib/linkedin';
 import type { ProfileEdits, ProfileWithPrograms } from '@/types/profiles';
@@ -12,11 +13,19 @@ import type { ProfileEdits, ProfileWithPrograms } from '@/types/profiles';
 export interface UseProfileFormProps {
   profile: ProfileWithPrograms;
   ufid: string | null;
+  ufEmail?: string | null;
+  gender?: string | null;
 }
 
-export function createDraft(profile: ProfileWithPrograms, ufid: string | null): ProfileDraft {
+export function createDraft(
+  profile: ProfileWithPrograms,
+  ufid: string | null,
+  ufEmail: string | null = null,
+  gender: string | null = null,
+): ProfileDraft {
   return {
     full_name: profile.full_name,
+    pronouns: profile.pronouns ?? '',
     majors: profile.majors,
     minors: profile.minors,
     grad_time: profile.grad_time ?? '',
@@ -26,11 +35,18 @@ export function createDraft(profile: ProfileWithPrograms, ufid: string | null): 
     bio: profile.bio ?? '',
     avatar_url: profile.avatar_url ?? '',
     ufid: ufid ?? '',
+    uf_email: ufEmail ?? '',
+    gender: gender ?? '',
   };
 }
 
-export function useProfileForm({ profile, ufid }: UseProfileFormProps) {
-  const [initialDraft] = useState(() => createDraft(profile, ufid));
+export function useProfileForm({
+  profile,
+  ufid,
+  ufEmail = null,
+  gender = null,
+}: UseProfileFormProps) {
+  const [initialDraft] = useState(() => createDraft(profile, ufid, ufEmail, gender));
   const [draft, setDraft] = useState(initialDraft);
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -72,6 +88,10 @@ export function useProfileForm({ profile, ufid }: UseProfileFormProps) {
       setError('Enter your 8-digit UFID.');
       return;
     }
+    if (draft.uf_email.trim() && !isValidUfEmail(draft.uf_email)) {
+      setError(INVALID_UF_EMAIL_MESSAGE);
+      return;
+    }
     if (draft.grad_time.trim()) {
       if (!isValidGradYear(draft.grad_time)) {
         setError(INVALID_GRAD_YEAR_MESSAGE);
@@ -88,7 +108,7 @@ export function useProfileForm({ profile, ufid }: UseProfileFormProps) {
     }
     setSaving(true);
     setError(null);
-    const { ufid: draftUfid, ...fields } = draft;
+    const { ufid: draftUfid, uf_email: draftUfEmail, gender: draftGender, ...fields } = draft;
     const changes: ProfileEdits = Object.fromEntries(
       Object.entries(fields).map(([key, value]) => [
         key,
@@ -100,6 +120,10 @@ export function useProfileForm({ profile, ufid }: UseProfileFormProps) {
       changes.linkedin_url = normalizedLinkedIn;
     }
     if (draftUfid !== initialDraft.ufid) changes.ufid = draftUfid;
+    if (normalizeUfEmail(draftUfEmail) !== normalizeUfEmail(initialDraft.uf_email)) {
+      changes.ufEmail = normalizeUfEmail(draftUfEmail);
+    }
+    if (draftGender.trim() !== initialDraft.gender.trim()) changes.gender = draftGender.trim();
     try {
       await save(changes);
       setSaved(true);
